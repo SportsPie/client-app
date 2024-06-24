@@ -1,0 +1,5 @@
+export const ACADEMY_MEMBER_TYPE = {
+  NO_MEMBER: 'NO_MEMBER',
+  MEMBER: 'MEMBER',
+  ADMIN: 'ADMIN',
+};

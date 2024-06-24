@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">Sport-Pie</string>
+    <string name="kakao_app_key">a4b7e6ddd16c1e53cc2923c1143f4341</string>
+    <string name="facebook_app_id">930669571007063</string>
+    <string name="fb_login_protocol_scheme">fb930669571007063</string>
+    <string name="facebook_client_token">417af243597612469a8881b790666c75</string>
+</resources>

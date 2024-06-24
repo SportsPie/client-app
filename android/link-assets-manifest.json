@@ -1,0 +1,37 @@
+{
+  "migIndex": 1,
+  "data": [
+    {
+      "path": "src/assets/fonts/Pretendard-Bold.ttf",
+      "sha1": "ce90f236c12bd6c335e780b3df1dc83e520d4649"
+    },
+    {
+      "path": "src/assets/fonts/Pretendard-Medium.ttf",
+      "sha1": "d20f40000daf0f1ab4bc461938c1ed412b611be3"
+    },
+    {
+      "path": "src/assets/fonts/Pretendard-Regular.ttf",
+      "sha1": "4b55f6be3f665d6d62081480d475c9fb3f2bea92"
+    },
+    {
+      "path": "src/assets/fonts/Pretendard-SemiBold.ttf",
+      "sha1": "17f11e7a57ba21e9d9a97a3bdb5637c70c0c6037"
+    },
+    {
+      "path": "src/assets/fonts/RobotoCondensed-Bold.ttf",
+      "sha1": "585fa2d1e256a697400ca52fc1d4988c5252c37c"
+    },
+    {
+      "path": "src/assets/fonts/RobotoCondensed-Medium.ttf",
+      "sha1": "c02a42f87357385f705de05763e4745694453220"
+    },
+    {
+      "path": "src/assets/fonts/RobotoCondensed-Regular.ttf",
+      "sha1": "6e10f28cd359dec89ac44767b2e61a888db70cd0"
+    },
+    {
+      "path": "src/assets/fonts/RobotoCondensed-SemiBold.ttf",
+      "sha1": "d6c03db3daf7f6e3fa90ba420edf8220ac6a79b7"
+    }
+  ]
+}

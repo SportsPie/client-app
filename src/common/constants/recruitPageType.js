@@ -1,0 +1,5 @@
+export const RECRUIT_PAGE_TYPE = {
+  ALL: 'ALL',
+  ACADEMY: 'ACADEMY',
+  MANAGEMENT: 'MANAGEMENT',
+};

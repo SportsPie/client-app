@@ -1,0 +1,181 @@
+diff --git a/node_modules/react-native-calendars/src/calendar/day/dot/style.js b/node_modules/react-native-calendars/src/calendar/day/dot/style.js
+index 69802cc..861839f 100644
+--- a/node_modules/react-native-calendars/src/calendar/day/dot/style.js
++++ b/node_modules/react-native-calendars/src/calendar/day/dot/style.js
+@@ -4,11 +4,11 @@ export default function styleConstructor(theme = {}) {
+     const appStyle = { ...defaultStyle, ...theme };
+     return StyleSheet.create({
+         dot: {
+-            width: 4,
+-            height: 4,
+-            marginTop: 1,
++            width: 6,
++            height: 6,
++            marginTop: 12,
+             marginHorizontal: 1,
+-            borderRadius: 2,
++            borderRadius: 4,
+             opacity: 0,
+             ...appStyle.dotStyle
+         },
+diff --git a/node_modules/react-native-calendars/src/expandableCalendar/WeekCalendar/new.d.ts b/node_modules/react-native-calendars/src/expandableCalendar/WeekCalendar/new.d.ts
+index 9598926..4e82f32 100644
+--- a/node_modules/react-native-calendars/src/expandableCalendar/WeekCalendar/new.d.ts
++++ b/node_modules/react-native-calendars/src/expandableCalendar/WeekCalendar/new.d.ts
+@@ -3,6 +3,8 @@ import { CalendarListProps } from '../../calendar-list';
+ export interface WeekCalendarProps extends CalendarListProps {
+     /** whether to have shadow/elevation for the calendar */
+     allowShadow?: boolean;
++    /** whether to enable scrolling of the weeks */
++    scrollEnabled?: boolean;
+ }
+ declare const WeekCalendar: (props: WeekCalendarProps) => React.JSX.Element;
+ export default WeekCalendar;
+diff --git a/node_modules/react-native-calendars/src/expandableCalendar/WeekCalendar/new.js b/node_modules/react-native-calendars/src/expandableCalendar/WeekCalendar/new.js
+index b7e3a65..16939db 100644
+--- a/node_modules/react-native-calendars/src/expandableCalendar/WeekCalendar/new.js
++++ b/node_modules/react-native-calendars/src/expandableCalendar/WeekCalendar/new.js
+@@ -11,7 +11,7 @@ import { extractCalendarProps } from '../../componentUpdater';
+ import constants from '../../commons/constants';
+ import { UpdateSources } from '../commons';
+ import { sameWeek } from '../../dateutils';
+-const NUMBER_OF_PAGES = 50;
++const NUMBER_OF_PAGES = 500;
+ const DEFAULT_PAGE_HEIGHT = 48;
+ const WeekCalendar = (props) => {
+     const { current, firstDay = 0, markedDates, allowShadow = true, hideDayNames, theme, calendarWidth, calendarHeight = DEFAULT_PAGE_HEIGHT, testID } = props;
+@@ -61,7 +61,8 @@ const WeekCalendar = (props) => {
+         </View>)}
+       <View>
+         <InfiniteList key="week-list" isHorizontal ref={list} data={items} renderItem={renderItem} reloadPages={reloadPages} onReachNearEdgeThreshold={Math.round(NUMBER_OF_PAGES * 0.4)} extendedState={extraData} style={style.current.container} initialPageIndex={NUMBER_OF_PAGES} pageHeight={calendarHeight} pageWidth={containerWidth} onPageChange={onPageChange} scrollViewProps={{
+-            showsHorizontalScrollIndicator: false
++            showsHorizontalScrollIndicator: false,
++            scrollEnabled: props.scrollEnabled
+         }}/>
+       </View>
+     </View>);
+diff --git a/node_modules/react-native-calendars/src/expandableCalendar/index.d.ts b/node_modules/react-native-calendars/src/expandableCalendar/index.d.ts
+index e6e2bff..7db189f 100644
+--- a/node_modules/react-native-calendars/src/expandableCalendar/index.d.ts
++++ b/node_modules/react-native-calendars/src/expandableCalendar/index.d.ts
+@@ -49,6 +49,7 @@ declare const ExpandableCalendar: {
+         openThreshold: number;
+         closeThreshold: number;
+         closeOnDayPress: boolean;
++        scrollEnabled?: boolean;
+     };
+     positions: typeof Positions;
+ };
+diff --git a/node_modules/react-native-calendars/src/expandableCalendar/index.js b/node_modules/react-native-calendars/src/expandableCalendar/index.js
+index 4fb12b0..0097786 100644
+--- a/node_modules/react-native-calendars/src/expandableCalendar/index.js
++++ b/node_modules/react-native-calendars/src/expandableCalendar/index.js
+@@ -21,12 +21,12 @@ export var Positions;
+     Positions["CLOSED"] = "closed";
+     Positions["OPEN"] = "open";
+ })(Positions || (Positions = {}));
+-const SPEED = 20;
++const SPEED = 1200;
+ const BOUNCINESS = 6;
+-const CLOSED_HEIGHT = 120; // header + 1 week
++const CLOSED_HEIGHT = 100; // header + 1 week
+ const WEEK_HEIGHT = 46;
+ const DAY_NAMES_PADDING = 24;
+-const PAN_GESTURE_THRESHOLD = 30;
++const PAN_GESTURE_THRESHOLD = 20;
+ const LEFT_ARROW = require('../calendar/img/previous.png');
+ const RIGHT_ARROW = require('../calendar/img/next.png');
+ const knobHitSlop = { left: 10, right: 10, top: 10, bottom: 10 };
+@@ -55,7 +55,7 @@ const ExpandableCalendar = (props) => {
+     const { date, setDate, numberOfDays, timelineLeftInset } = useContext(Context);
+     const { 
+     /** ExpandableCalendar props */
+-    initialPosition = Positions.CLOSED, onCalendarToggled, disablePan, hideKnob = numberOfDays && numberOfDays > 1, leftArrowImageSource = LEFT_ARROW, rightArrowImageSource = RIGHT_ARROW, allowShadow = true, disableWeekScroll, openThreshold = PAN_GESTURE_THRESHOLD, closeThreshold = PAN_GESTURE_THRESHOLD, closeOnDayPress = true, 
++    initialPosition = Positions.CLOSED, onCalendarToggled, disablePan, hideKnob = numberOfDays && numberOfDays > 1, leftArrowImageSource = LEFT_ARROW, rightArrowImageSource = RIGHT_ARROW, allowShadow = true, disableWeekScroll = ture, openThreshold = PAN_GESTURE_THRESHOLD, closeThreshold = PAN_GESTURE_THRESHOLD, closeOnDayPress = true,
+     /** CalendarList props */
+     horizontal = true, calendarStyle, theme, style: propsStyle, firstDay = 0, onDayPress, hideArrows, onPressArrowLeft, onPressArrowRight, renderArrow, testID, ...others } = props;
+     const [screenReaderEnabled, setScreenReaderEnabled] = useState(false);
+@@ -153,7 +153,7 @@ const ExpandableCalendar = (props) => {
+         return [style.current.header, { height: HEADER_HEIGHT + 10, top: headerDeltaY.current }];
+     }, [headerDeltaY.current]);
+     const weekCalendarStyle = useMemo(() => {
+-        return [style.current.weekContainer, isOpen ? style.current.hidden : style.current.visible];
++        return [style.current.weekContainer, isOpen ? style.current.hidden : style.current.visible, { top: 54 }];
+     }, [isOpen]);
+     const containerStyle = useMemo(() => {
+         return [allowShadow && style.current.containerShadow, propsStyle];
+@@ -316,12 +316,14 @@ const ExpandableCalendar = (props) => {
+     /** Events */
+     const _onPressArrowLeft = useCallback((method, month) => {
+         onPressArrowLeft?.(method, month);
+-        scrollPage(false);
+-    }, [onPressArrowLeft, scrollPage]);
++        // scrollPage(false);
++    }, [onPressArrowLeft]);
++    // }, [onPressArrowLeft, scrollPage]);
+     const _onPressArrowRight = useCallback((method, month) => {
+         onPressArrowRight?.(method, month);
+-        scrollPage(true);
+-    }, [onPressArrowRight, scrollPage]);
++        // scrollPage(true);
++    }, [onPressArrowRight]);
++    // }, [onPressArrowRight, scrollPage]);
+     const _onDayPress = useCallback((value) => {
+         if (numberOfDaysCondition) {
+             setDate?.(value.dateString, UpdateSources.DAY_PRESS);
+@@ -390,20 +392,20 @@ const ExpandableCalendar = (props) => {
+     const renderWeekCalendar = () => {
+         const WeekComponent = disableWeekScroll ? Week : WeekCalendar;
+         return (<Animated.View ref={weekCalendarWrapper} style={weekCalendarStyle} pointerEvents={isOpen ? 'none' : 'auto'}>
+-        <WeekComponent testID={`${testID}.weekCalendar`} firstDay={firstDay} {...others} allowShadow={disableWeekScroll ? undefined : false} current={disableWeekScroll ? date : undefined} theme={themeObject} style={calendarStyle} hideDayNames={true} onDayPress={_onDayPress} accessibilityElementsHidden // iOS
++        <WeekComponent testID={`${testID}.weekCalendar`} scrollEnabled={false} firstDay={firstDay} {...others} allowShadow={disableWeekScroll ? undefined : false} current={disableWeekScroll ? date : undefined} theme={themeObject} style={calendarStyle} hideDayNames={true} onDayPress={_onDayPress} accessibilityElementsHidden // iOS
+          importantForAccessibility={'no-hide-descendants'} // Android
+         />
+       </Animated.View>);
+     };
+     const renderCalendarList = () => {
+-        return (<CalendarList testID={`${testID}.calendarList`} horizontal={horizontal} firstDay={firstDay} calendarStyle={calendarStyle} {...others} current={date} theme={themeObject} ref={calendarList} onDayPress={_onDayPress} onVisibleMonthsChange={onVisibleMonthsChange} pagingEnabled scrollEnabled={isOpen} hideArrows={shouldHideArrows} onPressArrowLeft={_onPressArrowLeft} onPressArrowRight={_onPressArrowRight} hideExtraDays={!horizontal && isOpen} renderArrow={_renderArrow} staticHeader numberOfDays={numberOfDays} headerStyle={_headerStyle} timelineLeftInset={timelineLeftInset} context={useContext(Context)}/>);
++        return (<CalendarList testID={`${testID}.calendarList`} horizontal={horizontal} firstDay={firstDay} calendarStyle={calendarStyle} {...others} current={date} theme={themeObject} ref={calendarList} onDayPress={_onDayPress} onVisibleMonthsChange={onVisibleMonthsChange} pagingEnabled scrollEnabled={false} hideArrows={shouldHideArrows} onPressArrowLeft={_onPressArrowLeft} onPressArrowRight={_onPressArrowRight} hideExtraDays={!horizontal && isOpen} renderArrow={_renderArrow} staticHeader numberOfDays={numberOfDays} headerStyle={_headerStyle} timelineLeftInset={timelineLeftInset} context={useContext(Context)}/>);
+     };
+     return (<View testID={testID} style={containerStyle}>
+       {screenReaderEnabled ? (<Calendar testID={`${testID}.calendarAccessible`} {...others} theme={themeObject} onDayPress={_onDayPress} hideExtraDays renderArrow={_renderArrow}/>) : (<Animated.View testID={`${testID}.expandableContainer`} ref={wrapper} style={wrapperStyle} {...panResponder.panHandlers}>
+           {renderCalendarList()}
+           {renderWeekCalendar()}
+           {!hideKnob && renderKnob()}
+-          {!horizontal && renderAnimatedHeader()}
++          {/*{!horizontal && renderAnimatedHeader()}*/}
+         </Animated.View>)}
+     </View>);
+ };
+diff --git a/node_modules/react-native-calendars/src/expandableCalendar/style.js b/node_modules/react-native-calendars/src/expandableCalendar/style.js
+index 775ff1c..280df76 100644
+--- a/node_modules/react-native-calendars/src/expandableCalendar/style.js
++++ b/node_modules/react-native-calendars/src/expandableCalendar/style.js
+@@ -73,7 +73,7 @@ export default function styleConstructor(theme = {}) {
+         },
+         weekDayNames: {
+             flexDirection: 'row',
+-            justifyContent: 'space-between'
++            justifyContent: 'space-between',
+         },
+         dayHeader: {
+             width: 32,
+@@ -99,14 +99,14 @@ export default function styleConstructor(theme = {}) {
+             opacity: 1
+         },
+         weekCalendar: {
+-            marginTop: 12,
+-            marginBottom: -2
++            marginTop: 15,
++            marginBottom: 3
+         },
+         week: {
+             marginTop: 7,
+             marginBottom: 7,
+-            paddingRight: 15,
+-            paddingLeft: 15,
++            paddingRight: 5,
++            paddingLeft: 5,
+             flexDirection: 'row',
+             justifyContent: 'space-around'
+         },

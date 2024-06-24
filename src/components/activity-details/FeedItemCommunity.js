@@ -1,0 +1,150 @@
+import moment from 'moment';
+import React, { memo, useState } from 'react';
+import {
+  Image,
+  Modal,
+  Pressable,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import { SPSvgs } from '../../assets/svg';
+import { COLORS } from '../../styles/colors';
+import fontStyles from '../../styles/fontStyles';
+import NavigationService from '../../navigation/NavigationService';
+import { navName } from '../../common/constants/navName';
+import SPIcons from '../../assets/icon';
+import SPMoreModal, {
+  MODAL_MORE_BUTTONS,
+  MODAL_MORE_TYPE,
+} from '../SPMoreModal';
+import { IS_YN } from '../../common/constants/isYN';
+
+function FeedItem({ item }) {
+  const [modalShow, setModalShow] = useState(false);
+  const [deleteGroupModalShow, setDeleteGroupModalShow] = useState(false);
+  const [editGroupModalShow, setEditGroupModalShow] = useState(false);
+  const [isMyFeed, setIsMyFeed] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [changeEvent, setChangeEvent] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedItem, setSelectedItem] = useState({});
+  const [isAdminFeed, setIsAdminFeed] = useState(false);
+
+  const openModal = modalItem => {
+    setIsMyFeed(true);
+    setIsAdminFeed(item.isAcademyCreator || item.isAcademyAdmin);
+    setSelectedItem(modalItem);
+    setModalVisible(true);
+  };
+
+  const closeModal = () => {
+    setModalVisible(false);
+  };
+
+  return (
+    <View style={styles.container}>
+      <Pressable
+        onPress={() => {
+          NavigationService.navigate(navName.academyCommunity, {
+            academyIdx: item.academyIdx,
+            userIdx: item.userIdx,
+          });
+        }}
+        style={{ borderRadius: 12 }}>
+        <View style={styles.communityFrame}>
+          <Text
+            style={[
+              fontStyles.fontSize12_Semibold,
+              {
+                color: COLORS.labelAlternative,
+                letterSpacing: 0.3,
+              },
+            ]}>
+            {item?.comment}
+          </Text>
+          <Text
+            style={[
+              fontStyles.fontSize11_Regular,
+              {
+                color: COLORS.labelAlternative,
+                letterSpacing: 0.3,
+              },
+            ]}>
+            {moment(item?.regDate).format('YYYY.MM.DD')}
+          </Text>
+        </View>
+
+        <Text
+          numberOfLines={3}
+          style={[
+            fontStyles.fontSize14_Medium,
+            {
+              lineHeight: 22,
+              color: COLORS.labelNormal,
+              letterSpacing: 0.2,
+            },
+          ]}>
+          {item?.contents}
+        </Text>
+      </Pressable>
+
+      <View style={styles.communityIcon}>
+        <SPMoreModal
+          visible={modalVisible}
+          onClose={closeModal}
+          type={MODAL_MORE_TYPE.FEED}
+          idx={selectedItem?.feedIdx}
+          onConfirm={() => {
+            setChangeEvent(prev => !prev);
+          }}
+          memberButtons={
+            isMyFeed
+              ? [MODAL_MORE_BUTTONS.EDIT, MODAL_MORE_BUTTONS.REMOVE]
+              : [MODAL_MORE_BUTTONS.REPORT]
+          }
+        />
+
+        <Pressable
+          style={[
+            styles.iconWrapper,
+            {
+              marginLeft: 'auto',
+            },
+          ]}
+          onPress={() => {
+            openModal(item);
+          }}>
+          <SPSvgs.EllipsesVertical width={20} height={20} />
+        </Pressable>
+      </View>
+    </View>
+  );
+}
+
+export default memo(FeedItem);
+
+const styles = StyleSheet.create({
+  container: {
+    paddingVertical: 24,
+    paddingHorizontal: 16,
+    rowGap: 8,
+    backgroundColor: COLORS.white,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.lineBorder,
+  },
+  communityFrame: {
+    rowGap: 4,
+  },
+  communityIcon: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    columnGap: 16,
+  },
+  iconWrapper: {
+    flexDirection: 'row',
+    columnGap: 4,
+    alignItems: 'center',
+  },
+});

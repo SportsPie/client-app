@@ -1,0 +1,264 @@
+<manifest xmlns:tools="http://schemas.android.com/tools"
+    package="com.faentasium.footballcash"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- 카메라 없어도 엡 실행 가능 -->
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+
+    <!-- 전면 카메라 없더라도 앱 실행 가능 -->
+    <uses-feature android:name="android.hardware.camera.front" android:required="false" />
+
+    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
+
+    <!-- 앱이 인터넷을 사용할 수 있는 권한을 요청 -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <!-- 앱이 기기가 슬립 모드로 전환된 후에도 CPU를 계속 사용할 수 있는 권한을 요청 -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+
+    <!-- 앱이 알림을 게시할 수 있는 권한을 요청 -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <!-- 앱이 C2D 메시지를 받을 수 있는 권한을 요청 -->
+    <permission
+        android:name="${applicationId}.permission.C2D_MESSAGE"
+        android:protectionLevel="signature" />
+    <uses-permission android:name="${applicationId}.permission.C2D_MESSAGE" />
+
+    <!-- 앱이 GCM을 통해 메시지를 수신할 수 있는 권한을 요청 -->
+    <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
+
+    <!-- 앱이 저장된 미디어 파일의 위치 정보에 액세스할 수 있는 권한을 요청 -->
+    <uses-permission android:name="android.permission.ACCESS_MEDIA_LOCATION" />
+
+    <!-- 앱이 카메라를 사용할 수 있는 권한을 요청 -->
+    <uses-permission android:name="android.permission.CAMERA" />
+
+    <!-- 앱이 외부 저장소에서 파일을 읽을 수 있는 권한을 요청 -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+
+    <!-- 앱이 이미지 미디어 파일을 읽을 수 있는 권한을 요청 -->
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+
+    <!-- 앱이 비디오 미디어 파일을 읽을 수 있는 권한을 요청 -->
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
+
+    <!-- 앱이 외부 저장소에 파일을 쓸 수 있는 권한을 요청 -->
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:required="true"/>
+
+    <!-- 앱이 사용자의 캘린더 정보를 읽을 수 있는 권한을 요청 -->
+    <!-- <uses-permission android:name="android.permission.READ_CALENDAR" /> -->
+
+    <!-- 앱이 사용자의 캘린더에 쓸 수 있는 권한을 요청 -->
+    <!-- <uses-permission android:name="android.permission.WRITE_CALENDAR" /> -->
+
+    <!-- 앱이 이동 중인 통화를 다른 앱으로 넘길 수 있는 권한을 요청 -->
+    <!-- <uses-permission android:name="android.permission.ACCEPT_HANDOVER" /> -->
+
+    <!-- 앱이 위치 정보에 백그라운드에서 액세스할 수 있는 권한을 요청 -->
+     <!-- <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" /> -->
+
+    <!-- 앱이 대략적인 위치 정보에 액세스할 수 있는 권한을 요청 -->
+     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+
+    <!-- 앱이 정확한 위치 정보에 액세스할 수 있는 권한을 요청 -->
+     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+
+    <!-- 앱이 사용자의 활동을 인식할 수 있는 권한을 요청 (예: 달리기, 걷기) -->
+    <!-- <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION" /> -->
+
+    <!-- 앱이 사용자의 음성 메일에 메시지를 추가할 수 있는 권한을 요청 -->
+    <!-- <uses-permission android:name="com.android.voicemail.permission.ADD_VOICEMAIL" /> -->
+
+    <!-- 앱이 전화를 받을 수 있는 권한을 요청 -->
+    <!-- <uses-permission android:name="android.permission.ANSWER_PHONE_CALLS" /> -->
+
+    <!-- 앱이 Bluetooth 장치에 대한 광고를 시작할 수 있는 권한을 요청 -->
+    <!-- <uses-permission android:name="android.permission.BLUETOOTH_ADVERTISE" /> -->
+
+    <!-- 앱이 Bluetooth 장치에 연결할 수 있는 권한을 요청 -->
+    <!-- <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" /> -->
+
+    <!-- 앱이 Bluetooth 장치를 검색할 수 있는 권한을 요청 -->
+    <!-- <uses-permission android:name="android.permission.BLUETOOTH_SCAN" /> -->
+
+    <!-- 앱이 사용자의 신체 센서를 사용할 수 있는 권한을 요청 -->
+    <!-- <uses-permission android:name="android.permission.BODY_SENSORS" /> -->
+
+    <!-- 앱이 백그라운드에서도 사용자의 신체 센서를 사용할 수 있는 권한을 요청 -->
+    <!-- <uses-permission android:name="android.permission.BODY_SENSORS_BACKGROUND" /> -->
+
+    <!-- 앱이 전화를 걸 수 있는 권한을 요청 -->
+    <!-- <uses-permission android:name="android.permission.CALL_PHONE" /> -->
+
+    <!-- 앱이 사용자의 계정 목록에 액세스할 수 있는 권한을 요청 -->
+    <!-- <uses-permission android:name="android.permission.GET_ACCOUNTS" /> -->
+
+    <!-- 앱이 근처의 Wi-Fi 장치에 액세스할 수 있는 권한을 요청 -->
+    <!-- <uses-permission android:name="android.permission.NEARBY_WIFI_DEVICES" /> -->
+
+    <!-- 앱이 전화를 걸 수 있는 권한을 요청 -->
+    <!-- <uses-permission android:name="android.permission.PROCESS_OUTGOING_CALLS" /> -->
+
+    <!-- 앱이 사용자의 통화 기록을 읽을 수 있는 권한을 요청 -->
+    <!-- <uses-permission android:name="android.permission.READ_CALL_LOG" /> -->
+
+    <!-- 앱이 사용자의 연락처를 읽을 수 있는 권한을 요청 -->
+    <!-- <uses-permission android:name="android.permission.READ_CONTACTS" /> -->
+
+    <!-- 앱이 오디오 미디어 파일을 읽을 수 있는 권한을 요청 -->
+    <!-- <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" /> -->
+
+    <!-- 앱이 전화번호를 읽을 수 있는 권한을 요청 -->
+    <!-- <uses-permission android:name="android.permission.READ_PHONE_NUMBERS" /> -->
+
+    <!-- 앱이 전화 상태를 읽을 수 있는 권한을 요청 -->
+    <!-- <uses-permission android:name="android.permission.READ_PHONE_STATE" /> -->
+
+    <!-- 앱이 SMS 메시지를 읽을 수 있는 권한을 요청 -->
+    <!-- <uses-permission android:name="android.permission.READ_SMS" /> -->
+
+    <!-- 앱이 MMS 메시지를 받을 수 있는 권한을 요청 -->
+    <!-- <uses-permission android:name="android.permission.RECEIVE_MMS" /> -->
+
+    <!-- 앱이 SMS 메시지를 받을 수 있는 권한을 요청 -->
+    <!-- <uses-permission android:name="android.permission.RECEIVE_SMS" /> -->
+
+    <!-- 앱이 WAP PUSH 메시지를 받을 수 있는 권한을 요청 -->
+    <!-- <uses-permission android:name="android.permission.RECEIVE_WAP_PUSH" /> -->
+
+    <!-- 앱이 오디오를 녹음할 수 있는 권한을 요청 -->
+    <!-- <uses-permission android:name="android.permission.RECORD_AUDIO" /> -->
+
+    <!-- 앱이 SMS 메시지를 보낼 수 있는 권한을 요청 -->
+    <!-- <uses-permission android:name="android.permission.SEND_SMS" /> -->
+
+    <!-- 앱이 SIP를 사용하여 인터넷을 통해 전화를 걸 수 있는 권한을 요청 -->
+    <!-- <uses-permission android:name="android.permission.USE_SIP" /> -->
+
+    <!-- 앱이 초단거리 무선 (UWB) 범위 측정을 사용할 수 있는 권한을 요청 -->
+    <!-- <uses-permission android:name="android.permission.UWB_RANGING" /> -->
+
+    <!-- 앱이 사용자의 통화 기록에 쓸 수 있는 권한을 요청 -->
+    <!-- <uses-permission android:name="android.permission.WRITE_CALL_LOG" /> -->
+
+    <!-- 앱이 사용자의 연락처에 쓸 수 있는 권한을 요청 -->
+    <!-- <uses-permission android:name="android.permission.WRITE_CONTACTS" /> -->
+
+    <!-- 진동 권한 -->
+    <uses-permission android:name="android.permission.VIBRATE" />
+
+
+
+
+
+
+    <application
+      android:name="com.faentasium.footballcash.MainApplication"
+      android:label="@string/app_name"
+      android:icon="@mipmap/ic_launcher"
+      android:roundIcon="@mipmap/ic_launcher_round"
+      android:allowBackup="true"
+      android:requestLegacyExternalStorage="true"
+      android:theme="@style/AppTheme"
+      android:networkSecurityConfig="@xml/network_security_config"
+    >
+
+
+        <!-- 네이버 지도 API -->
+      <meta-data
+            android:name="com.naver.maps.map.CLIENT_ID"
+            android:value="jq459epjgu" />
+      <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyDjQJfN5lPfe8PUxPo3oDWMP2E9JISfSl0"/>
+      <meta-data android:name="com.facebook.sdk.ApplicationId" android:value="@string/facebook_app_id"/>
+      <meta-data android:name="com.facebook.sdk.ClientToken" android:value="@string/facebook_client_token"/>
+
+      <!-- You will also only need to add this uses-libray tag -->
+      <uses-library android:name="org.apache.http.legacy" android:required="false"/>
+
+
+      <activity android:name="com.facebook.FacebookActivity"
+                android:configChanges=
+                        "keyboard|keyboardHidden|screenLayout|screenSize|orientation"
+                android:label="@string/app_name" />
+      <activity
+              android:name="com.facebook.CustomTabActivity"
+              android:exported="true">
+          <intent-filter>
+              <action android:name="android.intent.action.VIEW" />
+              <category android:name="android.intent.category.DEFAULT" />
+              <category android:name="android.intent.category.BROWSABLE" />
+              <data android:scheme="@string/fb_login_protocol_scheme" />
+          </intent-filter>
+      </activity>
+
+
+        <activity
+          android:name="com.faentasium.footballcash.MainActivity"
+          android:label="@string/app_name"
+          android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|screenSize|smallestScreenSize|uiMode"
+          android:launchMode="singleTask"
+          android:windowSoftInputMode="adjustNothing"
+          android:exported="true">
+
+        <intent-filter android:autoVerify="true">
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent-filter>
+
+        <intent-filter>
+          <action android:name="android.intent.action.VIEW" />
+          <category android:name="android.intent.category.DEFAULT" />
+          <category android:name="android.intent.category.BROWSABLE" />
+          <data android:scheme="https" android:host="footballcash.page.link" />
+          <!-- <data android:scheme="footballcash" android:host="*" /> -->
+          <!-- <data android:scheme="testmyapp" android:host="test1" android:path="/path1" /> -->
+          <!-- <data android:scheme="testmyapp" android:host="test2" android:pathPrefix="/path2" /> -->
+        </intent-filter>
+
+        <!-- <intent-filter> -->
+          <!-- <action android:name="android.intent.action.VIEW" /> -->
+          <!-- <category android:name="android.intent.category.DEFAULT" /> -->
+          <!-- <category android:name="android.intent.category.BROWSABLE" /> -->
+          <!-- <data android:scheme="http" /> -->
+          <!-- <data android:scheme="https" /> -->
+          <!-- <data android:host="www.example.com" /> -->
+          <!-- <data android:scheme="https" android:host="www.example.com" android:pathPrefix="/path" /> -->
+        <!-- </intent-filter> -->
+      </activity>
+
+      <activity
+        android:name="com.kakao.sdk.auth.AuthCodeHandlerActivity"
+        android:exported="true">
+        <intent-filter>
+            <action android:name="android.intent.action.VIEW" />
+            <category android:name="android.intent.category.DEFAULT" />
+            <category android:name="android.intent.category.BROWSABLE" />
+
+            <!-- Redirect URI: "kakao${NATIVE_APP_KEY}://oauth" -->
+            <data android:host="oauth"
+                    android:scheme="kakaoa4b7e6ddd16c1e53cc2923c1143f4341" />
+        </intent-filter>
+      </activity>
+
+      <!-- GCM 메시지를 받기 위한 서비스를 정의 -->
+      <service
+        android:name="com.dieam.reactnativepushnotification.modules.RNPushNotificationListenerServiceGcm"
+        android:exported="false" >
+        <intent-filter>
+            <action android:name="com.google.android.c2dm.intent.RECEIVE" />
+        </intent-filter>
+      </service>
+
+      <!-- FCM 메시지를 받기 위한 서비스를 정의 -->
+      <service
+        android:name="com.dieam.reactnativepushnotification.modules.RNPushNotificationListenerService"
+        android:exported="false" >
+        <intent-filter>
+            <action android:name="com.google.firebase.MESSAGING_EVENT" />
+        </intent-filter>
+      </service>
+    </application>
+</manifest>

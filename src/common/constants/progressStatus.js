@@ -1,0 +1,51 @@
+export const PROGRESS_STATUS = {
+  REGISTERED: {
+    name: 'Registered',
+    desc: '등록',
+    desc2: '등록',
+    desc3: '등록',
+    value: 'REGISTERED',
+  },
+  WAIT: {
+    name: 'Wait',
+    desc: '요청대기',
+    desc2: '답변대기',
+    desc3: '접수대기',
+    value: 'WAIT',
+  },
+  PROGRESS: {
+    name: 'Progress',
+    desc: '진행중',
+    desc2: '진행중',
+    desc3: '진행중',
+    value: 'PROGRESS',
+  },
+  COMPLETE: {
+    name: 'Complete',
+    desc: '완료',
+    desc2: '답변완료',
+    desc3: '접수확정',
+    value: 'COMPLETE',
+  },
+  CANCEL: {
+    name: 'Cancel',
+    desc: '취소',
+    desc2: '취소',
+    desc3: '접수취소',
+    value: 'CANCEL',
+  },
+  REJECTED: {
+    name: 'Rejected',
+    desc: '반려',
+    desc2: '반려',
+    desc3: '접수실패',
+    value: 'REJECTED',
+  },
+  ERROR: {
+    name: 'Error',
+    desc: '오류',
+    desc2: '오류',
+    desc3: '오류',
+    value: 'ERROR',
+  },
+};
