@@ -19,6 +19,7 @@ function InputPassword() {
     userGender,
     userLoginId,
     loginType,
+    isMarketingAgree,
   } = route.params;
 
   const [password, setPassword] = useState('');
@@ -40,16 +41,18 @@ function InputPassword() {
       userGender,
       userLoginId,
       loginType,
+      isMarketingAgree,
       userLoginPassword: password, // Pass the password to the next screen
     });
   };
-
   return (
     <DismissKeyboard>
       <SafeAreaView style={{ flex: 1 }}>
         <Header title="회원가입" />
 
-        <ScrollView contentContainerStyle={styles.container}>
+        <ScrollView
+          contentContainerStyle={styles.container}
+          showsVerticalScrollIndicator={false}>
           <Text style={fontStyles.fontSize18_Semibold}>
             로그인에 사용할{'\n'}비밀번호를 입력해주세요
           </Text>

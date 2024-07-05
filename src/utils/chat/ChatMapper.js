@@ -66,8 +66,7 @@ const chatMapper = {
   }) => {
     try {
       // [academy]
-      const selectSql = `SELECT room.*,
-                                        members.*,
+      const selectSql = `SELECT  members.*,
                                         participant.${
                                           COLUMNS.chatParticipant.column.roomNm
                                         }, 
@@ -87,7 +86,8 @@ const chatMapper = {
                                               return `matches.${v} as matchAddressFull`;
                                             }
                                             return `matches.${v}`;
-                                          })}
+                                          })},
+                                        room.*
                                 FROM ${TABLES.chatRoom} AS room 
                                 JOIN ${TABLES.chatParticipant} AS participant 
                                     ON room.${

@@ -262,7 +262,13 @@ function AcademyRecruitmentForAdmin({ route }) {
         </View>
         {activeTab === tabs.notice.value && (
           // 모집공고 내용
-          <View style={{ flex: 1, paddingHorizontal: 16, paddingVertical: 24 }}>
+          <View
+            style={{
+              flex: 1,
+              paddingHorizontal: 16,
+              paddingTop: 8,
+              paddingBottom: 24,
+            }}>
             {academyRecruitList && academyRecruitList.length > 0 ? (
               <FlatList
                 ref={flatListRef}
@@ -319,17 +325,25 @@ function AcademyRecruitmentForAdmin({ route }) {
                       </View>
                       <Text style={styles.recruitmentTitle}>{item.title}</Text>
                       <View style={styles.recruitmentTextBox}>
-                        <Text style={styles.recruitmentText}>
-                          {item.academyName}
-                        </Text>
-                        <View style={styles.VerticalLine} />
-                        <Text style={styles.recruitmentText}>{`${
-                          item.addrCity
-                        } ${item.addrGu ? '・' : ''} ${item.addrGu}`}</Text>
-                        <View style={styles.VerticalLine} />
-                        <Text style={styles.recruitmentText}>
-                          {moment(item.startDate).format('YYYY.MM.DD')}
-                        </Text>
+                        <View>
+                          <Text style={styles.recruitmentText}>
+                            {item.academyName}
+                          </Text>
+                        </View>
+                        <View
+                          style={{
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            gap: 8,
+                          }}>
+                          <Text style={styles.recruitmentText}>{`${
+                            item.addrCity
+                          } ${item.addrGu ? '・' : ''} ${item.addrGu}`}</Text>
+                          <View style={styles.VerticalLine} />
+                          <Text style={styles.recruitmentText}>
+                            {moment(item.startDate).format('YYYY.MM.DD')}
+                          </Text>
+                        </View>
                       </View>
                     </View>
                   </TouchableOpacity>
@@ -399,7 +413,7 @@ function AcademyRecruitmentForAdmin({ route }) {
                           <View style={styles.joinDetailBox}>
                             <View style={styles.joinDetailTop}>
                               <Text style={styles.joinName}>
-                                {item.memberName}
+                                {item.memberNickName}
                               </Text>
                             </View>
                             <View style={styles.joinDetailBottom}>
@@ -494,7 +508,7 @@ const styles = {
   recruitmentContainer: {
     flex: 1,
     // paddingHorizontal: 16,
-    paddingTop: 24,
+    // paddingTop: 24,
     paddingBottom: 8,
   },
   recruitmentBox: {
@@ -523,9 +537,9 @@ const styles = {
     letterSpacing: -0.004,
   },
   recruitmentTextBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+    gap: 4,
   },
   recruitmentText: {
     fontSize: 12,
@@ -710,7 +724,8 @@ const styles = {
     borderWidth: 1,
     borderRadius: 4,
     borderColor: 'rgba(135, 141, 150, 0.22)',
-    padding: 4,
+    paddingHorizontal: 4,
+    paddingVertical: 3,
   },
   recruitEndText: {
     ...fontStyles.fontSize11_Semibold,
@@ -719,9 +734,10 @@ const styles = {
   recruitingBox: {
     borderWidth: 1,
     backgroundColor: 'rgba(255, 103, 31, 0.08)',
-    borderColor: 'rgba(255, 103, 31, 0.08)',
+    borderColor: 'transparent',
     borderRadius: 4,
-    padding: 4,
+    paddingHorizontal: 4,
+    paddingVertical: 3,
   },
   recruitingText: {
     ...fontStyles.fontSize11_Semibold,

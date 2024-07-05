@@ -8,6 +8,8 @@ import {
   View,
   useWindowDimensions,
   Modal,
+  Platform,
+  RefreshControl,
 } from 'react-native';
 import NaverMapView, { Marker } from 'react-native-nmap/index';
 import {
@@ -39,6 +41,8 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ACTIVE_OPACITY } from '../../common/constants/constants';
+import { isBefore } from 'date-fns';
+import SPLoading from '../../components/SPLoading';
 
 function BlurWrapper({ onJoinPress }) {
   return (
@@ -66,6 +70,8 @@ function MatchingDetail({ route }) {
   const { width, height } = useWindowDimensions();
   const [isAdmin, setIsAdmin] = useState(false);
   const { isLogin, userIdx } = useSelector(selector => selector.auth);
+  const [fstCall, setFstCall] = useState(false);
+  const [refresh, setRefresh] = useState(false);
 
   // --------------------------------------------------
   // [ State ]
@@ -73,6 +79,7 @@ function MatchingDetail({ route }) {
   // detail
   const [matchInfo, setMatchInfo] = useState({});
   const [isMatchOver, setIsMatchOver] = useState(false);
+  const [isMatchClose, setIsMatchClose] = useState(false);
   const [scorers, setScorers] = useState([]);
   const [matchApplies, setMatchApplies] = useState([]);
   const [camera, setCamera] = useState();
@@ -198,7 +205,10 @@ function MatchingDetail({ route }) {
           roomId: result.room?.roomId,
         });
       } else {
-        Utils.openModal({ title: '실패', body: '채팅방 생성에 실패했습니다.' });
+        Utils.openModal({
+          title: '알림',
+          body: '채팅방을 만드는 데 성공하지 못했습니다. 잠시 후 다시 시도해 주세요.',
+        });
       }
     } catch (error) {
       handleError(error);
@@ -250,15 +260,21 @@ function MatchingDetail({ route }) {
     return formattedDate;
   };
 
-  const getStatusStyle = state => {
-    switch (state) {
+  const getStatusStyle = matchState => {
+    switch (matchState) {
       case MATCH_STATE.APPLY.code:
+        if (isMatchClose) {
+          return {
+            backgroundColor: 'rgba(255, 66, 66, 0.16)',
+            color: '#FF4242',
+            desc: '경기취소',
+          };
+        }
         return {
           backgroundColor: 'rgba(255, 103, 31, 0.16)',
           color: '#FF671F',
           desc: '경기예정',
         };
-      // 경기완료
       case MATCH_STATE.REVIEW.code:
       case MATCH_STATE.CONFIRM.code:
         return {
@@ -267,12 +283,18 @@ function MatchingDetail({ route }) {
           desc: '경기완료',
         };
       case MATCH_STATE.READY.code:
+        if (isMatchOver) {
+          return {
+            backgroundColor: 'rgba(50, 83, 255, 0.16)',
+            color: '#3253FF',
+            desc: '경기중',
+          };
+        }
         return {
           backgroundColor: 'rgba(36, 161, 71, 0.16)',
           color: '#24A147',
           desc: '경기대기',
         };
-      // 경기중
       case MATCH_STATE.FINISH.code:
       case MATCH_STATE.REJECT.code:
         return {
@@ -280,7 +302,6 @@ function MatchingDetail({ route }) {
           color: '#3253FF',
           desc: '경기중',
         };
-      // 경기취소
       case MATCH_STATE.EXPIRE.code:
       case MATCH_STATE.CANCEL.code:
         return {
@@ -342,14 +363,26 @@ function MatchingDetail({ route }) {
           longitude: data.data.matchInfo.longitude,
         });
 
-        const now = new Date();
-        const matchDateTimeString = `${data.data.matchInfo.matchDate} ${data.data.matchInfo.matchTime}`;
-        const matchDateTime = new Date(matchDateTimeString);
-        setIsMatchOver(matchDateTime < now);
+        const currentDate = new Date();
+        setIsMatchOver(
+          isBefore(
+            new Date(
+              `${data.data.matchInfo.matchDate} ${data.data.matchInfo.matchTime}`,
+            ),
+            currentDate,
+          ),
+        );
+        setIsMatchClose(
+          isBefore(new Date(data.data.matchInfo.closeDate), currentDate),
+        );
       }
     } catch (error) {
       handleError(error);
     }
+    setTimeout(() => {
+      setRefresh(false);
+    }, 500);
+    setFstCall(true);
   };
 
   const getMyInfo = async () => {
@@ -394,10 +427,19 @@ function MatchingDetail({ route }) {
   // --------------------------------------------------
   useFocusEffect(
     useCallback(() => {
-      getMyInfo();
-      getMatchDetail();
+      const focus = async () => {
+        await getMyInfo();
+        await getMatchDetail();
+      };
+      focus();
     }, []),
   );
+
+  useEffect(() => {
+    if (refresh) {
+      getMatchDetail();
+    }
+  }, [refresh]);
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
@@ -407,702 +449,637 @@ function MatchingDetail({ route }) {
         rightBasicAddButton={SPIcons.icOptionsVertical}
         onPressAddRightIcon={openMoreModal}
       />
-      <SPMoreModal
-        visible={modalVisible}
-        onClose={closeMoreModal}
-        isAdmin={isAdmin}
-        type={MODAL_MORE_TYPE.RECRUIT}
-        adminButtons={[MODAL_MORE_BUTTONS.EDIT, MODAL_MORE_BUTTONS.SHARE]}
-        memberButtons={[MODAL_MORE_BUTTONS.SHARE]}
-        shareLink={`matching?id=${matchIdx}`}
-        shareTitle={matchInfo?.title ?? ''}
-        shareDescription={matchInfo?.description ?? ''}
-      />
-      <ScrollView>
-        <View style={styles.topBox}>
-          {/* 경기 상태 */}
-          <View style={styles.matchingStatusContainer}>
-            <View
-              style={[
-                styles.matchingStatus,
-                getStatusStyle(matchInfo.matchState),
-              ]}>
-              <Text
-                style={[
-                  styles.matchingStatusText,
-                  { color: getStatusStyle(matchInfo.matchState).color },
-                ]}>
-                {matchInfo.matchState
-                  ? getStatusStyle(matchInfo.matchState).desc
-                  : '-'}
-              </Text>
-            </View>
-          </View>
-          <View style={styles.topSubBox}>
-            <Text style={styles.title}>
-              {matchInfo?.title ? matchInfo?.title : '-'}
-            </Text>
-            <View style={styles.topDetailContainer}>
-              <Image
-                source={SPIcons.icDate}
-                style={{ width: 24, height: 24 }}
+      {fstCall ? (
+        <View style={{ flex: 1 }}>
+          <SPMoreModal
+            visible={modalVisible}
+            onClose={closeMoreModal}
+            isAdmin={isAdmin}
+            type={MODAL_MORE_TYPE.RECRUIT}
+            adminButtons={[MODAL_MORE_BUTTONS.EDIT, MODAL_MORE_BUTTONS.SHARE]}
+            memberButtons={[MODAL_MORE_BUTTONS.SHARE]}
+            shareLink={`matching?id=${matchIdx}`}
+            shareTitle={matchInfo?.title ?? ''}
+            shareDescription={matchInfo?.description ?? ''}
+          />
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            refreshControl={
+              <RefreshControl
+                refreshing={refresh}
+                onRefresh={() => {
+                  setRefresh(true);
+                }}
               />
-              <Text style={styles.topValue}>
-                {parseDate(`${matchInfo?.matchDate} ${matchInfo?.matchTime}`)}
-              </Text>
-            </View>
-
-            <View style={styles.topDetailContainer}>
-              <Image
-                source={SPIcons.icMarker}
-                style={{ width: 24, height: 24 }}
-              />
-              <Text style={styles.topValue}>{matchInfo?.matchPlace}</Text>
-            </View>
-          </View>
-        </View>
-        {matchInfo.matchState === MATCH_STATE.READY.code && (
-          <View style={styles.contentBox}>
-            <Text style={styles.title}>경기결과</Text>
-            <View style={styles.resultContainer}>
-              {member.academyIdx === matchInfo.homeAcademyIdx ||
-              member.academyIdx === matchInfo.awayAcademyIdx ? (
-                ''
-              ) : (
-                <BlurWrapper onJoinPress={() => moveToJoin()} />
-              )}
-              <View>
-                <View style={styles.resultBox}>
-                  <View style={styles.resultAcademy}>
-                    {matchInfo.homeLogoPath ? (
-                      <Image
-                        style={styles.resultAcademyImage}
-                        source={{ uri: matchInfo.homeLogoPath }}
-                      />
-                    ) : (
-                      <Image
-                        style={styles.resultAcademyImage}
-                        source={SPIcons.icDefaultAcademy}
-                      />
-                    )}
-                    <Text style={styles.resultAcademyName}>
-                      {matchInfo.academyName}
-                    </Text>
-                  </View>
-                  <View style={styles.resultScore}>
-                    <View style={{ height: 38 }}>
-                      <Text style={styles.semicolon}>:</Text>
-                    </View>
-                  </View>
-                  <View style={styles.resultAcademy}>
-                    {matchInfo.awayLogoPath ? (
-                      <Image
-                        style={styles.resultAcademyImage}
-                        source={{ uri: matchInfo.awayLogoPath }}
-                      />
-                    ) : (
-                      <Image
-                        style={styles.resultAcademyImage}
-                        source={SPIcons.icDefaultAcademy}
-                      />
-                    )}
-                    <Text style={styles.resultAcademyName}>
-                      {matchInfo.awayAcademyName}
-                    </Text>
-                  </View>
-                </View>
-              </View>
-              {member.academyAdmin &&
-                member.academyIdx === matchInfo.homeAcademyIdx &&
-                isMatchOver && (
-                  <TouchableOpacity
-                    activeOpacity={ACTIVE_OPACITY}
-                    style={styles.buttonContainer}
-                    onPress={() => moveToScore()}>
-                    <Text style={styles.buttonText}>스코어 입력</Text>
-                  </TouchableOpacity>
-                )}
-            </View>
-          </View>
-        )}
-        {matchInfo.matchState === MATCH_STATE.CONFIRM.code ||
-        matchInfo.matchState === MATCH_STATE.FINISH.code ||
-        matchInfo.matchState === MATCH_STATE.REJECT.code ||
-        matchInfo.matchState === MATCH_STATE.REVIEW.code ? (
-          <View>
-            <View style={styles.contentBox}>
-              <Text style={styles.title}>경기결과</Text>
-              <View style={styles.resultContainer}>
-                {member.academyIdx === matchInfo.homeAcademyIdx ||
-                member.academyIdx === matchInfo.awayAcademyIdx ? (
-                  ''
-                ) : (
-                  <BlurWrapper
-                    onJoinPress={() =>
-                      NavigationService.navigate(navName.academyMember)
-                    }
-                  />
-                )}
-                {matchInfo.matchState === MATCH_STATE.FINISH.code ||
-                matchInfo.matchState === MATCH_STATE.REJECT.code ? (
-                  <View
+            }>
+            <View style={styles.topBox}>
+              {/* 경기 상태 */}
+              <View style={styles.matchingStatusContainer}>
+                <View
+                  style={[
+                    styles.matchingStatus,
+                    getStatusStyle(matchInfo.matchState),
+                  ]}>
+                  <Text
                     style={[
-                      styles.resultStatusBox,
-                      getStatusBoxStyle(matchInfo.matchState).backgroundColor,
+                      styles.matchingStatusText,
+                      { color: getStatusStyle(matchInfo.matchState).color },
                     ]}>
-                    <Text
-                      style={[
-                        styles.resultStatusText,
-                        {
-                          color: getStatusBoxStyle(matchInfo.matchState).color,
-                        },
-                      ]}>
-                      {matchInfo
-                        ? getStatusBoxStyle(matchInfo.matchState).desc
-                        : '-'}
-                    </Text>
-                  </View>
-                ) : (
-                  ''
-                )}
-
-                <View style={styles.resultBox}>
-                  <View style={styles.resultAcademy}>
-                    {matchInfo.homeLogoPath ? (
-                      <Image
-                        style={styles.resultAcademyImage}
-                        source={{ uri: matchInfo.homeLogoPath }}
-                      />
-                    ) : (
-                      <Image
-                        style={styles.resultAcademyImage}
-                        source={SPIcons.icDefaultAcademy}
-                      />
+                    {matchInfo.matchState
+                      ? getStatusStyle(matchInfo.matchState).desc
+                      : '-'}
+                  </Text>
+                </View>
+              </View>
+              <View style={styles.topSubBox}>
+                <Text style={styles.title}>
+                  {matchInfo?.title ? matchInfo?.title : '-'}
+                </Text>
+                <View style={styles.topDetailContainer}>
+                  <Image
+                    source={SPIcons.icDate}
+                    style={{ width: 24, height: 24 }}
+                  />
+                  <Text style={styles.topValue}>
+                    {parseDate(
+                      `${matchInfo?.matchDate} ${matchInfo?.matchTime}`,
                     )}
-                    <Text style={styles.resultAcademyName}>
-                      {matchInfo.academyName}
-                    </Text>
-                  </View>
-                  {/* 스코어 점수 */}
-                  <View style={styles.resultScore}>
-                    <Text
-                      style={
-                        matchInfo.participantScore <= matchInfo.hostScore
-                          ? styles.resultWinnerScoreText
-                          : styles.resultScoreText
-                      }>
-                      {matchInfo.hostScore}
-                    </Text>
-                    <View style={{ height: 38 }}>
-                      <Text style={styles.semicolon}>:</Text>
-                    </View>
-                    <Text
-                      style={
-                        matchInfo.participantScore >= matchInfo.hostScore
-                          ? styles.resultWinnerScoreText
-                          : styles.resultScoreText
-                      }>
-                      {matchInfo.participantScore}
-                    </Text>
-                  </View>
-                  <View style={styles.resultAcademy}>
-                    {matchInfo.awayLogoPath ? (
-                      <Image
-                        style={styles.resultAcademyImage}
-                        source={{ uri: matchInfo.awayLogoPath }}
-                      />
-                    ) : (
-                      <Image
-                        style={styles.resultAcademyImage}
-                        source={SPIcons.icDefaultAcademy}
-                      />
-                    )}
-                    <Text style={styles.resultAcademyName}>
-                      {matchInfo.awayAcademyName}
-                    </Text>
-                  </View>
+                  </Text>
                 </View>
 
-                {/* 경기결과 > 득점 선수, 득점수 */}
-                {(matchInfo.matchState === MATCH_STATE.REVIEW.code ||
-                  matchInfo.matchState === MATCH_STATE.CONFIRM.code) && (
-                  <View style={styles.scoreBox}>
-                    <View style={styles.scoreList}>
-                      {scorers
-                        .filter(
-                          item => item.acdmyIdx === matchInfo.homeAcademyIdx,
-                        )
-                        .map(item => (
-                          <Text
-                            style={[styles.scoreText, { textAlign: 'right' }]}>
-                            {item.playerName ? item.playerName : '김파이'}{' '}
-                            {item.score}
-                          </Text>
-                        ))}
-                    </View>
-                    <Image
-                      source={SPIcons.icSoccerBall}
-                      style={{ width: 16, height: 16 }}
-                    />
-                    <View style={styles.scoreList}>
-                      {scorers
-                        .filter(
-                          item => item.acdmyIdx === matchInfo.awayAcademyIdx,
-                        )
-                        .map(item => (
-                          <Text style={styles.scoreText}>
-                            {item.score}{' '}
-                            {item.playerName ? item.playerName : '김파이'}
-                          </Text>
-                        ))}
-                    </View>
-                  </View>
-                )}
-                {matchInfo.matchState === MATCH_STATE.FINISH.code &&
-                  member.academyAdmin &&
-                  member.academyIdx === matchInfo.awayAcademyIdx && (
-                    <View style={styles.appealBox}>
-                      <TouchableOpacity
-                        activeOpacity={ACTIVE_OPACITY}
-                        style={styles.appealBtn}
-                        onPress={() => moveToReject()}>
-                        <Text style={styles.appealBtnText}>이의신청</Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        activeOpacity={ACTIVE_OPACITY}
-                        style={styles.appealBtn}
-                        onPress={() => moveToSelectScorer()}>
-                        <Text style={styles.appealBtnText}>승인</Text>
-                      </TouchableOpacity>
-                    </View>
-                  )}
-                {matchInfo.matchState === MATCH_STATE.REJECT.code &&
-                  member.academyAdmin && (
-                    <View style={styles.opinion}>
-                      <Text style={styles.opinionTitle}>의견</Text>
-                      <Text style={styles.opinionText}>
-                        {matchReject?.rejectReason}
-                      </Text>
-                    </View>
-                  )}
+                <View style={styles.topDetailContainer}>
+                  <Image
+                    source={SPIcons.icMarker}
+                    style={{ width: 24, height: 24 }}
+                  />
+                  <Text style={styles.topValue}>{matchInfo?.matchPlace}</Text>
+                </View>
               </View>
             </View>
-          </View>
-        ) : (
-          ''
-        )}
-
-        {matchInfo.matchState === MATCH_STATE.REVIEW.code &&
-          (member.academyIdx === matchInfo.homeAcademyIdx ||
-            member.academyIdx === matchInfo.awayAcademyIdx) &&
-          member.academyAdmin && (
-            <View>
+            {matchInfo.matchState === MATCH_STATE.READY.code && (
               <View style={styles.contentBox}>
-                <Text style={styles.title}>MVP</Text>
-                <View style={styles.selectedList}>
-                  <View style={styles.selectedItem}>
-                    <View style={styles.selectedNameContainer}>
-                      <View style={styles.iconContainer}>
+                <Text style={styles.title}>경기결과</Text>
+                <View style={styles.resultContainer}>
+                  {member.academyIdx === matchInfo.homeAcademyIdx ||
+                  member.academyIdx === matchInfo.awayAcademyIdx ? (
+                    ''
+                  ) : (
+                    <BlurWrapper onJoinPress={() => moveToJoin()} />
+                  )}
+                  <View>
+                    <View style={styles.resultBox}>
+                      <View style={styles.resultAcademy}>
                         {matchInfo.homeLogoPath ? (
                           <Image
-                            style={styles.icon}
+                            style={styles.resultAcademyImage}
                             source={{ uri: matchInfo.homeLogoPath }}
                           />
                         ) : (
                           <Image
-                            style={styles.icon}
+                            style={styles.resultAcademyImage}
                             source={SPIcons.icDefaultAcademy}
                           />
                         )}
-                        {matchInfo.certYn === 'Y' && (
-                          <Image
-                            source={SPIcons.icCheckBadge}
-                            style={styles.overlayIcon}
-                          />
-                        )}
+                        <Text style={styles.resultAcademyName}>
+                          {matchInfo.academyName}
+                        </Text>
                       </View>
-                      <Text style={styles.selectedNameText}>
-                        {matchInfo.homeAcademyName
-                          ? matchInfo.homeAcademyName
-                          : '-'}
-                      </Text>
-                    </View>
-                    <View
-                      style={{
-                        flexDirection: 'row',
-                        justifyContent: 'center',
-                      }}>
-                      <View style={styles.selectedPlayerContainer}>
-                        {homeMvp?.profilePath ? (
-                          <View>
-                            <Image
-                              source={{ uri: homeMvp?.profilePath }}
-                              style={styles.icon}
-                            />
-                          </View>
-                        ) : (
-                          <View>
-                            <Image
-                              source={SPIcons.icPerson}
-                              style={styles.icon}
-                            />
-                          </View>
-                        )}
-                        <View style={styles.addTextTop}>
-                          {homeMvp?.backNo && (
-                            <View style={styles.addNumberBox}>
-                              <Text style={styles.addNumberText}>
-                                {homeMvp?.backNo}
-                              </Text>
-                            </View>
-                          )}
-                          <Text style={styles.addNameText}>
-                            {homeMvp?.playerName
-                              ? homeMvp?.playerName
-                              : '김파이'}
-                          </Text>
+                      <View style={styles.resultScore}>
+                        <View style={{ height: 38 }}>
+                          <Text style={styles.semicolon}>:</Text>
                         </View>
                       </View>
-                    </View>
-                  </View>
-                  <View style={styles.selectedItem}>
-                    <View style={styles.selectedNameContainer}>
-                      <View style={styles.iconContainer}>
+                      <View style={styles.resultAcademy}>
                         {matchInfo.awayLogoPath ? (
                           <Image
-                            style={styles.icon}
+                            style={styles.resultAcademyImage}
                             source={{ uri: matchInfo.awayLogoPath }}
                           />
                         ) : (
                           <Image
-                            style={styles.icon}
+                            style={styles.resultAcademyImage}
                             source={SPIcons.icDefaultAcademy}
                           />
                         )}
-                        {matchInfo.awayCertYn === 'Y' && (
+                        <Text style={styles.resultAcademyName}>
+                          {matchInfo.awayAcademyName}
+                        </Text>
+                      </View>
+                    </View>
+                  </View>
+                  {member.academyAdmin &&
+                    member.academyIdx === matchInfo.homeAcademyIdx &&
+                    isMatchOver && (
+                      <TouchableOpacity
+                        activeOpacity={ACTIVE_OPACITY}
+                        style={styles.buttonContainer}
+                        onPress={() => moveToScore()}>
+                        <Text style={styles.buttonText}>스코어 입력</Text>
+                      </TouchableOpacity>
+                    )}
+                </View>
+              </View>
+            )}
+            {matchInfo.matchState === MATCH_STATE.CONFIRM.code ||
+            matchInfo.matchState === MATCH_STATE.FINISH.code ||
+            matchInfo.matchState === MATCH_STATE.REJECT.code ||
+            matchInfo.matchState === MATCH_STATE.REVIEW.code ? (
+              <View>
+                <View style={styles.contentBox}>
+                  <Text style={styles.title}>경기결과</Text>
+                  <View style={styles.resultContainer}>
+                    {member.academyIdx === matchInfo.homeAcademyIdx ||
+                    member.academyIdx === matchInfo.awayAcademyIdx ? (
+                      ''
+                    ) : (
+                      <BlurWrapper
+                        onJoinPress={() =>
+                          NavigationService.navigate(navName.academyMember)
+                        }
+                      />
+                    )}
+                    {matchInfo.matchState === MATCH_STATE.FINISH.code ||
+                    matchInfo.matchState === MATCH_STATE.REJECT.code ? (
+                      <View
+                        style={[
+                          styles.resultStatusBox,
+                          getStatusBoxStyle(matchInfo.matchState)
+                            .backgroundColor,
+                        ]}>
+                        <Text
+                          style={[
+                            styles.resultStatusText,
+                            {
+                              color: getStatusBoxStyle(matchInfo.matchState)
+                                .color,
+                            },
+                          ]}>
+                          {matchInfo
+                            ? getStatusBoxStyle(matchInfo.matchState).desc
+                            : '-'}
+                        </Text>
+                      </View>
+                    ) : (
+                      ''
+                    )}
+
+                    <View style={styles.resultBox}>
+                      <View style={styles.resultAcademy}>
+                        {matchInfo.homeLogoPath ? (
                           <Image
-                            source={SPIcons.icCheckBadge}
-                            style={styles.overlayIcon}
+                            style={styles.resultAcademyImage}
+                            source={{ uri: matchInfo.homeLogoPath }}
+                          />
+                        ) : (
+                          <Image
+                            style={styles.resultAcademyImage}
+                            source={SPIcons.icDefaultAcademy}
                           />
                         )}
+                        <Text style={styles.resultAcademyName}>
+                          {matchInfo.academyName}
+                        </Text>
                       </View>
-                      <Text style={styles.selectedNameText}>
-                        {matchInfo.awayAcademyName
-                          ? matchInfo.awayAcademyName
-                          : '-'}
-                      </Text>
-                    </View>
-                    <View
-                      style={{
-                        flexDirection: 'row',
-                        justifyContent: 'center',
-                      }}>
-                      <View style={styles.selectedPlayerContainer}>
-                        {awayMvp?.profilePath ? (
-                          <View>
-                            <Image
-                              source={{ uri: awayMvp?.profilePath }}
-                              style={styles.icon}
-                            />
-                          </View>
+                      {/* 스코어 점수 */}
+                      <View style={styles.resultScore}>
+                        <Text
+                          style={
+                            matchInfo.participantScore <= matchInfo.hostScore
+                              ? styles.resultWinnerScoreText
+                              : styles.resultScoreText
+                          }>
+                          {matchInfo.hostScore}
+                        </Text>
+                        <View style={{ height: 38 }}>
+                          <Text style={styles.semicolon}>:</Text>
+                        </View>
+                        <Text
+                          style={
+                            matchInfo.participantScore >= matchInfo.hostScore
+                              ? styles.resultWinnerScoreText
+                              : styles.resultScoreText
+                          }>
+                          {matchInfo.participantScore}
+                        </Text>
+                      </View>
+                      <View style={styles.resultAcademy}>
+                        {matchInfo.awayLogoPath ? (
+                          <Image
+                            style={styles.resultAcademyImage}
+                            source={{ uri: matchInfo.awayLogoPath }}
+                          />
                         ) : (
-                          <View>
-                            <Image
-                              source={SPIcons.icPerson}
-                              style={styles.icon}
-                            />
-                          </View>
+                          <Image
+                            style={styles.resultAcademyImage}
+                            source={SPIcons.icDefaultAcademy}
+                          />
                         )}
-                        <View style={styles.addTextTop}>
-                          {awayMvp?.backNo && (
-                            <View style={styles.addNumberBox}>
-                              <Text style={styles.addNumberText}>
-                                {awayMvp?.backNo}
+                        <Text style={styles.resultAcademyName}>
+                          {matchInfo.awayAcademyName}
+                        </Text>
+                      </View>
+                    </View>
+
+                    {/* 경기결과 > 득점 선수, 득점수 */}
+                    {(matchInfo.matchState === MATCH_STATE.REVIEW.code ||
+                      matchInfo.matchState === MATCH_STATE.CONFIRM.code) && (
+                      <View style={styles.scoreBox}>
+                        <View style={styles.scoreList}>
+                          {scorers
+                            .filter(
+                              item =>
+                                item.acdmyIdx === matchInfo.homeAcademyIdx,
+                            )
+                            .map(item => (
+                              <Text
+                                style={[
+                                  styles.scoreText,
+                                  { textAlign: 'right' },
+                                ]}>
+                                {item.playerName ? item.playerName : '김파이'}{' '}
+                                {item.score}
+                              </Text>
+                            ))}
+                        </View>
+                        <Image
+                          source={SPIcons.icSoccerBall}
+                          style={{ width: 16, height: 16 }}
+                        />
+                        <View style={styles.scoreList}>
+                          {scorers
+                            .filter(
+                              item =>
+                                item.acdmyIdx === matchInfo.awayAcademyIdx,
+                            )
+                            .map(item => (
+                              <Text style={styles.scoreText}>
+                                {item.score}{' '}
+                                {item.playerName ? item.playerName : '김파이'}
+                              </Text>
+                            ))}
+                        </View>
+                      </View>
+                    )}
+                    {matchInfo.matchState === MATCH_STATE.FINISH.code &&
+                      member.academyAdmin &&
+                      member.academyIdx === matchInfo.awayAcademyIdx && (
+                        <View style={styles.appealBox}>
+                          <TouchableOpacity
+                            activeOpacity={ACTIVE_OPACITY}
+                            style={styles.appealBtn}
+                            onPress={() => moveToReject()}>
+                            <Text style={styles.appealBtnText}>이의신청</Text>
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                            activeOpacity={ACTIVE_OPACITY}
+                            style={styles.appealBtn}
+                            onPress={() => moveToSelectScorer()}>
+                            <Text style={styles.appealBtnText}>승인</Text>
+                          </TouchableOpacity>
+                        </View>
+                      )}
+                    {matchInfo.matchState === MATCH_STATE.REJECT.code &&
+                      member.academyAdmin && (
+                        <View style={styles.opinion}>
+                          <Text style={styles.opinionTitle}>의견</Text>
+                          <Text style={styles.opinionText}>
+                            {matchReject?.rejectReason}
+                          </Text>
+                        </View>
+                      )}
+                  </View>
+                </View>
+              </View>
+            ) : (
+              ''
+            )}
+
+            {matchInfo.matchState === MATCH_STATE.REVIEW.code &&
+              (member.academyIdx === matchInfo.homeAcademyIdx ||
+                member.academyIdx === matchInfo.awayAcademyIdx) &&
+              member.academyAdmin && (
+                <View>
+                  <View style={styles.contentBox}>
+                    <Text style={styles.title}>MVP</Text>
+                    <View style={styles.selectedList}>
+                      <View style={styles.selectedItem}>
+                        <View style={styles.selectedNameContainer}>
+                          <View style={styles.iconContainer}>
+                            {matchInfo.homeLogoPath ? (
+                              <Image
+                                style={styles.icon}
+                                source={{ uri: matchInfo.homeLogoPath }}
+                              />
+                            ) : (
+                              <Image
+                                style={styles.icon}
+                                source={SPIcons.icDefaultAcademy}
+                              />
+                            )}
+                            {matchInfo.certYn === 'Y' && (
+                              <Image
+                                source={SPIcons.icCheckBadge}
+                                style={styles.overlayIcon}
+                              />
+                            )}
+                          </View>
+                          <Text style={styles.selectedNameText}>
+                            {matchInfo.homeAcademyName
+                              ? matchInfo.homeAcademyName
+                              : '-'}
+                          </Text>
+                        </View>
+                        <View
+                          style={{
+                            flexDirection: 'row',
+                            justifyContent: 'center',
+                          }}>
+                          <View style={styles.selectedPlayerContainer}>
+                            {homeMvp?.profilePath ? (
+                              <View>
+                                <Image
+                                  source={{ uri: homeMvp?.profilePath }}
+                                  style={styles.icon}
+                                />
+                              </View>
+                            ) : (
+                              <View>
+                                <Image
+                                  source={SPIcons.icPerson}
+                                  style={styles.icon}
+                                />
+                              </View>
+                            )}
+                            <View style={styles.addTextTop}>
+                              {homeMvp?.backNo && (
+                                <View style={styles.addNumberBox}>
+                                  <Text style={styles.addNumberText}>
+                                    {homeMvp?.backNo}
+                                  </Text>
+                                </View>
+                              )}
+                              <Text style={styles.addNameText}>
+                                {homeMvp?.playerName
+                                  ? homeMvp?.playerName
+                                  : '김파이'}
                               </Text>
                             </View>
-                          )}
-                          <Text style={styles.addNameText}>
-                            {awayMvp?.playerName
-                              ? awayMvp?.playerName
-                              : '김파이'}
+                          </View>
+                        </View>
+                      </View>
+                      <View style={styles.selectedItem}>
+                        <View style={styles.selectedNameContainer}>
+                          <View style={styles.iconContainer}>
+                            {matchInfo.awayLogoPath ? (
+                              <Image
+                                style={styles.icon}
+                                source={{ uri: matchInfo.awayLogoPath }}
+                              />
+                            ) : (
+                              <Image
+                                style={styles.icon}
+                                source={SPIcons.icDefaultAcademy}
+                              />
+                            )}
+                            {matchInfo.awayCertYn === 'Y' && (
+                              <Image
+                                source={SPIcons.icCheckBadge}
+                                style={styles.overlayIcon}
+                              />
+                            )}
+                          </View>
+                          <Text style={styles.selectedNameText}>
+                            {matchInfo.awayAcademyName
+                              ? matchInfo.awayAcademyName
+                              : '-'}
                           </Text>
+                        </View>
+                        <View
+                          style={{
+                            flexDirection: 'row',
+                            justifyContent: 'center',
+                          }}>
+                          <View style={styles.selectedPlayerContainer}>
+                            {awayMvp?.profilePath ? (
+                              <View>
+                                <Image
+                                  source={{ uri: awayMvp?.profilePath }}
+                                  style={styles.icon}
+                                />
+                              </View>
+                            ) : (
+                              <View>
+                                <Image
+                                  source={SPIcons.icPerson}
+                                  style={styles.icon}
+                                />
+                              </View>
+                            )}
+                            <View style={styles.addTextTop}>
+                              {awayMvp?.backNo && (
+                                <View style={styles.addNumberBox}>
+                                  <Text style={styles.addNumberText}>
+                                    {awayMvp?.backNo}
+                                  </Text>
+                                </View>
+                              )}
+                              <Text style={styles.addNameText}>
+                                {awayMvp?.playerName
+                                  ? awayMvp?.playerName
+                                  : '김파이'}
+                              </Text>
+                            </View>
+                          </View>
                         </View>
                       </View>
                     </View>
                   </View>
-                </View>
-              </View>
-              <View style={styles.contentBox}>
-                <Text style={styles.title}>리뷰</Text>
-                <View style={styles.contentReview}>
-                  <View style={styles.contentReviewTop}>
-                    <Image
-                      source={SPIcons.icThreeStar}
-                      style={{ width: 24, height: 24 }}
-                    />
-                    <Text style={styles.contentReviewTitle}>
-                      경기에 대한 평가를 확인해보세요
-                    </Text>
-                  </View>
-                  <View style={styles.contentReviewBottom}>
-                    <Text style={styles.contentReviewText}>
-                      {matchReview?.find(
-                        item => item.opnntAcdmyIdx === member.academyIdx,
-                      )?.review || '-'}
-                    </Text>
-                  </View>
-                </View>
-              </View>
-            </View>
-          )}
-
-        <View>
-          {/* 아카데미 정보 */}
-          <View style={styles.contentBox}>
-            <Text style={styles.title}>아카데미 정보</Text>
-            <View style={styles.contentDetailBox}>
-              <View style={styles.contentTitle}>
-                {matchInfo.logoPath ? (
-                  <Image
-                    style={styles.academySubImage}
-                    source={{ uri: matchInfo.logoPath }}
-                  />
-                ) : (
-                  <Image
-                    style={styles.academySubImage}
-                    source={SPIcons.icDefaultAcademy}
-                  />
-                )}
-                <Text style={styles.contentTitleText}>
-                  {matchInfo.academyName ? matchInfo.academyName : '-'}
-                </Text>
-                {matchInfo.certYn === 'Y' && (
-                  <Image
-                    source={SPIcons.icCheckBadge}
-                    style={{ width: 20, height: 20 }}
-                  />
-                )}
-              </View>
-              <View style={styles.contentSubBox}>
-                <Text style={styles.contentSubTitle}>매칭전적</Text>
-                <Text style={styles.contentSubText}>
-                  {`${matchInfo.winCnt ? matchInfo.winCnt : 0}승 ${
-                    matchInfo.loseCnt ? matchInfo.loseCnt : 0
-                  }패 ${matchInfo.drawCnt ? matchInfo.drawCnt : 0}무`}
-                </Text>
-              </View>
-              <View style={styles.contentSubBox}>
-                <Text style={styles.contentSubTitle}>매너점수</Text>
-                <View style={styles.reviewBox}>
-                  <Image
-                    source={SPIcons.icStar}
-                    style={{ width: 18, height: 18 }}
-                  />
-                  <Text style={styles.contentSubText}>
-                    {matchInfo.rating ? matchInfo.rating : 0}
-                  </Text>
-                </View>
-              </View>
-            </View>
-          </View>
-
-          {/* 경기정보 */}
-          <View style={styles.contentBox}>
-            <View>
-              <Text style={styles.title}>경기정보</Text>
-            </View>
-            <View style={styles.contentDetailBox}>
-              <View style={styles.contentSubBox}>
-                <Text style={styles.contentSubTitle}>경기방식</Text>
-                <Text style={styles.contentSubText}>
-                  {matchInfo.matchMethod == null
-                    ? '-'
-                    : matchInfo.matchMethod === 0
-                    ? '협의 후 결정'
-                    : `${matchInfo.matchMethod} : ${matchInfo.matchMethod}`}
-                </Text>
-              </View>
-              <View style={styles.contentSubBox}>
-                <Text style={styles.contentSubTitle}>성별</Text>
-                <Text style={styles.contentSubText}>
-                  {matchInfo.genderCode
-                    ? GENDER[matchInfo.genderCode].desc
-                    : '-'}
-                </Text>
-              </View>
-              <View style={styles.contentSubBox}>
-                <Text style={styles.contentSubTitle}>클래스</Text>
-                <Text style={styles.contentSubText}>
-                  {matchInfo?.matchClassCode
-                    ? MATCH_CLASS[matchInfo.matchClassCode]?.desc
-                    : '-'}
-                </Text>
-              </View>
-              <View
-                style={[styles.contentSubBox, { alignItems: 'flex-start' }]}>
-                <Text style={styles.contentSubTitle}>소개글</Text>
-                <Text style={styles.contentSubDetailText}>
-                  {matchInfo.description ? matchInfo.description : '-'}
-                </Text>
-              </View>
-            </View>
-          </View>
-
-          {matchInfo.matchState === MATCH_STATE.APPLY.code && (
-            <View style={styles.contentBox}>
-              <View>
-                <Text style={styles.title}>마감일</Text>
-              </View>
-              <View>
-                <Text style={styles.contentSubDetailText}>
-                  {`${parseDate(matchInfo.closeDate)} 까지`}
-                </Text>
-              </View>
-            </View>
-          )}
-
-          {/* 경기구장 */}
-          <View style={styles.contentBox}>
-            <View>
-              <Text style={styles.title}>경기구장</Text>
-            </View>
-            <View style={styles.mapContainer}>
-              <View style={{ height: width > 360 ? width * 0.45 : 164 }}>
-                {camera && (
-                  <NaverMapView
-                    style={{
-                      width: '100%',
-                      height: '100%',
-                      borderTopLeftRadius: 12,
-                      borderTopRightRadius: 12,
-                      overflow: 'hidden',
-                    }}
-                    center={{ ...camera, zoom: 15 }}
-                    showsMyLocationButton={false}
-                    zoomControl={false}
-                    scaleBar={false}
-                    useTextureView>
-                    <Marker coordinate={camera} />
-                  </NaverMapView>
-                )}
-              </View>
-
-              {/* 경기구장 주소 */}
-              <View style={styles.mapTextBox}>
-                <Text style={styles.mapText}>
-                  {matchInfo.addressFull ? matchInfo.addressFull : '-'}
-                </Text>
-              </View>
-            </View>
-          </View>
-
-          {/* 매칭 신청 */}
-          {matchInfo.matchState === MATCH_STATE.APPLY.code &&
-            matchApplies.length !== 0 &&
-            member.academyAdmin &&
-            member.academyIdx === matchInfo.homeAcademyIdx && (
-              <View>
-                <View style={styles.contentMatchBox}>
-                  <View style={{ marginBottom: 8 }}>
-                    <Text style={styles.title}>매칭 신청</Text>
-                  </View>
-                  {matchApplies.map(item => (
-                    <View
-                      style={[styles.detailContainer, { paddingVertical: 8 }]}>
-                      <TouchableOpacity
-                        activeOpacity={ACTIVE_OPACITY}
-                        style={styles.detailSubContainer}
-                        onPress={() => openAcademyModal(item.academyIdx)}>
-                        {item.logoPath ? (
-                          <Image
-                            style={styles.academyDetailImage}
-                            source={{ uri: item.logoPath }}
-                          />
-                        ) : (
-                          <Image
-                            style={styles.academyDetailImage}
-                            source={SPIcons.icDefaultAcademy}
-                          />
-                        )}
-                        <Text style={styles.DetailTitleText}>
-                          {item.academyName ? item.academyName : '-'}
+                  <View style={styles.contentBox}>
+                    <Text style={styles.title}>리뷰</Text>
+                    <View style={styles.contentReview}>
+                      <View style={styles.contentReviewTop}>
+                        <Image
+                          source={SPIcons.icThreeStar}
+                          style={{ width: 24, height: 24 }}
+                        />
+                        <Text style={styles.contentReviewTitle}>
+                          경기에 대한 평가를 확인해보세요
                         </Text>
-                        {item.certYn === 'Y' && (
+                      </View>
+                      <View style={styles.contentReviewBottom}>
+                        <Text style={styles.contentReviewText}>
+                          {matchReview?.find(
+                            item => item.opnntAcdmyIdx === member.academyIdx,
+                          )?.review || '-'}
+                        </Text>
+                      </View>
+                    </View>
+                  </View>
+                </View>
+              )}
+
+            <View>
+              {/* 아카데미 정보 */}
+              <View style={styles.contentBox}>
+                <Text style={styles.title}>아카데미 정보</Text>
+                <View style={styles.contentDetailBox}>
+                  <TouchableOpacity
+                    onPress={() => openAcademyModal(matchInfo.homeAcademyIdx)}>
+                    <View style={styles.contentTitle}>
+                      {matchInfo.logoPath ? (
+                        <Image
+                          style={styles.academySubImage}
+                          source={{ uri: matchInfo.logoPath }}
+                        />
+                      ) : (
+                        <Image
+                          style={styles.academySubImage}
+                          source={SPIcons.icDefaultAcademy}
+                        />
+                      )}
+                      <View
+                        style={{
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          flex: 1,
+                          paddingRight: 16,
+                        }}>
+                        <Text style={styles.contentTitleText}>
+                          {matchInfo.academyName ? matchInfo.academyName : '-'}
+                        </Text>
+                        {matchInfo.certYn === 'Y' && (
                           <Image
                             source={SPIcons.icCheckBadge}
                             style={{ width: 20, height: 20 }}
                           />
                         )}
-                      </TouchableOpacity>
-                      {item.academyIdx === matchInfo.awayAcademyIdx && (
-                        <View style={styles.completeBox}>
-                          <Text style={styles.completeText}>매칭완료</Text>
-                        </View>
-                      )}
+                      </View>
                     </View>
-                  ))}
-                </View>
-                <View style={[styles.appealBox, { paddingTop: 0 }]}>
-                  <TouchableOpacity
-                    style={styles.appealOutlineBtn}
-                    onPress={() => moveToCancel()}>
-                    <Text style={styles.appealOutlineBtnText}>경기취소</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity
-                    style={styles.appealBtn}
-                    onPress={() => moveToSelectAcademy()}>
-                    <Text style={styles.appealBtnText}>아카데미 선택하기</Text>
-                  </TouchableOpacity>
+                  <View style={styles.contentSubBox}>
+                    <Text style={styles.contentSubTitle}>매칭전적</Text>
+                    <Text style={styles.contentSubText}>
+                      {`${matchInfo.winCnt}승 ${matchInfo.drawCnt}무 ${matchInfo.loseCnt}패`}
+                    </Text>
+                  </View>
+                  {matchInfo.rating ? (
+                    <View style={styles.contentSubBox}>
+                      <Text style={styles.contentSubTitle}>매너점수</Text>
+                      <View style={styles.reviewBox}>
+                        <Image
+                          source={SPIcons.icStar}
+                          style={{ width: 18, height: 18 }}
+                        />
+                        <Text style={styles.contentSubText}>
+                          {matchInfo.rating}
+                        </Text>
+                      </View>
+                    </View>
+                  ) : (
+                    ''
+                  )}
                 </View>
               </View>
-            )}
-          {matchInfo.matchState === MATCH_STATE.APPLY.code &&
-            matchApplies.length === 0 &&
-            member.academyAdmin &&
-            member.academyIdx === matchInfo.homeAcademyIdx && (
-              <TouchableOpacity
-                style={styles.mainBtn}
-                onPress={() => moveToCancel()}>
-                <Text style={styles.mainBtnText}>경기취소</Text>
-              </TouchableOpacity>
-            )}
-          {matchInfo.matchState === MATCH_STATE.APPLY.code &&
-            member.academyAdmin &&
-            member.academyIdx !== matchInfo.homeAcademyIdx &&
-            matchApplies.some(
-              item => item.academyIdx === member.academyIdx,
-            ) && (
-              <View style={styles.appealBox}>
-                <TouchableOpacity
-                  style={styles.appealOutlineBtn}
-                  onPress={() => cancelApplyMatch()}>
-                  <Text style={styles.appealOutlineBtnText}>
-                    매칭 신청 취소
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.appealBtn}
-                  onPress={() => moveToChat()}>
-                  <Text style={styles.appealBtnText}>1:1 채팅하기</Text>
-                </TouchableOpacity>
+
+              {/* 경기정보 */}
+              <View style={styles.contentBox}>
+                <View>
+                  <Text style={styles.title}>경기정보</Text>
+                </View>
+                <View style={styles.contentDetailBox}>
+                  <View style={styles.contentSubBox}>
+                    <Text style={styles.contentSubTitle}>경기방식</Text>
+                    <Text style={styles.contentSubText}>
+                      {matchInfo.matchMethod == null
+                        ? '-'
+                        : matchInfo.matchMethod === 0
+                        ? '협의 후 결정'
+                        : `${matchInfo.matchMethod} : ${matchInfo.matchMethod}`}
+                    </Text>
+                  </View>
+                  <View style={styles.contentSubBox}>
+                    <Text style={styles.contentSubTitle}>성별</Text>
+                    <Text style={styles.contentSubText}>
+                      {matchInfo.genderCode
+                        ? GENDER[matchInfo.genderCode].desc
+                        : '-'}
+                    </Text>
+                  </View>
+                  <View style={styles.contentSubBox}>
+                    <Text style={styles.contentSubTitle}>클래스</Text>
+                    <Text style={styles.contentSubText}>
+                      {matchInfo?.matchClassCode
+                        ? MATCH_CLASS[matchInfo.matchClassCode]?.desc
+                        : '-'}
+                    </Text>
+                  </View>
+                  <View
+                    style={[
+                      styles.contentSubBox,
+                      { alignItems: 'flex-start' },
+                    ]}>
+                    <Text style={styles.contentSubTitle}>소개글</Text>
+                    <Text style={styles.contentSubDetailText}>
+                      {matchInfo.description ? matchInfo.description : '-'}
+                    </Text>
+                  </View>
+                </View>
               </View>
-            )}
-          {matchInfo.matchState === MATCH_STATE.APPLY.code &&
-            member.academyAdmin &&
-            member.academyIdx !== matchInfo.homeAcademyIdx &&
-            !matchApplies.some(
-              item => item.academyIdx === member.academyIdx,
-            ) && (
-              <TouchableOpacity
-                style={styles.mainBtn}
-                onPress={() => applyMatch()}>
-                <Text style={styles.mainBtnText}>매칭 신청하기</Text>
-              </TouchableOpacity>
-            )}
-          {matchInfo.matchState === MATCH_STATE.READY.code &&
-            member.academyAdmin && (
-              <View>
-                {member.academyIdx === matchInfo.homeAcademyIdx && (
+
+              {matchInfo.matchState === MATCH_STATE.APPLY.code && (
+                <View style={styles.contentBox}>
+                  <View>
+                    <Text style={styles.title}>마감일</Text>
+                  </View>
+                  <View>
+                    <Text style={styles.contentSubDetailText}>
+                      {`${parseDate(matchInfo.closeDate)} 까지`}
+                    </Text>
+                  </View>
+                </View>
+              )}
+
+              {/* 경기구장 */}
+              <View style={styles.contentBox}>
+                <View>
+                  <Text style={styles.title}>경기구장</Text>
+                </View>
+                <View style={styles.mapContainer}>
+                  <View style={{ height: width > 360 ? width * 0.45 : 164 }}>
+                    {camera && (
+                      <NaverMapView
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          borderTopLeftRadius: 12,
+                          borderTopRightRadius: 12,
+                          overflow: 'hidden',
+                        }}
+                        center={{ ...camera, zoom: 15 }}
+                        showsMyLocationButton={false}
+                        zoomControl={false}
+                        scaleBar={false}
+                        useTextureView>
+                        <Marker coordinate={camera} />
+                      </NaverMapView>
+                    )}
+                  </View>
+
+                  {/* 경기구장 주소 */}
+                  <View style={styles.mapTextBox}>
+                    <Text style={styles.mapText}>
+                      {matchInfo.addressFull ? matchInfo.addressFull : '-'}
+                    </Text>
+                  </View>
+                </View>
+              </View>
+
+              {/* 매칭 신청 */}
+              {matchInfo.matchState === MATCH_STATE.APPLY.code &&
+                matchApplies.length !== 0 &&
+                member.academyAdmin &&
+                member.academyIdx === matchInfo.homeAcademyIdx &&
+                !isMatchClose && (
                   <View>
                     <View style={styles.contentMatchBox}>
                       <View style={{ marginBottom: 8 }}>
@@ -1115,6 +1092,7 @@ function MatchingDetail({ route }) {
                             { paddingVertical: 8 },
                           ]}>
                           <TouchableOpacity
+                            activeOpacity={ACTIVE_OPACITY}
                             style={styles.detailSubContainer}
                             onPress={() => openAcademyModal(item.academyIdx)}>
                             {item.logoPath ? (
@@ -1146,16 +1124,50 @@ function MatchingDetail({ route }) {
                         </View>
                       ))}
                     </View>
-                    <TouchableOpacity
-                      style={styles.mainBtn}
-                      onPress={() => moveToCancel()}>
-                      <Text style={styles.mainBtnText}>경기취소</Text>
-                    </TouchableOpacity>
+                    <View style={[styles.appealBox, { paddingTop: 0 }]}>
+                      <TouchableOpacity
+                        style={styles.appealOutlineBtn}
+                        onPress={() => moveToCancel()}>
+                        <Text style={styles.appealOutlineBtnText}>
+                          경기취소
+                        </Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={styles.appealBtn}
+                        onPress={() => moveToSelectAcademy()}>
+                        <Text style={styles.appealBtnText}>
+                          아카데미 선택하기
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
                   </View>
                 )}
-
-                {member.academyIdx === matchInfo.awayAcademyIdx && (
+              {matchInfo.matchState === MATCH_STATE.APPLY.code &&
+                matchApplies.length === 0 &&
+                member.academyAdmin &&
+                member.academyIdx === matchInfo.homeAcademyIdx &&
+                !isMatchClose && (
+                  <TouchableOpacity
+                    style={styles.mainBtn}
+                    onPress={() => moveToCancel()}>
+                    <Text style={styles.mainBtnText}>경기취소</Text>
+                  </TouchableOpacity>
+                )}
+              {matchInfo.matchState === MATCH_STATE.APPLY.code &&
+                member.academyAdmin &&
+                member.academyIdx !== matchInfo.homeAcademyIdx &&
+                matchApplies.some(
+                  item => item.academyIdx === member.academyIdx,
+                ) &&
+                !isMatchClose && (
                   <View style={styles.appealBox}>
+                    <TouchableOpacity
+                      style={styles.appealOutlineBtn}
+                      onPress={() => cancelApplyMatch()}>
+                      <Text style={styles.appealOutlineBtnText}>
+                        매칭 신청 취소
+                      </Text>
+                    </TouchableOpacity>
                     <TouchableOpacity
                       style={styles.appealBtn}
                       onPress={() => moveToChat()}>
@@ -1163,66 +1175,154 @@ function MatchingDetail({ route }) {
                     </TouchableOpacity>
                   </View>
                 )}
-              </View>
-            )}
+              {matchInfo.matchState === MATCH_STATE.APPLY.code &&
+                member.academyAdmin &&
+                member.academyIdx !== matchInfo.homeAcademyIdx &&
+                !matchApplies.some(
+                  item => item.academyIdx === member.academyIdx,
+                ) &&
+                !isMatchClose && (
+                  <TouchableOpacity
+                    style={styles.mainBtn}
+                    onPress={() => applyMatch()}>
+                    <Text style={styles.mainBtnText}>매칭 신청하기</Text>
+                  </TouchableOpacity>
+                )}
+              {matchInfo.matchState === MATCH_STATE.READY.code &&
+                member.academyAdmin && (
+                  <View>
+                    {member.academyIdx === matchInfo.homeAcademyIdx && (
+                      <View>
+                        <View style={styles.contentMatchBox}>
+                          <View style={{ marginBottom: 8 }}>
+                            <Text style={styles.title}>매칭 신청</Text>
+                          </View>
+                          {matchApplies.map(item => (
+                            <View
+                              style={[
+                                styles.detailContainer,
+                                { paddingVertical: 8 },
+                              ]}>
+                              <TouchableOpacity
+                                style={styles.detailSubContainer}
+                                onPress={() =>
+                                  openAcademyModal(item.academyIdx)
+                                }>
+                                {item.logoPath ? (
+                                  <Image
+                                    style={styles.academyDetailImage}
+                                    source={{ uri: item.logoPath }}
+                                  />
+                                ) : (
+                                  <Image
+                                    style={styles.academyDetailImage}
+                                    source={SPIcons.icDefaultAcademy}
+                                  />
+                                )}
+                                <Text style={styles.DetailTitleText}>
+                                  {item.academyName ? item.academyName : '-'}
+                                </Text>
+                                {item.certYn === 'Y' && (
+                                  <Image
+                                    source={SPIcons.icCheckBadge}
+                                    style={{ width: 20, height: 20 }}
+                                  />
+                                )}
+                              </TouchableOpacity>
+                              {item.academyIdx === matchInfo.awayAcademyIdx && (
+                                <View style={styles.completeBox}>
+                                  <Text style={styles.completeText}>
+                                    매칭완료
+                                  </Text>
+                                </View>
+                              )}
+                            </View>
+                          ))}
+                        </View>
+                        <TouchableOpacity
+                          style={styles.mainBtn}
+                          onPress={() => moveToCancel()}>
+                          <Text style={styles.mainBtnText}>경기취소</Text>
+                        </TouchableOpacity>
+                      </View>
+                    )}
 
-          {matchInfo.matchState === MATCH_STATE.CONFIRM.code &&
-            (member.academyIdx === matchInfo.homeAcademyIdx ||
-              member.academyIdx === matchInfo.awayAcademyIdx) &&
-            member.academyAdmin &&
-            !matchReview.find(item => item.acdmyIdx === member.academyIdx) && (
-              <TouchableOpacity
-                style={styles.mainBtn}
-                onPress={() => moveToReview()}>
-                <Text style={styles.mainBtnText}>리뷰작성</Text>
-              </TouchableOpacity>
-            )}
+                    {member.academyIdx === matchInfo.awayAcademyIdx && (
+                      <View style={styles.appealBox}>
+                        <TouchableOpacity
+                          style={styles.appealBtn}
+                          onPress={() => moveToChat()}>
+                          <Text style={styles.appealBtnText}>1:1 채팅하기</Text>
+                        </TouchableOpacity>
+                      </View>
+                    )}
+                  </View>
+                )}
 
-          {matchInfo.matchState === MATCH_STATE.REJECT.code &&
-            member.academyAdmin &&
-            member.academyIdx === matchInfo.homeAcademyIdx && (
-              <TouchableOpacity
-                style={styles.mainBtn}
-                onPress={() => moveToScore()}>
-                <Text style={styles.mainBtnText}>스코어 수정</Text>
-              </TouchableOpacity>
-            )}
-        </View>
+              {matchInfo.matchState === MATCH_STATE.CONFIRM.code &&
+                (member.academyIdx === matchInfo.homeAcademyIdx ||
+                  member.academyIdx === matchInfo.awayAcademyIdx) &&
+                member.academyAdmin &&
+                !matchReview.find(
+                  item => item.acdmyIdx === member.academyIdx,
+                ) && (
+                  <TouchableOpacity
+                    style={styles.mainBtn}
+                    onPress={() => moveToReview()}>
+                    <Text style={styles.mainBtnText}>리뷰작성</Text>
+                  </TouchableOpacity>
+                )}
 
-        {/* TODO:: 매칭 신청 > 아카데미 상세 정보 모달창 */}
-        <Modal
-          animationType="fade"
-          transparent
-          visible={academyModalShow}
-          onRequestClose={closeAcademyModal}>
-          <SafeAreaView style={{ flex: 1, backgroundColor: '#FFF' }}>
-            <View>
-              <TouchableOpacity
-                onPress={closeAcademyModal}
-                style={{
-                  width: '100%',
-                  height: 60,
-                  paddingHorizontal: 20,
-                  paddingVertical: 16,
-                }}>
-                <Image
-                  source={SPIcons.icNavCancle}
-                  style={[{ height: 28, width: 28 }]}
-                  resizeMode="contain"
-                />
-              </TouchableOpacity>
+              {matchInfo.matchState === MATCH_STATE.REJECT.code &&
+                member.academyAdmin &&
+                member.academyIdx === matchInfo.homeAcademyIdx && (
+                  <TouchableOpacity
+                    style={styles.mainBtn}
+                    onPress={() => moveToScore()}>
+                    <Text style={styles.mainBtnText}>스코어 수정</Text>
+                  </TouchableOpacity>
+                )}
             </View>
-            <AcademyDetail
-              showHeader={false}
-              showMenu={false}
-              showTopRow={false}
-              showContentSubBox={true}
-              isModal={true}
-              route={{ params: { academyIdx: selectedAcademyIdx } }}
-            />
-          </SafeAreaView>
-        </Modal>
-      </ScrollView>
+
+            {/* TODO:: 매칭 신청 > 아카데미 상세 정보 모달창 */}
+            <Modal
+              animationType="fade"
+              transparent
+              visible={academyModalShow}
+              onRequestClose={closeAcademyModal}>
+              <SafeAreaView style={{ flex: 1, backgroundColor: '#FFF' }}>
+                <View>
+                  <TouchableOpacity
+                    onPress={closeAcademyModal}
+                    style={{
+                      width: '100%',
+                      height: 60,
+                      paddingHorizontal: 20,
+                      paddingVertical: 16,
+                      marginTop: Platform.OS === 'ios' ? 16 : 0,
+                    }}>
+                    <Image
+                      source={SPIcons.icNavCancle}
+                      style={[{ height: 28, width: 28 }]}
+                      resizeMode="contain"
+                    />
+                  </TouchableOpacity>
+                </View>
+                <AcademyDetail
+                  showHeader={false}
+                  showMenu={false}
+                  showTopRow={false}
+                  showContentSubBox={true}
+                  isModal={true}
+                  route={{ params: { academyIdx: selectedAcademyIdx } }}
+                />
+              </SafeAreaView>
+            </Modal>
+          </ScrollView>
+        </View>
+      ) : (
+        <SPLoading />
+      )}
     </SafeAreaView>
   );
 }
@@ -1428,6 +1528,7 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   contentTitleText: {
+    // flex: 1,
     fontSize: 16,
     fontWeight: 500,
     color: '#121212',
@@ -1463,8 +1564,8 @@ const styles = StyleSheet.create({
   },
   contentSubDetailText: {
     fontSize: 14,
-    fontWeight: 500,
-    color: 'rgba(46, 49, 53, 0.80)',
+    fontWeight: 600,
+    color: '#1A1C1E',
     lineHeight: 22,
     letterSpacing: 0.203,
     flex: 1,
@@ -1683,6 +1784,7 @@ const styles = StyleSheet.create({
     lineHeight: 26,
     letterSpacing: -0.004,
     marginRight: 4,
+    flexShrink: 1,
   },
   resultStatusBox: {
     flexDirection: 'row',

@@ -122,6 +122,7 @@ const MainPopup = forwardRef(({ data }, ref) => {
             scrollEventThrottle={16}
             bounces={false}
             pagingEnabled
+            showsVerticalScrollIndicator={false}
             showsHorizontalScrollIndicator={false}
             horizontal>
             {data?.map(item => {

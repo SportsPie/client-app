@@ -1,29 +1,31 @@
-import React, { useState, useEffect, useRef, useCallback, memo } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
+import { format, isAfter, isBefore } from 'date-fns';
+import { ko } from 'date-fns/locale/ko';
+import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
 import {
-  ImageBackground,
-  Text,
-  View,
-  Image,
-  useWindowDimensions,
-  TouchableOpacity,
   FlatList,
-  Platform,
+  Image,
+  ImageBackground,
   Modal,
-  RefreshControl,
+  Platform,
   Pressable,
+  RefreshControl,
   ScrollView,
-  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  useWindowDimensions,
 } from 'react-native';
-import LinearGradient from 'react-native-linear-gradient';
 import {
   Calendar,
+  CalendarProvider,
   LocaleConfig,
   WeekCalendar,
-  CalendarProvider,
 } from 'react-native-calendars/src/index';
-import { format, addDays, addMonths, isBefore, isAfter } from 'date-fns';
-import SPImages from '../../assets/images';
-import SPIcons from '../../assets/icon';
+import LinearGradient from 'react-native-linear-gradient';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useDispatch, useSelector } from 'react-redux';
 import {
   apiCityList,
   apiGetMatchList,
@@ -32,24 +34,25 @@ import {
   apiGetTournamentList,
   apiGuList,
 } from '../../api/RestAPI';
-import { handleError } from '../../utils/HandleError';
+import SPIcons from '../../assets/icon';
+import SPImages from '../../assets/images';
+import { SPSvgs } from '../../assets/svg';
+import { ACTIVE_OPACITY } from '../../common/constants/constants';
 import { GENDER } from '../../common/constants/gender';
 import { MATCH_STATE } from '../../common/constants/matchState';
-import { TOURNAMENT_STATE } from '../../common/constants/tournamentState';
 import { navName } from '../../common/constants/navName';
-import NavigationService from '../../navigation/NavigationService';
-import Utils from '../../utils/Utils';
-import { ko } from 'date-fns/locale/ko';
+import { TOURNAMENT_STATE } from '../../common/constants/tournamentState';
+import ListEmptyView from '../../components/ListEmptyView';
 import Header from '../../components/header';
-import { SPSvgs } from '../../assets/svg';
-import { COLORS } from '../../styles/colors';
-import { useFocusEffect } from '@react-navigation/native';
-import chatMapper, { USER_TYPE } from '../../utils/chat/ChatMapper';
-import { useDispatch, useSelector } from 'react-redux';
+import MatchingFilterModal from '../../components/matching/MatchingFilterModal';
+import NavigationService from '../../navigation/NavigationService';
 import { chatSliceActions } from '../../redux/reducers/chatSlice';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { COLORS } from '../../styles/colors';
 import GeoLocationUtils from '../../utils/GeoLocationUtils';
-import { ACTIVE_OPACITY } from '../../common/constants/constants';
+import { handleError } from '../../utils/HandleError';
+import Utils from '../../utils/Utils';
+import chatMapper, { USER_TYPE } from '../../utils/chat/ChatMapper';
+import SPLoading from '../../components/SPLoading';
 
 LocaleConfig.locales.fr = {
   monthNames: [
@@ -113,6 +116,7 @@ const months = [
 function MatchingSchedule({ route }) {
   const insets = useSafeAreaInsets();
   const flatListRef = useRef();
+  const matchingFilterRef = useRef();
   const authState = useSelector(selector => selector.auth);
   const chatState = useSelector(selector => selector.chat);
   const notReadChatIsExists = chatState?.notReadChatIsExists;
@@ -125,19 +129,30 @@ function MatchingSchedule({ route }) {
   // --------------------------------------------------
   // [ State ]
   // --------------------------------------------------
+  const [fstCall, setFstCall] = useState(false);
   // 리스트 관련 State
-  const initTab = route.params?.activeTab || '매칭';
   const [size] = useState(9999);
+  const [lat, setLat] = useState();
+  const [lon, setLon] = useState();
+  const [init, setInit] = useState(false);
   const [page, setPage] = useState(1);
   const [member, setMember] = useState({});
   const [totalCnt, setTotalCnt] = useState(0);
   const [isLast, setIsLast] = useState(false);
   const [refreshing, setRefreshing] = useState(true);
-  const [activeTab, setActiveTab] = useState(initTab); // 매칭 , 대회 , 구장
+  const [activeTab, setActiveTab] = useState('매칭'); // 매칭 , 대회 , 구장
   const [matchList, setMatchList] = useState([]);
   const [filteredMatchList, setFilteredMatchList] = useState([]);
   const [playgroundList, setPlaygroundList] = useState([]);
   const [tournamentList, setTournamentList] = useState([]);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (route.params?.activeTab) {
+        setActiveTab(route.params?.activeTab);
+      }
+    }, [route.params?.activeTab]),
+  );
 
   // 주, 월간 달력 on/off
   const [showFullCalendar, setShowFullCalendar] = useState(false);
@@ -159,10 +174,14 @@ function MatchingSchedule({ route }) {
     format(new Date(), 'yyyy-MM-dd'),
   );
 
+  const [selectedGender, setSelectedGender] = useState(null);
+  const [selectedMethod, setSelectedMethod] = useState(null);
+
   // 모달 상태 관리
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [isGetAddr, setIsGetAddr] = useState(false);
 
   // --------------------------------------------------
   // [ Utils ]
@@ -212,7 +231,7 @@ function MatchingSchedule({ route }) {
     //   setShowFullCalendar(false);
     // }
     setSelectedDate(date);
-    onRefresh();
+    // onRefresh();
   };
 
   const handleSelectCity = city => {
@@ -263,24 +282,36 @@ function MatchingSchedule({ route }) {
   // };
 
   const onRefresh = async () => {
-    if (flatListRef.current) {
-      flatListRef.current.scrollToOffset({ animated: false, offset: 0 });
-    }
     setPage(1);
     setIsLast(false);
     setRefreshing(true);
   };
 
+  const onInit = async () => {
+    setInit(true);
+  };
+
   const getUserAddr = async () => {
-    const { latitude, longitude } = await GeoLocationUtils.getLocation(false);
-    const resultAddr = await GeoLocationUtils.getAddress({
-      latitude,
-      longitude,
-    });
-    if (resultAddr) {
-      const { city, gu } = resultAddr;
-      setSelectedCity(city);
-      // setSelectedGu(gu);
+    if (isGetAddr) return;
+    try {
+      const { latitude, longitude } = await GeoLocationUtils.getLocation(false);
+      setLat(latitude);
+      setLon(longitude);
+
+      const resultAddr = await GeoLocationUtils.getAddress({
+        latitude,
+        longitude,
+      });
+
+      if (resultAddr) {
+        const { city, gu } = resultAddr;
+        setSelectedCity(city);
+        // setSelectedGu(gu);
+      }
+    } catch (error) {
+      console.log('[LOG ::: 위치정보를 허용하지 않았음.]');
+    } finally {
+      setIsGetAddr(true);
     }
   };
 
@@ -303,6 +334,7 @@ function MatchingSchedule({ route }) {
     setIsModalVisible(false);
     setRefreshing(true);
   };
+
   // --------------------------------------------------
   // [ Apis ]
   // --------------------------------------------------
@@ -358,6 +390,8 @@ function MatchingSchedule({ route }) {
         addrCity: selectedCity,
         addrGu: selectedGu,
         yearMonth: selectedDate.slice(0, 7),
+        gender: selectedGender,
+        matchMethod: selectedMethod,
       };
 
       const { data } = await apiGetMatchList(param);
@@ -368,20 +402,20 @@ function MatchingSchedule({ route }) {
         setSelectedDates(
           data.data.list ? data.data.list.map(item => item.matchDate) : [],
         );
-        const filteredData = data.data.list.filter(
-          item => item.matchDate === selectedDate,
-        );
-        setFilteredMatchList(filteredData);
-        if (page === 1) {
-          setMatchList(data.data.list);
-        } else {
-          setMatchList(prev => [...prev, ...data.data.list]);
-        }
+        setMatchList(data.data.list);
       }
     } catch (error) {
       handleError(error);
     }
-    setRefreshing(false);
+
+    setTimeout(() => {
+      setFstCall(true);
+    }, 400);
+
+    setTimeout(() => {
+      setRefreshing(false);
+      setInit(false);
+    }, 300);
   };
 
   const getTournamentList = async () => {
@@ -402,7 +436,8 @@ function MatchingSchedule({ route }) {
         const formattedList = data.data.list.map(item => ({
           ...item,
           formattedOpenDate: formatTournamentDate(item.openDate),
-          formattedCloseDate: formatTournamentDate(item.closeDate),
+          formattedStartDate: formatTournamentDate(item.startDate),
+          formattedEndDate: formatTournamentDate(item.endDate),
           state: getTournamentState(item.openDate, item.closeDate),
         }));
 
@@ -415,7 +450,15 @@ function MatchingSchedule({ route }) {
     } catch (error) {
       handleError(error);
     }
-    setRefreshing(false);
+
+    setTimeout(() => {
+      setFstCall(true);
+    }, 500);
+
+    setTimeout(() => {
+      setRefreshing(false);
+      setInit(false);
+    }, 500);
   };
 
   const getPlaygroundList = async () => {
@@ -425,6 +468,8 @@ function MatchingSchedule({ route }) {
         page,
         addrCity: selectedCity,
         addrGu: selectedGu,
+        latitude: lat,
+        longitude: lon,
       };
 
       const { data } = await apiGetPlaygroundList(param);
@@ -441,7 +486,10 @@ function MatchingSchedule({ route }) {
     } catch (error) {
       handleError(error);
     }
-    setRefreshing(false);
+    setTimeout(() => {
+      setRefreshing(false);
+      setInit(false);
+    }, 300);
   };
 
   const getMyInfo = async () => {
@@ -473,32 +521,83 @@ function MatchingSchedule({ route }) {
     }
   };
 
+  const handleFilterSubmit = selectedValues => {
+    // eslint-disable-next-line no-shadow
+    const { selectedGender, selectedMethod } = selectedValues;
+    setSelectedGender(selectedGender);
+    setSelectedMethod(selectedMethod);
+    onRefresh();
+  };
+
+  const handleFilterMatchList = () => {
+    const filteredData = matchList.filter(
+      item => item.matchDate === selectedDate,
+    );
+    setFilteredMatchList(filteredData);
+  };
+
   // --------------------------------------------------
   // [ UseEffect ]
   // --------------------------------------------------
   useFocusEffect(
     useCallback(() => {
       checkNotReadChat();
+      getMyInfo();
+      onInit();
+      return () => {
+        setActiveTab('매칭');
+        setInit(false);
+        setSelectedCity('');
+        setSelectedGu('');
+        setSelectedDate(format(new Date(), 'yyyy-MM-dd'));
+        setSelectedMonth(new Date().getMonth() + 1);
+        setSelectedYear(new Date().getFullYear());
+        setSelectedGender(null);
+        setSelectedMethod(null);
+        setIsGetAddr(false);
+        matchingFilterRef?.current?.reset();
+        setFstCall(false);
+      };
+    }, []),
+  );
+
+  useFocusEffect(
+    useCallback(() => {
+      getCityList();
+      getUserAddr();
     }, []),
   );
 
   useEffect(() => {
-    if (activeTab === '매칭' && selectedDate && refreshing) {
+    if (
+      isGetAddr &&
+      activeTab === '매칭' &&
+      selectedDate &&
+      (refreshing || init)
+    ) {
       getMatchList();
     }
-  }, [page, selectedCity, selectedGu, selectedDate, activeTab, refreshing]);
+  }, [
+    selectedCity,
+    selectedGu,
+    selectedDate,
+    activeTab,
+    refreshing,
+    isGetAddr,
+    init,
+  ]);
 
   useEffect(() => {
-    if (activeTab === '구장' && refreshing) {
+    if (activeTab === '구장' && (refreshing || init)) {
       getPlaygroundList();
     }
-  }, [page, selectedCity, selectedGu, activeTab, refreshing]);
+  }, [page, selectedCity, selectedGu, activeTab, refreshing, init]);
 
   useEffect(() => {
-    if (activeTab === '대회' && selectedDate && refreshing) {
+    if (activeTab === '대회' && selectedDate && (refreshing || init)) {
       getTournamentList();
     }
-  }, [page, selectedDate, activeTab, refreshing]);
+  }, [page, selectedDate, activeTab, refreshing, init]);
 
   useEffect(() => {
     if (selectedCity) {
@@ -507,10 +606,154 @@ function MatchingSchedule({ route }) {
   }, [selectedCity]);
 
   useEffect(() => {
-    getCityList();
-    getMyInfo();
-    getUserAddr();
-  }, []);
+    handleFilterMatchList();
+  }, [matchList, selectedDate]);
+
+  const listCalendarHeader = () => {
+    const calendarTheme = {
+      backgroundColor: '#ffffff',
+      calendarBackground: '#ffffff',
+      selectedDayTextColor: '#ffffff',
+      selectedDayBackgroundColor: '#FF671F',
+      todayTextColor: '#FF671F',
+      dayTextColor: '#1A1C1E',
+      textDisabledColor: 'rgba(46, 49, 53, 0.16)',
+      textDayFontWeight: '700',
+      textSectionTitleColor: 'rgba(46, 49, 53, 0.60)',
+      textDayFontSize: 14,
+      dotColor: '#FF671F',
+      selectedDotColor: '#FF671F',
+    };
+
+    return (
+      <View>
+        <View style={styles.tabCommon}>
+          <View style={styles.tabTopBox}>
+            <TouchableOpacity
+              activeOpacity={ACTIVE_OPACITY}
+              style={styles.monthButtonTopBox}
+              onPress={() => setIsModalVisible(true)}>
+              <Text style={[styles.monthText, { fontWeight: 600 }]}>{`${format(
+                selectedDate,
+                'yyyy년 M월',
+              )}`}</Text>
+              <Image source={SPIcons.icArrowDownBlack} />
+            </TouchableOpacity>
+            <View style={styles.switch}>
+              {/* 주 버튼 */}
+              <TouchableOpacity
+                style={[
+                  styles.toggle,
+                  !showFullCalendar && styles.activeToggle,
+                ]}
+                onPress={() => setShowFullCalendar(false)}>
+                <Text
+                  style={[
+                    styles.toggleText,
+                    !showFullCalendar && styles.activeToggleText,
+                  ]}>
+                  주
+                </Text>
+              </TouchableOpacity>
+              {/* 월 버튼 */}
+              <TouchableOpacity
+                style={[styles.toggle, showFullCalendar && styles.activeToggle]}
+                onPress={() => setShowFullCalendar(true)}>
+                <Text
+                  style={[
+                    styles.toggleText,
+                    showFullCalendar && styles.activeToggleText,
+                  ]}>
+                  월
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+          {!showFullCalendar ? (
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+              }}>
+              <CalendarProvider
+                date={selectedDate}
+                key={selectedDate}
+                style={{
+                  minHeight: 1,
+                  flex: 1,
+                  zIndex: 1,
+                }}>
+                <WeekCalendar
+                  firstDay={1}
+                  onDayPress={day => handleSelectDate(day.dateString)}
+                  allowShadow={false}
+                  markedDates={markedSelectedDates}
+                  scrollEnabled={false}
+                  theme={calendarTheme}
+                />
+              </CalendarProvider>
+            </View>
+          ) : (
+            <Calendar
+              key={selectedDate}
+              current={selectedDate}
+              renderHeader={() => null}
+              hideArrows
+              firstDay={1}
+              onDayPress={day => handleSelectDate(day.dateString)}
+              markedDates={markedSelectedDates}
+              theme={calendarTheme}
+            />
+          )}
+        </View>
+        <View style={{ flexDirection: 'column' }}>
+          <View>
+            <View style={styles.dropdownBtn}>
+              <TouchableOpacity
+                style={styles.button}
+                onPress={() => {
+                  setItemsToDisplay(cityList);
+                  setCityListVisible(true);
+                }}>
+                <Text style={styles.dropdownTitle}>
+                  {selectedCity ? selectedCity : '전체'}
+                </Text>
+                <Image
+                  source={SPIcons.icArrowDown}
+                  style={styles.dropdownIcon}
+                />
+              </TouchableOpacity>
+              {selectedCity !== SEJONG && selectedCity && (
+                <TouchableOpacity
+                  style={styles.button}
+                  onPress={() => {
+                    setItemsToDisplay(guList);
+                    setGuListVisible(true);
+                  }}>
+                  <Text style={styles.dropdownTitle}>
+                    {selectedGu ? selectedGu : '전체'}
+                  </Text>
+                  <Image
+                    source={SPIcons.icArrowDown}
+                    style={styles.dropdownIcon}
+                  />
+                </TouchableOpacity>
+              )}
+
+              <Pressable
+                onPress={() => {
+                  matchingFilterRef?.current?.show();
+                }}
+                style={{ marginLeft: 'auto' }}
+                hitSlop={24}>
+                <SPSvgs.Filter />
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </View>
+    );
+  };
 
   return (
     <View style={styles.container}>
@@ -557,242 +800,58 @@ function MatchingSchedule({ route }) {
           setActiveTab={handleActiveTab}
         />
       </View>
-      <View style={styles.tabDetailBox}>
-        {/* 매칭 Tab */}
-        {activeTab === '매칭' && (
-          <View style={{ flex: 1 }}>
-            <View style={styles.tabCommon}>
-              <View style={styles.tabTopBox}>
-                <TouchableOpacity
-                  activeOpacity={ACTIVE_OPACITY}
-                  style={styles.monthButtonTopBox}
-                  onPress={() => setIsModalVisible(true)}>
-                  <Text
-                    style={[styles.monthText, { fontWeight: 600 }]}>{`${format(
-                    selectedDate,
-                    'yyyy년 M월',
-                  )}`}</Text>
-                  <Image source={SPIcons.icArrowDownBlack} />
-                </TouchableOpacity>
-                {/* 기존 코드 주석처리 > 모달 버튼으로 변경 확인 후 제거 */}
-                {/* {!showFullCalendar ? (
-                  <View style={styles.monthButtonBox}>
-                    <TouchableOpacity
-                      onPress={() => handleArrow('week', 'prev')}>
-                      <Image source={SPIcons.icArrowLeftNoraml} />
-                    </TouchableOpacity>
-                    <Text style={styles.monthText}>{`${format(
-                      selectedDate,
-                      'yyyy.M',
-                    )}`}</Text>
-                    <TouchableOpacity
-                      onPress={() => handleArrow('week', 'next')}>
-                      <Image source={SPIcons.icArrowRightNoraml} />
-                    </TouchableOpacity>
-                  </View>
-                ) : (
-                  <View style={styles.monthButtonBox}>
-                    <TouchableOpacity
-                      onPress={() => handleArrow('month', 'prev')}>
-                      <Image source={SPIcons.icArrowLeftNoraml} />
-                    </TouchableOpacity>
-                    <Text style={styles.monthText}>{`${format(
-                      selectedDate,
-                      'yyyy.M',
-                    )}`}</Text>
-                    <TouchableOpacity
-                      onPress={() => handleArrow('month', 'next')}>
-                      <Image source={SPIcons.icArrowRightNoraml} />
-                    </TouchableOpacity>
-                  </View>
-                )} */}
-                <View style={styles.switch}>
-                  {/* 주 버튼 */}
-                  <TouchableOpacity
-                    style={[
-                      styles.toggle,
-                      !showFullCalendar && styles.activeToggle,
-                    ]}
-                    onPress={() => setShowFullCalendar(false)}>
-                    <Text
-                      style={[
-                        styles.toggleText,
-                        !showFullCalendar && styles.activeToggleText,
-                      ]}>
-                      주
-                    </Text>
-                  </TouchableOpacity>
-                  {/* 월 버튼 */}
-                  <TouchableOpacity
-                    style={[
-                      styles.toggle,
-                      showFullCalendar && styles.activeToggle,
-                    ]}
-                    onPress={() => setShowFullCalendar(true)}>
-                    <Text
-                      style={[
-                        styles.toggleText,
-                        showFullCalendar && styles.activeToggleText,
-                      ]}>
-                      월
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-              {!showFullCalendar ? (
-                <View
-                  style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                  }}>
-                  <CalendarProvider
-                    date={selectedDate}
-                    style={{
-                      minHeight: 1,
-                      flex: 1,
-                      zIndex: 1,
-                    }}>
-                    <WeekCalendar
-                      firstDay={1}
-                      onDayPress={day => handleSelectDate(day.dateString)}
-                      allowShadow={false}
-                      markedDates={markedSelectedDates}
-                      scrollEnabled={false}
-                      theme={{
-                        backgroundColor: '#ffffff',
-                        calendarBackground: '#ffffff',
-                        selectedDayTextColor: '#ffffff',
-                        selectedDayBackgroundColor: '#FF671F',
-                        todayTextColor: '#FF671F',
-                        dayTextColor: '#1A1C1E',
-                        textDisabledColor: 'rgba(46, 49, 53, 0.16)',
-                        textDayFontWeight: '700',
-                        textSectionTitleColor: 'rgba(46, 49, 53, 0.60)',
-                        textDayFontSize: 14,
-                        dotColor: '#FF671F',
-                        selectedDotColor: '#FF671F',
-                      }}
-                    />
-                  </CalendarProvider>
-                </View>
-              ) : (
-                <Calendar
-                  key={selectedDate}
-                  current={selectedDate}
-                  renderHeader={() => null}
-                  hideArrows
-                  firstDay={1}
-                  onDayPress={day => handleSelectDate(day.dateString)}
-                  markedDates={markedSelectedDates}
-                  theme={{
-                    backgroundColor: '#ffffff',
-                    calendarBackground: '#ffffff',
-                    selectedDayTextColor: '#ffffff',
-                    selectedDayBackgroundColor: '#FF671F',
-                    todayTextColor: '#FF671F',
-                    dayTextColor: '#1A1C1E',
-                    textDisabledColor: 'rgba(46, 49, 53, 0.16)',
-                    textDayFontWeight: '700',
-                    textSectionTitleColor: 'rgba(46, 49, 53, 0.60)',
-                    textDayFontSize: 14,
-                    dotColor: '#FF671F',
-                    selectedDotColor: '#FF671F',
-                  }}
-                />
-              )}
-            </View>
-            <View style={{ flexDirection: 'column' }}>
-              <View>
-                <View style={styles.dropdownBtn}>
-                  <TouchableOpacity
-                    style={styles.button}
-                    onPress={() => {
-                      setItemsToDisplay(cityList);
-                      setCityListVisible(true);
-                    }}>
-                    <Text style={styles.dropdownTitle}>
-                      {selectedCity ? selectedCity : '전체'}
-                    </Text>
-                    <Image
-                      source={SPIcons.icArrowDown}
-                      style={styles.dropdownIcon}
-                    />
-                  </TouchableOpacity>
-                  {selectedCity !== SEJONG && selectedCity && (
-                    <TouchableOpacity
-                      style={styles.button}
-                      onPress={() => {
-                        setItemsToDisplay(guList);
-                        setGuListVisible(true);
-                      }}>
-                      <Text style={styles.dropdownTitle}>
-                        {selectedGu ? selectedGu : '전체'}
-                      </Text>
-                      <Image
-                        source={SPIcons.icArrowDown}
-                        style={styles.dropdownIcon}
-                      />
-                    </TouchableOpacity>
-                  )}
-                </View>
-              </View>
-            </View>
-            {/* 경기일정 */}
+      {!fstCall || refreshing ? (
+        <View style={styles.tabDetailBox}>
+          <SPLoading />
+        </View>
+      ) : (
+        <View style={styles.tabDetailBox}>
+          {/* 매칭 Tab */}
+          {activeTab === '매칭' && (
             <View style={{ flex: 1 }}>
-              <View style={[styles.matching]}>
-                {filteredMatchList && filteredMatchList.length >= 1 ? (
-                  <FlatList
-                    style={{ flex: 1 }}
-                    ref={flatListRef}
-                    data={filteredMatchList}
-                    contentContainerStyle={{ gap: 12 }}
-                    refreshControl={
-                      <RefreshControl
-                        refreshing={refreshing}
-                        onRefresh={onRefresh}
-                      />
-                    }
-                    renderItem={({ item }) => {
-                      return <MatchingBox key={item.key} item={item} />;
-                    }}
+              <FlatList
+                style={{ flex: 1 }}
+                ref={flatListRef}
+                ListHeaderComponent={listCalendarHeader}
+                data={filteredMatchList}
+                contentContainerStyle={{ gap: 12, paddingBottom: 80 }}
+                refreshControl={
+                  <RefreshControl
+                    refreshing={refreshing}
+                    onRefresh={onRefresh}
                   />
-                ) : (
-                  <View
-                    style={{
-                      flex: 1,
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}>
-                    <Text style={styles.noneText}>매치가 없습니다.</Text>
-                  </View>
-                )}
-              </View>
+                }
+                showsVerticalScrollIndicator={false}
+                renderItem={({ item }) => {
+                  return <MatchingBox key={item.key} item={item} />;
+                }}
+                ListEmptyComponent={<ListEmptyView text="매치가 없습니다." />}
+              />
             </View>
-          </View>
-        )}
-        {/* 대회 Tab */}
-        {activeTab === '대회' && (
-          <View style={{ flex: 1 }}>
-            <View style={styles.tabTopBox}>
-              <View style={styles.monthButton}>
-                <TouchableOpacity
-                  style={styles.monthButtonTopBox}
-                  onPress={() => setIsModalVisible(true)}>
-                  <Text
-                    style={[styles.monthText, { fontWeight: 600 }]}>{`${format(
-                    selectedDate,
-                    'yyyy년 M월',
-                  )}`}</Text>
-                  <Image source={SPIcons.icArrowDownBlack} />
-                </TouchableOpacity>
+          )}
+          {/* 대회 Tab */}
+          {activeTab === '대회' && (
+            <View style={{ flex: 1 }}>
+              <View style={styles.tabTopBox}>
+                <View style={styles.monthButton}>
+                  <TouchableOpacity
+                    style={styles.monthButtonTopBox}
+                    onPress={() => setIsModalVisible(true)}>
+                    <Text
+                      style={[
+                        styles.monthText,
+                        { fontWeight: 600 },
+                      ]}>{`${format(selectedDate, 'yyyy년 M월')}`}</Text>
+                    <Image source={SPIcons.icArrowDownBlack} />
+                  </TouchableOpacity>
+                </View>
               </View>
-            </View>
-            <View style={styles.matching}>
-              {tournamentList && tournamentList.length >= 1 ? (
+              <View style={styles.matching}>
                 <FlatList
                   data={tournamentList}
                   ref={flatListRef}
                   contentContainerStyle={{ gap: 12 }}
+                  showsVerticalScrollIndicator={false}
                   refreshControl={
                     <RefreshControl
                       refreshing={refreshing}
@@ -802,70 +861,65 @@ function MatchingSchedule({ route }) {
                   renderItem={({ item, index }) => {
                     return <TournamentBox item={item} />;
                   }}
+                  ListEmptyComponent={
+                    <ListEmptyView text="이번달은 대회가 없어요." />
+                  }
                 />
-              ) : (
-                <View
-                  style={{
-                    flex: 1,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}>
-                  <Text>이번달은 대회가 없어요.</Text>
-                </View>
-              )}
+              </View>
             </View>
-          </View>
-        )}
-        {/* 구장 Tab */}
-        {activeTab === '구장' && (
-          <View style={{ flex: 1 }}>
-            <View style={{ flexDirection: 'column' }}>
-              <View>
-                <View style={styles.dropdownBtn}>
-                  <TouchableOpacity
-                    style={styles.button}
-                    onPress={() => {
-                      setItemsToDisplay(cityList);
-                      setCityListVisible(true);
-                    }}>
-                    <Text style={styles.dropdownTitle}>
-                      {selectedCity ? selectedCity : '전체'}
-                    </Text>
-                    <Image
-                      source={SPIcons.icArrowDown}
-                      style={styles.dropdownIcon}
-                    />
-                  </TouchableOpacity>
-                  {selectedCity !== SEJONG && selectedCity && (
+          )}
+          {/* 구장 Tab */}
+          {activeTab === '구장' && (
+            <View style={{ flex: 1 }}>
+              <View style={{ flexDirection: 'column' }}>
+                <View>
+                  <View style={styles.dropdownBtn}>
                     <TouchableOpacity
                       style={styles.button}
                       onPress={() => {
-                        setItemsToDisplay(guList);
-                        setGuListVisible(true);
+                        setItemsToDisplay(cityList);
+                        setCityListVisible(true);
                       }}>
                       <Text style={styles.dropdownTitle}>
-                        {selectedGu ? selectedGu : '전체'}
+                        {selectedCity ? selectedCity : '전체'}
                       </Text>
                       <Image
                         source={SPIcons.icArrowDown}
                         style={styles.dropdownIcon}
                       />
                     </TouchableOpacity>
-                  )}
+                    {selectedCity !== SEJONG && selectedCity && (
+                      <TouchableOpacity
+                        style={styles.button}
+                        onPress={() => {
+                          setItemsToDisplay(guList);
+                          setGuListVisible(true);
+                        }}>
+                        <Text style={styles.dropdownTitle}>
+                          {selectedGu ? selectedGu : '전체'}
+                        </Text>
+                        <Image
+                          source={SPIcons.icArrowDown}
+                          style={styles.dropdownIcon}
+                        />
+                      </TouchableOpacity>
+                    )}
+                  </View>
                 </View>
               </View>
-            </View>
-            {/* 구장 리스트 */}
-            <View style={styles.playgroundCountBox}>
-              <Text style={styles.playgroundCount}>{totalCnt}</Text>
-              <Text style={styles.playgroundCountText}>개의 구장이 있어요</Text>
-            </View>
-            <View style={styles.matching}>
-              {playgroundList && playgroundList.length >= 1 ? (
+              {/* 구장 리스트 */}
+              <View style={styles.playgroundCountBox}>
+                <Text style={styles.playgroundCount}>{totalCnt}</Text>
+                <Text style={styles.playgroundCountText}>
+                  개의 구장이 있어요
+                </Text>
+              </View>
+              <View style={styles.matching}>
                 <FlatList
                   ref={flatListRef}
                   data={playgroundList}
                   contentContainerStyle={{ gap: 12 }}
+                  showsVerticalScrollIndicator={false}
                   refreshControl={
                     <RefreshControl
                       refreshing={refreshing}
@@ -875,22 +929,13 @@ function MatchingSchedule({ route }) {
                   renderItem={({ item }) => {
                     return <PlaygroundBox item={item} />;
                   }}
+                  ListEmptyComponent={<ListEmptyView text="구장이 없습니다" />}
                 />
-              ) : (
-                <View
-                  style={{
-                    flex: 1,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}>
-                  <Text>구장이 없습니다</Text>
-                </View>
-              )}
+              </View>
             </View>
-          </View>
-        )}
-      </View>
-      {/* 주소 선택 드롭다운 */}
+          )}
+        </View>
+      )}
       <Modal
         animationType="slide"
         transparent
@@ -1053,6 +1098,10 @@ function MatchingSchedule({ route }) {
           <Image source={SPIcons.icCommunityWrite} />
         </TouchableOpacity>
       )}
+      <MatchingFilterModal
+        ref={matchingFilterRef}
+        onSubmitPress={handleFilterSubmit}
+      />
     </View>
   );
 }
@@ -1084,48 +1133,81 @@ function TabButton({ title, activeTab, setActiveTab }) {
 
 // 매칭 > 경기일정 컴포넌트
 function MatchingBox({ item }) {
-  // 경기 완료일때 matchingBoxStyle, genderStyle, numberStyle, statusStyle, statusTextStyle 색상이 변경됨
+  const currentDate = new Date();
+  const isMatchClose = isBefore(new Date(item.closeDate), currentDate);
+
   const matchingBoxStyle =
-    item.matchState === MATCH_STATE.APPLY.code
+    item.matchState === MATCH_STATE.APPLY.code && isMatchClose
+      ? { ...styles.matchingBox, backgroundColor: 'rgba(49, 55, 121, 0.08)' }
+      : item.matchState === MATCH_STATE.APPLY.code
       ? styles.matchingBox
       : { ...styles.matchingBox, backgroundColor: 'rgba(49, 55, 121, 0.08)' }; // 상태에 따라 변경된 스타일 적용
+
   const genderStyle =
-    item.matchState === MATCH_STATE.APPLY.code
+    item.matchState === MATCH_STATE.APPLY.code && isMatchClose
+      ? {
+          ...styles.matchingGender,
+          backgroundColor: 'rgba(49, 55, 121, 0.08)',
+          borderWidth: 0,
+        }
+      : item.matchState === MATCH_STATE.APPLY.code
       ? styles.matchingGender
       : {
           ...styles.matchingGender,
           backgroundColor: 'rgba(49, 55, 121, 0.08)',
           borderWidth: 0,
         };
+
   const numberStyle =
-    item.matchState === MATCH_STATE.APPLY.code
+    item.matchState === MATCH_STATE.APPLY.code && isMatchClose
+      ? {
+          ...styles.matchingNumber,
+          backgroundColor: 'rgba(49, 55, 121, 0.08)',
+          borderWidth: 0,
+        }
+      : item.matchState === MATCH_STATE.APPLY.code
       ? styles.matchingNumber
       : {
           ...styles.matchingNumber,
           backgroundColor: 'rgba(49, 55, 121, 0.08)',
           borderWidth: 0,
         };
+
   const statusStyle =
-    item.matchState === MATCH_STATE.APPLY.code
+    item.matchState === MATCH_STATE.APPLY.code && isMatchClose
+      ? {
+          ...styles.matchingStatus,
+          backgroundColor: 'rgba(49, 55, 121, 0.08)',
+        }
+      : item.matchState === MATCH_STATE.APPLY.code
       ? styles.matchingStatus
       : {
           ...styles.matchingStatus,
           backgroundColor: 'rgba(49, 55, 121, 0.08)',
         };
+
   const statusTextStyle =
-    item.matchState === MATCH_STATE.APPLY.code
+    item.matchState === MATCH_STATE.APPLY.code && isMatchClose
+      ? { ...styles.matchingStatusText, color: 'rgba(46, 49, 53, 0.80)' }
+      : item.matchState === MATCH_STATE.APPLY.code
       ? styles.matchingStatusText
       : { ...styles.matchingStatusText, color: 'rgba(46, 49, 53, 0.80)' };
 
-  const getStatusStyle = state => {
-    switch (state) {
+  const getStatusStyle = matchInfo => {
+    switch (matchInfo.matchState) {
       case MATCH_STATE.APPLY.code:
+        if (isMatchClose) {
+          return {
+            backgroundColor: 'rgba(255, 66, 66, 0.16)',
+            color: '#FF4242',
+            desc: '경기취소',
+          };
+        }
         return {
           backgroundColor: 'rgba(255, 103, 31, 0.16)',
           color: '#FF671F',
           desc: '경기예정',
         };
-      // 경기완료
       case MATCH_STATE.REVIEW.code:
       case MATCH_STATE.CONFIRM.code:
         return {
@@ -1134,12 +1216,18 @@ function MatchingBox({ item }) {
           desc: '경기완료',
         };
       case MATCH_STATE.READY.code:
+        if (isMatchClose) {
+          return {
+            backgroundColor: 'rgba(50, 83, 255, 0.16)',
+            color: '#3253FF',
+            desc: '경기중',
+          };
+        }
         return {
           backgroundColor: 'rgba(36, 161, 71, 0.16)',
           color: '#24A147',
           desc: '경기대기',
         };
-      // 경기중
       case MATCH_STATE.FINISH.code:
       case MATCH_STATE.REJECT.code:
         return {
@@ -1147,7 +1235,6 @@ function MatchingBox({ item }) {
           color: '#3253FF',
           desc: '경기중',
         };
-      // 경기취소
       case MATCH_STATE.EXPIRE.code:
       case MATCH_STATE.CANCEL.code:
         return {
@@ -1162,6 +1249,9 @@ function MatchingBox({ item }) {
 
   return (
     <Pressable
+      style={{
+        marginHorizontal: 16,
+      }}
       onPress={() =>
         NavigationService.navigate(navName.matchingDetail, {
           matchIdx: item.matchIdx,
@@ -1187,7 +1277,7 @@ function MatchingBox({ item }) {
           </View>
           <View style={statusStyle}>
             <Text style={statusTextStyle}>
-              {item.matchState ? getStatusStyle(item.matchState).desc : '-'}
+              {item.matchState ? getStatusStyle(item).desc : '-'}
             </Text>
           </View>
         </View>
@@ -1239,7 +1329,6 @@ function TournamentBox({ item }) {
               item.thumbUrl ? { uri: item.thumbUrl } : SPImages.magazineImages
             }
             style={[styles.image, styles.matchImageBox]}>
-            {/* TODO ::: 기본 이미지 필요 */}
             <LinearGradient colors={gradientColors} style={styles.gradient}>
               <View style={[styles.matchTypeBox, titleBoxStyle]}>
                 <Text style={[styles.matchType, titleTextStyle]}>
@@ -1269,7 +1358,7 @@ function TournamentBox({ item }) {
           </Text>
           <View style={styles.matchTextDetail}>
             <Text style={styles.detailText}>
-              {item.formattedOpenDate} - {item.formattedCloseDate}
+              {item.formattedStartDate} - {item.formattedEndDate}
             </Text>
             <Text style={styles.verticalLine}>|</Text>
             <Text style={styles.detailText}>{item.trnAddr}</Text>
@@ -1306,12 +1395,14 @@ function PlaygroundBox({ item }) {
           {item.groundNm}
         </Text>
         <Text style={styles.playgroundText}>{item.groundAddr}</Text>
-        <View style={[styles.playgroundPhoneNo, { marginBottom: 5 }]}>
-          <Image source={SPIcons.icCall} style={styles.playgroundTelIcon} />
-          <Text style={styles.playgroundText}>
-            {Utils.addHypenToPhoneNumber(item.phoneNo)}
-          </Text>
-        </View>
+        {item.phoneNo ? (
+          <View style={[styles.playgroundPhoneNo, { marginBottom: 5 }]}>
+            <Image source={SPIcons.icCall} style={styles.playgroundTelIcon} />
+            <Text style={styles.playgroundText}>{item.phoneNo}</Text>
+          </View>
+        ) : (
+          ''
+        )}
       </View>
     </Pressable>
   );
@@ -1338,7 +1429,7 @@ const getStylesForTitle = type => {
   }
 };
 
-const styles = {
+const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#FFF',
@@ -1379,9 +1470,11 @@ const styles = {
     flex: 1,
     position: 'relative',
     top: -28,
-    borderRadius: 24,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
     backgroundColor: '#FFF',
     marginBottom: -28,
+    overflow: 'hidden',
   },
   tabCommon: {},
   tabTopBox: {
@@ -1890,4 +1983,4 @@ const styles = {
     letterSpacing: 0.091,
     textAlign: 'center',
   },
-};
+});

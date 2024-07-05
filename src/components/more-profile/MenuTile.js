@@ -42,10 +42,13 @@ export default memo(MenuTile);
 
 const styles = StyleSheet.create({
   menuTileContainer: {
-    backgroundColor: COLORS.fillNormal,
+    // backgroundColor: COLORS.fillNormal,
+    backgroundColor: '#F1F5FF',
+    borderWidth: 1,
+    borderColor: 'rgba(135, 141, 150, 0.08)',
     borderRadius: 12,
     padding: 16,
-    width: (SCREEN_WIDTH - 40) / 2,
+    width: (SCREEN_WIDTH - 41) / 2,
     rowGap: 8,
   },
 });

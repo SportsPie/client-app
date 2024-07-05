@@ -204,7 +204,7 @@ function AcademyRecruitmentDetail({ route, type }) {
           adminButtons={[MODAL_MORE_BUTTONS.EDIT, MODAL_MORE_BUTTONS.SHARE]}
           memberButtons={[MODAL_MORE_BUTTONS.SHARE]}
         />
-        <ScrollView>
+        <ScrollView showsVerticalScrollIndicator={false}>
           <View style={{ flex: 1 }}>
             <View style={styles.contentsBox}>
               <View style={[styles.recruitmentBox]}>
@@ -213,7 +213,11 @@ function AcademyRecruitmentDetail({ route, type }) {
                   {recruitDetail.title}
                 </Text>
                 <View style={styles.recruitmentTextBox}>
-                  <View style={styles.recruitmentSubBox}>
+                  <View
+                    style={[
+                      styles.recruitmentSubBox,
+                      { flex: 1, paddingRight: 16 },
+                    ]}>
                     <Text style={styles.recruitmentText}>
                       {recruitDetail.academyName}
                     </Text>
@@ -224,16 +228,22 @@ function AcademyRecruitmentDetail({ route, type }) {
                       />
                     )}
                   </View>
-                  <View style={styles.VerticalLine} />
-                  <Text style={styles.recruitmentText}>{`${
-                    recruitDetail.addrCity
-                  } ${recruitDetail.addrGu ? '・' : ''} ${
-                    recruitDetail.addrGu
-                  }`}</Text>
-                  <View style={styles.VerticalLine} />
-                  <Text style={styles.recruitmentText}>
-                    {moment(recruitDetail.regDate).format('YYYY.MM.DD')}
-                  </Text>
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      gap: 8,
+                    }}>
+                    <Text style={styles.recruitmentText}>{`${
+                      recruitDetail.addrCity
+                    } ${recruitDetail.addrGu ? '・' : ''} ${
+                      recruitDetail.addrGu
+                    }`}</Text>
+                    <View style={styles.VerticalLine} />
+                    <Text style={styles.recruitmentText}>
+                      {moment(recruitDetail.regDate).format('YYYY.MM.DD')}
+                    </Text>
+                  </View>
                 </View>
                 <View style={styles.recruitmentSubBox}>
                   <Image
@@ -386,7 +396,7 @@ function AcademyRecruitmentDetail({ route, type }) {
                             <View style={styles.joinDetailBox}>
                               <View style={styles.joinDetailTop}>
                                 <Text style={styles.joinName}>
-                                  {item.memberName}
+                                  {item.memberNickName}
                                 </Text>
                               </View>
                               <View style={styles.joinDetailBottom}>
@@ -495,7 +505,7 @@ function AcademyRecruitmentDetail({ route, type }) {
                             <View style={styles.joinDetailBox}>
                               <View style={styles.joinDetailTop}>
                                 <Text style={styles.joinName}>
-                                  {item.memberName}
+                                  {item.memberNickName}
                                 </Text>
                               </View>
                               <View style={styles.joinDetailBottom}>
@@ -587,9 +597,9 @@ const styles = {
     letterSpacing: -0.004,
   },
   recruitmentTextBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+    gap: 4,
   },
   recruitmentText: {
     fontSize: 13,
@@ -668,6 +678,7 @@ const styles = {
     lineHeight: 26,
     letterSpacing: -0.004,
     paddingLeft: 4,
+    flexShrink: 1,
   },
   noMemberBtn: {
     backgroundColor: '#FF671F',
@@ -819,7 +830,8 @@ const styles = {
     borderWidth: 1,
     borderRadius: 4,
     borderColor: 'rgba(135, 141, 150, 0.22)',
-    padding: 4,
+    paddingHorizontal: 4,
+    paddingVertical: 3,
   },
   recruitEndText: {
     ...fontStyles.fontSize11_Semibold,
@@ -828,9 +840,10 @@ const styles = {
   recruitingBox: {
     borderWidth: 1,
     backgroundColor: 'rgba(255, 103, 31, 0.08)',
-    borderColor: 'rgba(255, 103, 31, 0.08)',
+    borderColor: 'transparent',
     borderRadius: 4,
-    padding: 4,
+    paddingHorizontal: 4,
+    paddingVertical: 3,
   },
   recruitingText: {
     ...fontStyles.fontSize11_Semibold,

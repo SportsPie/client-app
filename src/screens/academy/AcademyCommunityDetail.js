@@ -12,7 +12,10 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 import Carousel from 'react-native-snap-carousel';
 import { useSelector } from 'react-redux';
 import {
@@ -103,6 +106,7 @@ function AcademyCommunityDetail({
 
   const scrollRef = useRef();
   const targetRef = useRef();
+  const insets = useSafeAreaInsets();
 
   const isLogin = useSelector(selector => selector.auth)?.isLogin;
   const academyIdx = route?.params.academyIdx;
@@ -391,6 +395,7 @@ function AcademyCommunityDetail({
 
   const onFocus = async () => {
     try {
+      await getUserInfo();
       await getDetail();
     } catch (error) {
       handleError(error);
@@ -412,7 +417,7 @@ function AcademyCommunityDetail({
       if (!isFocus) {
         getUserInfo();
       }
-    }, [isFocus, isJoined]),
+    }, [isJoined]),
   );
 
   useFocusEffect(
@@ -435,7 +440,7 @@ function AcademyCommunityDetail({
       <SPKeyboardAvoidingView
         behavior="padding"
         isResize
-        keyboardVerticalOffset={60}
+        keyboardVerticalOffset={0}
         style={{
           flex: 1,
         }}>
@@ -453,6 +458,7 @@ function AcademyCommunityDetail({
           )}
           <View style={styles.communityContainer}>
             <ScrollView
+              showsVerticalScrollIndicator={false}
               ref={scrollRef}
               onScroll={handleScroll}
               scrollEventThrottle={16}>
@@ -638,6 +644,7 @@ function AcademyCommunityDetail({
                   style={styles.textInput}
                   defaultValue={comment}
                   onChangeText={e => {
+                    if (e?.length > 1000) return;
                     setComment(e);
                   }}
                   multiline={true}
@@ -645,7 +652,6 @@ function AcademyCommunityDetail({
                   placeholderTextColor="rgba(46, 49, 53, 0.60)"
                   autoCorrect={false}
                   autoCapitalize="none"
-                  maxLength={1000}
                   numberOfLines={comment?.split('\n').length || 1}
                   textAlignVertical="center"
                   retrunKeyType="next"
@@ -726,7 +732,10 @@ function AcademyCommunityDetail({
             visible={imageModalShow}
             onRequestClose={closeImageModal}>
             <SafeAreaView style={{ flex: 1, backgroundColor: '#000' }}>
-              <View>
+              <View
+                style={{
+                  marginTop: insets.top,
+                }}>
                 <TouchableOpacity
                   onPress={closeImageModal}
                   style={{
@@ -798,6 +807,7 @@ function AcademyCommunityDetail({
                   style={styles.textInput}
                   defaultValue={modifyComment}
                   onChangeText={e => {
+                    if (e?.length > 1000) return;
                     setModifyComment(e);
                   }}
                   multiline={true}
@@ -805,7 +815,6 @@ function AcademyCommunityDetail({
                   placeholderTextColor="#1A1C1E"
                   autoCorrect={false}
                   autoCapitalize="none"
-                  maxLength={1000}
                   textAlignVertical="top"
                   retrunKeyType="next"
                 />

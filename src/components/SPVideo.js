@@ -67,14 +67,19 @@ function SPVideo({
         orientation,
       } = e.naturalSize;
 
-      // iOS > 세로 영상의 경우 width, height 값이 반대
-      if (Platform.OS === 'ios' && orientation === 'portrait') {
-        const videoRatio = widthNumber / heightNumber;
-        setVideoHeight(windowWidth * videoRatio);
-      } else {
-        const videoRatio = heightNumber / widthNumber;
-        setVideoHeight(windowWidth * videoRatio);
-      }
+      // iOS > 세로 영상의 경우 width, height 값이 반대 ( 세로 240 고정 - 24.06.24 요청 반영 )
+      // if (Platform.OS === 'ios' && orientation === 'portrait') {
+      //   const videoRatio = widthNumber / heightNumber;
+      //   setVideoHeight(windowWidth * videoRatio);
+      // } else {
+      //   const videoRatio = heightNumber / widthNumber;
+      //   setVideoHeight(windowWidth * videoRatio);
+      // }
+
+      const videoRatio = heightNumber / widthNumber;
+      setVideoHeight(
+        windowWidth * videoRatio > 240 ? 240 : windowWidth * videoRatio,
+      );
     }
     if (singleVideo) {
       if (firstTime) videoRef.current.seekTo(firstTime);
@@ -160,11 +165,11 @@ function SPVideo({
           uri: source,
         }}
         repeat={repeat}
-        style={
-          !fullScreen
-            ? [styles.video, { height: videoHeight }]
-            : { width: windowWidth, height: windowHeight }
-        }
+        // style={
+        //   !fullScreen
+        //     ? [styles.video, { height: videoHeight }]
+        //     : { width: windowWidth, height: windowHeight }
+        // }
         onLoad={onVideoLoad}
         onProgress={onProgress}
         onPause={() => {

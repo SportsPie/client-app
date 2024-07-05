@@ -13,6 +13,7 @@ import Divider from '../../components/Divider';
 import fontStyles from '../../styles/fontStyles';
 import { COLORS } from '../../styles/colors';
 import NavigationUtils from '../../utils/NavigationUtils';
+import NavigationService from '../../navigation/NavigationService';
 
 const Tab = createBottomTabNavigator();
 
@@ -77,8 +78,8 @@ function BottomTab() {
   };
 
   const renderTabBar = useCallback(props => {
-    const { state, navigation } = props;
-
+    const { state } = props;
+    const navigation = NavigationService;
     return (
       <View>
         <Divider lineColor="rgba(135, 141, 150, 0.08)" />

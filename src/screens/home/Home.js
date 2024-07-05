@@ -1,7 +1,7 @@
 /* eslint-disable react/no-array-index-key */
-import { useRoute } from '@react-navigation/native';
+import { useFocusEffect, useRoute } from '@react-navigation/native';
 import moment from 'moment/moment';
-import React, { memo, useEffect, useRef, useState } from 'react';
+import React, { memo, useCallback, useRef, useState } from 'react';
 import {
   Dimensions,
   FlatList,
@@ -64,6 +64,7 @@ const introductionData = [
     title: '경기매칭',
     text: '나와 맞는 상대를 찾아\n즐겨운 경기를 즐겨보세요',
     navName: navName.matchingSchedule,
+    navParams: { activeTab: '매칭' },
   },
   {
     key: '3',
@@ -71,12 +72,13 @@ const introductionData = [
     title: 'PIE 트레이닝',
     text: '전문적인 코칭과 함께\n실력을 향상시켜 보세요',
     navName: navName.training,
+    navParams: { activeTab: '기초튼튼 훈련' },
   },
 ];
 
 // 핫한 챌린지
 function CarouselSection({ challengeData }) {
-  const screenWidth = Dimensions.get('window').width;
+  const { width: screenWidth } = useWindowDimensions();
   const aspectRatio = 16 / 9; // 이미지의 원본 비율
   const minHeight = 198; // 최소 높이
   const calculatedHeight = screenWidth / aspectRatio; // 디바이스 크기에 비례하는 높이
@@ -106,7 +108,7 @@ function CarouselSection({ challengeData }) {
           <View style={styles.challengeDetailList}>
             <View style={styles.challengeDetailItem}>
               <Image source={SPIcons.icPlay} />
-              <Text style={styles.challengeDetailText}>{item.videoTime}</Text>
+              <Text style={styles.challengeDetailText}>{item.cntView}</Text>
             </View>
             <View style={styles.challengeDetailItem}>
               <Image source={SPIcons.icHeart} />
@@ -137,6 +139,9 @@ function CarouselSection({ challengeData }) {
       vertical={false} // 수직 슬라이드 비활성화
       enableMomentum={true}
       decelerationRate={0.9}
+      loop={true}
+      autoplay={true}
+      autoplayInterval={5000}
     />
   );
 }
@@ -144,7 +149,6 @@ function CarouselSection({ challengeData }) {
 function Home() {
   const route = useRoute();
   const mainPopupRef = useRef();
-  const logout = route?.params?.logout;
   const isLogin = useSelector(selector => selector.auth)?.isLogin;
   const { width, height } = useWindowDimensions();
   const aspectRatio = 16 / 9;
@@ -168,10 +172,6 @@ function Home() {
       activeTab: '챌린지',
     });
   };
-
-  useEffect(() => {
-    getFcmToken();
-  }, []);
 
   const calculateMargin = index => {
     const marginStyle = {};
@@ -225,9 +225,41 @@ function Home() {
       );
       setMagazineData(response.data.data.article);
       setNewsData(response.data.data.notice);
-      setImages(response.data.data.banner);
       setSlidesData(response.data.data.tournament);
       setChallengeData(response.data.data.videoList);
+    } catch (error) {
+      handleError(error);
+    }
+    setInit(true);
+  }
+
+  async function homeBanner() {
+    try {
+      const hasPermission = await GeoLocationUtils.checkPermission(true);
+      let locationData = {
+        latitude: null,
+        longitude: null,
+      };
+      setHasGeoLocationPermission(hasPermission);
+      if (hasPermission) {
+        const location = await GeoLocationUtils.getLocation();
+        locationData = {
+          latitude: location.latitude,
+          longitude: location.longitude,
+        };
+      }
+
+      let response;
+      if (isLogin) {
+        response = await apiGetHomeInit({
+          ...locationData,
+        });
+      } else {
+        response = await apiGetHomeOpen({
+          ...locationData,
+        });
+      }
+      setImages(response.data.data.banner);
       setPopupData(response.data.data.popup);
     } catch (error) {
       handleError(error);
@@ -235,18 +267,20 @@ function Home() {
     setInit(true);
   }
 
-  // useFocusEffect(
-  //   useCallback(() => {
-  //     homePage();
-  //   }, []),
-  // );
+  useFocusEffect(
+    useCallback(() => {
+      homeBanner();
+      return () => {
+        setInit(false);
+      };
+    }, []),
+  );
 
-  useEffect(() => {
-    if (logout) {
-      SPToast.show({ text: '로그아웃 되었습니다.' });
-    }
-    homePage();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      homePage();
+    }, []),
+  );
 
   const articlePage = async article => {
     try {
@@ -262,10 +296,8 @@ function Home() {
 
   const noticePage = async notice => {
     try {
-      const response = await apiGetNoticesDetail(notice.boardIdx);
-      const noticeDetail = response.data;
       NavigationService.navigate(navName.moreNoticeDetail, {
-        noticeDetail,
+        boardIdx: notice.boardIdx,
       });
     } catch (error) {
       handleError(error);
@@ -291,18 +323,15 @@ function Home() {
     }
   };
 
-  useEffect(() => {
-    mainPopupRef?.current?.show();
-  }, []);
-
   if (!init) return <SPLoading />;
 
   return (
-    <SafeAreaView edges={['top']} style={styles.container}>
-      {/* 헤더 */}
-      <Header headerType="HOME" />
+    init && (
+      <SafeAreaView edges={['top']} style={styles.container}>
+        {/* 헤더 */}
+        <Header headerType="HOME" />
 
-      {/* <View style={styles.header}>
+        {/* <View style={styles.header}>
         <TouchableOpacity
           onPress={() => {
             NavigationService.navigate(navName.test);
@@ -322,28 +351,198 @@ function Home() {
           </TouchableOpacity>
         </View>
       </View> */}
-      <ScrollView>
-        {/* 메인 이미지 */}
-        <View style={styles.swiperBox}>
-          <View style={{ height: imageHeight }}>
-            {images && images.length > 0 ? (
+        <ScrollView showsVerticalScrollIndicator={false}>
+          {/* 메인 이미지 */}
+          <View style={styles.swiperBox}>
+            <View style={{ height: imageHeight }}>
+              {images && images.length > 0 ? (
+                <Swiper
+                  style={{ height: imageHeight }}
+                  showsButtons={false}
+                  autoplay
+                  autoplayTimeout={5}
+                  scrollEventThrottle={16} // 스크롤 이벤트를 16ms 마다 처리
+                  decelerationRate="fast" // 스크롤 감속률을 빠르게 설정
+                  removeClippedSubviews={false}
+                  paginationStyle={{
+                    justifyContent: 'flex-start',
+                    position: 'absolute',
+                    left: 16,
+                    bottom: 36,
+                    paddingVertical: 8,
+                  }}
+                  dotStyle={{
+                    backgroundColor: '#FFF',
+                    opacity: 0.4,
+                    width: 12,
+                    height: 3,
+                    marginHorizontal: 2,
+                    marginVertical: 2.5,
+                  }}
+                  activeDotStyle={{
+                    backgroundColor: '#FFF',
+                    width: 24,
+                    height: 3,
+                  }}>
+                  {images.map((img, index) => (
+                    <Pressable
+                      onPress={() => bannerWebPress(img)}
+                      key={index}
+                      style={[styles.slide, { height: imageHeight }]}>
+                      <Image
+                        source={{ uri: img.filePath }}
+                        style={styles.image}
+                      />
+                    </Pressable>
+                  ))}
+                </Swiper>
+              ) : (
+                <View style={{ height: imageHeight }} />
+              )}
+            </View>
+          </View>
+
+          {/* 아카데미 소개 */}
+          <View style={styles.introduction}>
+            <FlatList
+              data={introductionData}
+              scrollEnabled={false}
+              renderItem={({ item, index }) => (
+                <ImageBackground
+                  source={item.image}
+                  style={[
+                    styles.introductionBox(dynamicHeight),
+                    calculateMargin(index),
+                  ]}>
+                  <TouchableOpacity
+                    activeOpacity={ACTIVE_OPACITY}
+                    style={{ flex: 1 }}
+                    onPress={() => {
+                      if (item.navName)
+                        NavigationService.navigate(
+                          item.navName,
+                          item.navParams ?? {},
+                        );
+                    }}>
+                    <Text style={styles.introductionTitle}>{item.title}</Text>
+                    <Text style={styles.introductionText}>{item.text}</Text>
+                  </TouchableOpacity>
+                </ImageBackground>
+              )}
+              keyExtractor={item => item.key}
+              numColumns={2}
+            />
+          </View>
+          {/* 우리 동네 아카데미 */}
+          {hasGeoLocationPermission && (
+            <View style={styles.homeTown}>
+              <View style={[styles.topBox, { paddingHorizontal: 0 }]}>
+                <Text style={styles.topTitle}>우리 동네 아카데미</Text>
+                <TouchableOpacity
+                  activeOpacity={ACTIVE_OPACITY}
+                  onPress={() => {
+                    NavigationService.navigate(navName.academyMember);
+                  }}>
+                  <Text style={styles.topBtn}>모두 보기</Text>
+                </TouchableOpacity>
+              </View>
+              {homeTownData?.length > 0 ? (
+                <View>
+                  <FlatList
+                    data={
+                      homeTownData.length % 2 === 1
+                        ? [...homeTownData, { isEmpty: true }]
+                        : homeTownData
+                    }
+                    scrollEnabled={false}
+                    renderItem={({ item, index }) => (
+                      <ImageBackground
+                        source={{
+                          uri: item?.logoPath ? item.logoPath : item.thumbPath,
+                        }}
+                        style={[
+                          styles.contentsBox,
+                          styles.homeContentsBox,
+                          { height: dynamicHeight },
+                          homeTownMargin(index),
+                          item.isEmpty && { backgroundColor: 'transparent' },
+                        ]}>
+                        {!item.isEmpty && (
+                          <View
+                            style={{
+                              ...styles.imageOverlay,
+                              backgroundColor: 'rgba(0, 0, 0, 0.38)',
+                              flex: 1,
+                            }}>
+                            <Pressable onPress={() => academyPage(item)}>
+                              <View style={styles.homeTownBox}>
+                                <View style={styles.homeTownDistance}>
+                                  <Text style={styles.homeTownDistanceText}>
+                                    {Utils.addDistanceUnit(item.distance)}
+                                  </Text>
+                                </View>
+                                <Text
+                                  style={styles.homeTownText}
+                                  numberOfLines={1} // 한 줄로 제한
+                                  ellipsizeMode="tail">
+                                  {item.academyName}
+                                </Text>
+                              </View>
+                            </Pressable>
+                          </View>
+                        )}
+                      </ImageBackground>
+                    )}
+                    keyExtractor={(item, index) =>
+                      item.academyIdx || `empty-${index}`
+                    }
+                    numColumns={2}
+                  />
+                </View>
+              ) : (
+                // 아카데미 없을때 보여짐
+                <View style={styles.noneAcademy}>
+                  <Image
+                    source={SPIcons.icMap}
+                    style={{ width: 80, height: 80 }}
+                  />
+                  <View>
+                    <Text style={styles.noneAcademyText}>
+                      주변에 아카데미가 없어요.
+                    </Text>
+                    <Text style={styles.noneAcademyText}>
+                      아카데미를 검색해보세요.
+                    </Text>
+                  </View>
+                  <Pressable
+                    style={styles.searchBtn}
+                    onPress={() =>
+                      NavigationService.navigate(navName.searchAcademy)
+                    }>
+                    <Text style={styles.searchBtnText}>아카데미 검색하기</Text>
+                  </Pressable>
+                </View>
+              )}
+            </View>
+          )}
+          {/* 대회 일정 */}
+          <View style={styles.swiperBackgroundContainer}>
+            {slidesData && slidesData.length > 0 && (
               <Swiper
-                style={{ height: imageHeight }}
+                style={{ height: subImageHeight }}
                 showsButtons={false}
                 autoplay
                 autoplayTimeout={5}
                 scrollEventThrottle={16} // 스크롤 이벤트를 16ms 마다 처리
                 decelerationRate="fast" // 스크롤 감속률을 빠르게 설정
-                removeClippedSubviews={false}
                 paginationStyle={{
-                  justifyContent: 'flex-start',
+                  justifyContent: 'center',
                   position: 'absolute',
-                  left: 16,
-                  bottom: 36,
+                  bottom: -24,
                   paddingVertical: 8,
                 }}
                 dotStyle={{
-                  backgroundColor: '#FFF',
+                  backgroundColor: '#000',
                   opacity: 0.4,
                   width: 12,
                   height: 3,
@@ -351,338 +550,183 @@ function Home() {
                   marginVertical: 2.5,
                 }}
                 activeDotStyle={{
-                  backgroundColor: '#FFF',
+                  backgroundColor: '#313779',
                   width: 24,
                   height: 3,
                 }}>
-                {images.map((img, index) => (
+                {slidesData.map((slide, index) => (
                   <Pressable
-                    onPress={() => bannerWebPress(img)}
                     key={index}
-                    style={[styles.slide, { height: imageHeight }]}>
-                    <Image
-                      source={{ uri: img.filePath }}
-                      style={styles.image}
-                    />
+                    onPress={() => tournamentWebPress(slide)}
+                    style={[styles.slide, { height: subImageHeight }]}>
+                    <ImageBackground
+                      source={{ uri: slide.filePath }}
+                      style={styles.image}>
+                      <View
+                        style={{
+                          ...styles.imageOverlay,
+                          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                          flex: 1,
+                        }}>
+                        <View style={styles.swiperBackgroundBox}>
+                          <Text style={styles.swiperBackgroundTitle}>
+                            {slide.title}
+                          </Text>
+                          <Text style={styles.swiperBackgroundText}>
+                            {slide.contents}
+                          </Text>
+                        </View>
+                      </View>
+                    </ImageBackground>
                   </Pressable>
                 ))}
               </Swiper>
-            ) : (
-              <View style={{ height: imageHeight }} />
             )}
           </View>
-        </View>
-
-        {/* 아카데미 소개 */}
-        <View style={styles.introduction}>
-          <FlatList
-            data={introductionData}
-            scrollEnabled={false}
-            renderItem={({ item, index }) => (
-              <ImageBackground
-                source={item.image}
-                style={[
-                  styles.introductionBox(dynamicHeight),
-                  calculateMargin(index),
-                ]}>
-                <TouchableOpacity
-                  activeOpacity={ACTIVE_OPACITY}
-                  style={{ flex: 1 }}
-                  onPress={() => {
-                    if (item.navName)
-                      NavigationService.navigate(
-                        item.navName,
-                        item.navParams ?? {},
-                      );
-                  }}>
-                  <Text style={styles.introductionTitle}>{item.title}</Text>
-                  <Text style={styles.introductionText}>{item.text}</Text>
-                </TouchableOpacity>
-              </ImageBackground>
-            )}
-            keyExtractor={item => item.key}
-            numColumns={2}
-          />
-        </View>
-        {/* 우리 동네 아카데미 */}
-        {hasGeoLocationPermission && (
-          <View style={styles.homeTown}>
-            <View style={[styles.topBox, { paddingHorizontal: 0 }]}>
-              <Text style={styles.topTitle}>우리 동네 아카데미</Text>
+          {/* 지금 핫한 챌린지 */}
+          <View style={[styles.common, { paddingHorizontal: 0 }]}>
+            {Object.keys(challengeData).map(category => (
+              <View key={category}>
+                <View
+                  style={[
+                    styles.topBox,
+                    { paddingHorizontal: 16, marginTop: 48 },
+                  ]}>
+                  <Text style={styles.topTitle}>{`#${category}`}</Text>
+                  <TouchableOpacity
+                    onPress={moreChallenge}
+                    activeOpacity={ACTIVE_OPACITY}>
+                    <Text style={styles.topBtn}>모두 보기</Text>
+                  </TouchableOpacity>
+                </View>
+                <View>
+                  <CarouselSection challengeData={challengeData[category]} />
+                </View>
+              </View>
+            ))}
+          </View>
+          {/* 스포츠 꿀팁 매거진 */}
+          <View style={styles.common}>
+            <View style={[styles.topBox, { marginBottom: 20 }]}>
+              <Text style={styles.topTitle}>#스포츠 꿀팁 매거진</Text>
               <TouchableOpacity
                 activeOpacity={ACTIVE_OPACITY}
                 onPress={() => {
-                  NavigationService.navigate(navName.academyMember);
+                  NavigationService.navigate(navName.moreArticle);
                 }}>
                 <Text style={styles.topBtn}>모두 보기</Text>
               </TouchableOpacity>
             </View>
-            {homeTownData?.length > 0 ? (
-              <View>
-                <FlatList
-                  data={
-                    homeTownData.length % 2 === 1
-                      ? [...homeTownData, { isEmpty: true }]
-                      : homeTownData
-                  }
-                  scrollEnabled={false}
-                  renderItem={({ item, index }) => (
-                    <ImageBackground
-                      source={{
-                        uri: item?.logoPath ? item.logoPath : item.thumbPath,
-                      }}
-                      style={[
-                        styles.contentsBox,
-                        styles.homeContentsBox,
-                        { height: dynamicHeight },
-                        homeTownMargin(index),
-                        item.isEmpty && { backgroundColor: 'transparent' },
-                      ]}>
-                      {!item.isEmpty && (
-                        <View
-                          style={{
-                            ...styles.imageOverlay,
-                            backgroundColor: 'rgba(0, 0, 0, 0.38)',
-                            flex: 1,
-                          }}>
-                          <Pressable onPress={() => academyPage(item)}>
-                            <View style={styles.homeTownBox}>
-                              <View style={styles.homeTownDistance}>
-                                <Text style={styles.homeTownDistanceText}>
-                                  {Utils.addDistanceUnit(item.distance)}
+            <View>
+              <FlatList
+                data={
+                  magazineData.length % 2 === 1
+                    ? [...magazineData, { isEmpty: true }]
+                    : magazineData
+                }
+                scrollEnabled={false}
+                renderItem={({ item, index }) => (
+                  <View style={[styles.contentsBox, homeTownMargin(index)]}>
+                    <Pressable onPress={() => articlePage(item)}>
+                      <View
+                        style={[
+                          styles.contentsImage,
+                          { height: magazineHeight },
+                          // { height: width <= 400 ? 114 : initialImageHeight },
+                        ]}>
+                        <ImageBackground
+                          source={{ uri: item.filePath }}
+                          style={[
+                            styles.image,
+                            styles.magazineImageBox,
+                            item.isEmpty && { backgroundColor: 'transparent' },
+                          ]}>
+                          {!item.isEmpty && (
+                            <LinearGradient
+                              colors={['transparent', 'rgba(0,0,0,0.35)']}
+                              style={styles.gradient}>
+                              <View style={styles.magazineTitleBox}>
+                                <Text
+                                  numberOfLines={2}
+                                  ellipsizeMode="tail"
+                                  style={styles.magazineTitle}>
+                                  {item.title}
                                 </Text>
                               </View>
-                              <Text
-                                style={styles.homeTownText}
-                                numberOfLines={1} // 한 줄로 제한
-                                ellipsizeMode="tail">
-                                {item.academyName}
-                              </Text>
-                            </View>
-                          </Pressable>
-                        </View>
-                      )}
-                    </ImageBackground>
-                  )}
-                  keyExtractor={(item, index) =>
-                    item.academyIdx || `empty-${index}`
-                  }
-                  numColumns={2}
-                />
-              </View>
-            ) : (
-              // 아카데미 없을때 보여짐
-              <View style={styles.noneAcademy}>
-                <Image
-                  source={SPIcons.icMap}
-                  style={{ width: 80, height: 80 }}
-                />
-                <View>
-                  <Text style={styles.noneAcademyText}>
-                    주변에 아카데미가 없어요.
-                  </Text>
-                  <Text style={styles.noneAcademyText}>
-                    아카데미를 검색해보세요.
-                  </Text>
-                </View>
-                <Pressable
-                  style={styles.searchBtn}
-                  onPress={() =>
-                    NavigationService.navigate(navName.searchAcademy)
-                  }>
-                  <Text style={styles.searchBtnText}>아카데미 검색하기</Text>
-                </Pressable>
-              </View>
-            )}
-          </View>
-        )}
-        {/* 대회 일정 */}
-        <View style={styles.swiperBackgroundContainer}>
-          {slidesData && slidesData.length > 0 && (
-            <Swiper
-              style={{ height: subImageHeight }}
-              showsButtons={false}
-              autoplay
-              autoplayTimeout={5}
-              scrollEventThrottle={16} // 스크롤 이벤트를 16ms 마다 처리
-              decelerationRate="fast" // 스크롤 감속률을 빠르게 설정
-              paginationStyle={{
-                justifyContent: 'center',
-                position: 'absolute',
-                bottom: -24,
-                paddingVertical: 8,
-              }}
-              dotStyle={{
-                backgroundColor: '#000',
-                opacity: 0.4,
-                width: 12,
-                height: 3,
-                marginHorizontal: 2,
-                marginVertical: 2.5,
-              }}
-              activeDotStyle={{
-                backgroundColor: '#313779',
-                width: 24,
-                height: 3,
-              }}>
-              {slidesData.map((slide, index) => (
-                <Pressable
-                  key={index}
-                  onPress={() => tournamentWebPress(slide)}
-                  style={[styles.slide, { height: subImageHeight }]}>
-                  <ImageBackground
-                    source={{ uri: slide.filePath }}
-                    style={styles.image}>
-                    <View
-                      style={{
-                        ...styles.imageOverlay,
-                        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                        flex: 1,
-                      }}>
-                      <View style={styles.swiperBackgroundBox}>
-                        <Text style={styles.swiperBackgroundTitle}>
-                          {slide.title}
-                        </Text>
-                        <Text style={styles.swiperBackgroundText}>
-                          {slide.text}
-                        </Text>
+                            </LinearGradient>
+                          )}
+                        </ImageBackground>
                       </View>
-                    </View>
-                  </ImageBackground>
-                </Pressable>
-              ))}
-            </Swiper>
-          )}
-        </View>
-        {/* 지금 핫한 챌린지 */}
-        <View style={[styles.common, { paddingHorizontal: 0 }]}>
-          {Object.keys(challengeData).map(category => (
-            <View key={category}>
-              <View
-                style={[
-                  styles.topBox,
-                  { paddingHorizontal: 16, marginTop: 48 },
-                ]}>
-                <Text style={styles.topTitle}>{`#${category}`}</Text>
-                <TouchableOpacity
-                  onPress={moreChallenge}
-                  activeOpacity={ACTIVE_OPACITY}>
-                  <Text style={styles.topBtn}>모두 보기</Text>
-                </TouchableOpacity>
-              </View>
-              <View>
-                <CarouselSection challengeData={challengeData[category]} />
-              </View>
+                      <Text
+                        style={styles.magazineText}
+                        numberOfLines={2}
+                        ellipsizeMode="tail">
+                        {item.contents}
+                      </Text>
+                    </Pressable>
+                  </View>
+                )}
+                keyExtractor={item => item.boardIdx}
+                numColumns={2}
+              />
             </View>
-          ))}
-        </View>
-        {/* 스포츠 꿀팁 매거진 */}
-        <View style={styles.common}>
-          <View style={[styles.topBox, { marginBottom: 20 }]}>
-            <Text style={styles.topTitle}>#스포츠 꿀팁 매거진</Text>
-            <TouchableOpacity
-              activeOpacity={ACTIVE_OPACITY}
-              onPress={() => {
-                NavigationService.navigate(navName.moreArticle);
-              }}>
-              <Text style={styles.topBtn}>모두 보기</Text>
-            </TouchableOpacity>
           </View>
-          <View>
+          {/* 최신소식 */}
+          <View style={styles.common}>
+            <View style={[styles.topBox, { marginBottom: 8 }]}>
+              <Text style={styles.topTitle}>스포츠파이 최신소식</Text>
+              <Pressable
+                onPress={() => {
+                  NavigationService.navigate(navName.moreNotice);
+                }}>
+                <Text style={styles.topBtn}>모두 보기</Text>
+              </Pressable>
+            </View>
             <FlatList
-              data={magazineData}
+              data={newsData}
               scrollEnabled={false}
               renderItem={({ item, index }) => (
-                <View style={[styles.contentsBox, homeTownMargin(index)]}>
-                  <Pressable onPress={() => articlePage(item)}>
+                <View
+                  style={[
+                    styles.newsTitle,
+                    index === newsData.length - 1
+                      ? { borderBottomWidth: 0 }
+                      : {},
+                  ]}>
+                  <Pressable
+                    style={{ flex: 1 }}
+                    onPress={() => noticePage(item)}>
                     <View
-                      style={[
-                        styles.contentsImage,
-                        { height: magazineHeight },
-                        // { height: width <= 400 ? 114 : initialImageHeight },
-                      ]}>
-                      <ImageBackground
-                        source={{ uri: item.filePath }}
-                        style={[styles.image, styles.magazineImageBox]}>
-                        <LinearGradient
-                          colors={['transparent', 'rgba(0,0,0,0.35)']}
-                          style={styles.gradient}>
-                          <View style={styles.magazineTitleBox}>
-                            <Text
-                              numberOfLines={2}
-                              ellipsizeMode="tail"
-                              style={styles.magazineTitle}>
-                              {item.title}
-                            </Text>
-                          </View>
-                        </LinearGradient>
-                      </ImageBackground>
+                      style={{
+                        flexDirection: 'row',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                      }}>
+                      <Text
+                        style={styles.newsText}
+                        numberOfLines={1}
+                        ellipsizeMode="tail">
+                        {item.title}
+                      </Text>
+                      <Text style={styles.newsDate}>
+                        {moment(item?.regDate).format('YYYY.MM.DD')}
+                      </Text>
                     </View>
-                    <Text
-                      style={styles.magazineText}
-                      numberOfLines={2}
-                      ellipsizeMode="tail">
-                      {item.text}
-                    </Text>
                   </Pressable>
                 </View>
               )}
               keyExtractor={item => item.boardIdx}
-              numColumns={2}
+              horizontal={false} // 수평 스크롤 여부 결정
             />
           </View>
-        </View>
-        {/* 최신소식 */}
-        <View style={styles.common}>
-          <View style={[styles.topBox, { marginBottom: 8 }]}>
-            <Text style={styles.topTitle}>스포츠파이 최신소식</Text>
-            <Pressable
-              onPress={() => {
-                NavigationService.navigate(navName.moreNotice);
-              }}>
-              <Text style={styles.topBtn}>모두 보기</Text>
-            </Pressable>
-          </View>
-          <FlatList
-            data={newsData}
-            scrollEnabled={false}
-            renderItem={({ item, index }) => (
-              <View
-                style={[
-                  styles.newsTitle,
-                  index === newsData.length - 1 ? { borderBottomWidth: 0 } : {},
-                ]}>
-                <Pressable style={{ flex: 1 }} onPress={() => noticePage(item)}>
-                  <View
-                    style={{
-                      flexDirection: 'row',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                    }}>
-                    <Text
-                      style={styles.newsText}
-                      numberOfLines={1}
-                      ellipsizeMode="tail">
-                      {item.title}
-                    </Text>
-                    <Text style={styles.newsDate}>
-                      {moment(item?.regDate).format('YYYY.MM.DD')}
-                    </Text>
-                  </View>
-                </Pressable>
-              </View>
-            )}
-            keyExtractor={item => item.boardIdx}
-            horizontal={false} // 수평 스크롤 여부 결정
-          />
-        </View>
-      </ScrollView>
+        </ScrollView>
 
-      {/* Main Popup */}
-      {Array.isArray(popupData) && popupData.length > 0 && (
-        <MainPopup ref={mainPopupRef} data={popupData} />
-      )}
-    </SafeAreaView>
+        {/* Main Popup */}
+        {Array.isArray(popupData) && popupData.length > 0 && (
+          <MainPopup ref={mainPopupRef} data={popupData} />
+        )}
+      </SafeAreaView>
+    )
   );
 }
 
@@ -849,6 +893,7 @@ const styles = StyleSheet.create({
   },
   swiperBackgroundBox: {
     height: '100%',
+    minHeight: 93,
     flexDirection: 'column',
     justifyContent: 'center',
     padding: 16,

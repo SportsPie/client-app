@@ -26,7 +26,7 @@ function Report({ route }) {
    */
   const reportIdx = route?.params?.reportIdx;
   const reportType = route?.params?.reportType; // REPORT_TYPE
-  const [selectedReason, setSelectedReason] = useState({});
+  const [selectedReason, setSelectedReason] = useState();
   const [memo, setMemo] = useState('');
   const trlRef = useRef({ current: { disabled: false } });
   const pageTypes = {
@@ -192,7 +192,7 @@ function Report({ route }) {
         <SPKeyboardAvoidingView
           behavior="padding"
           isResize
-          keyboardVerticalOffset={60}
+          keyboardVerticalOffset={0}
           style={{
             flex: 1,
           }}>
@@ -243,7 +243,11 @@ function Report({ route }) {
             </ScrollView>
 
             <PrimaryButton
-              disabled={!selectedReason}
+              disabled={
+                selectedReason === reasonList[reasonList.length - 1]
+                  ? !memo
+                  : !selectedReason
+              }
               text="신고하기"
               onPress={report}
             />

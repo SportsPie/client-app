@@ -21,7 +21,10 @@ import Utils from '../../utils/Utils';
 import fontStyles from '../../styles/fontStyles';
 import { COLORS } from '../../styles/colors';
 import { MODAL_CLOSE_EVENT } from '../../common/constants/modalCloseEvent';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 
 function AcademyAdmin({ route }) {
   /**
@@ -70,23 +73,6 @@ function AcademyAdmin({ route }) {
         body: '해당 운영자를 운영자에서 해제하였습니다.',
       });
       setRefresh(prev => !prev);
-    } catch (error) {
-      handleError(error);
-    }
-    trlRef.current.disabled = false;
-  };
-
-  const changeToSuperAdmin = async () => {
-    closeModal();
-    if (trlRef.current.disabled) return;
-    trlRef.current.disabled = true;
-    try {
-      const { data } = await apiPutAcademyConfigMngManagers(adminIdx);
-      Utils.openModal({
-        title: '성공',
-        body: '관리자 권한을 양도하였습니다.',
-        closeEvent: MODAL_CLOSE_EVENT.moveHome,
-      });
     } catch (error) {
       handleError(error);
     }
@@ -213,11 +199,6 @@ function AcademyAdmin({ route }) {
                 <Text style={styles.modalText}>운영자 해제</Text>
               </View>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.button} onPress={openCheckModal}>
-              <View style={styles.modalBox}>
-                <Text style={styles.modalText}>관리자 양도</Text>
-              </View>
-            </TouchableOpacity>
           </View>
         </TouchableOpacity>
       </Modal>
@@ -263,6 +244,7 @@ function AdminSearch({
   const [searchAdminList, setSearchAdminList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [memberIdx, setMemberIdx] = useState();
+  const insets = useSafeAreaInsets();
 
   // modal
   const [modalShow, setModalShow] = useState(false);
@@ -334,7 +316,7 @@ function AdminSearch({
       onRequestClose={closeFileterModal}>
       <SafeAreaView style={{ flex: 1, backgroundColor: '#FFF' }}>
         <DismissKeyboard>
-          <View style={{ flex: 1 }}>
+          <View style={{ flex: 1, marginTop: insets.top }}>
             <TouchableOpacity
               onPress={modalHide}
               style={{
@@ -360,12 +342,14 @@ function AdminSearch({
                   value={keyword}
                   placeholder="회원 이름을 입력해주세요"
                   placeholderTextColor="rgba(46, 49, 53, 0.60)"
-                  onChangeText={text => setKeyword(text)}
+                  onChangeText={text => {
+                    if (text?.length > 50) return;
+                    setKeyword(text);
+                  }}
                   onSubmitEditing={() => {
                     setSearch(prev => !prev);
                   }}
                   returnKeyType="search"
-                  maxLength={50}
                 />
               </View>
               <View style={styles.subContainer}>
@@ -385,7 +369,7 @@ function AdminSearch({
                                 style={styles.overlayIcon}
                               />
                             )}
-                            {item.admin && (
+                            {!item.creator && item.admin && (
                               <Image
                                 source={SPIcons.icAdmin}
                                 style={styles.overlayIcon}

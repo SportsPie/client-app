@@ -124,7 +124,9 @@ function AcademyPlayerProfileEdit({ route }) {
         }}>
         <SafeAreaView style={styles.container}>
           <Header title="선수 프로필 수정" />
-          <ScrollView style={styles.subContainer}>
+          <ScrollView
+            style={styles.subContainer}
+            showsVerticalScrollIndicator={false}>
             <View style={{ flexDirection: 'column', gap: 16, paddingTop: 24 }}>
               <View style={{ gap: 4 }}>
                 <Text style={[styles.subTitle, { marginBottom: 4 }]}>

@@ -7,7 +7,7 @@ import NavigationService from '../../navigation/NavigationService';
 export default function Test() {
   const navigation = NavigationService;
   return (
-    <ScrollView style={{ rowGap: 10 }}>
+    <ScrollView style={{ rowGap: 10 }} showsVerticalScrollIndicator={false}>
       <Button
         title="페이지 이동 테스트"
         onPress={() => {

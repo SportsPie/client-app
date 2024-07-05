@@ -70,10 +70,8 @@ function MoreInquiry() {
 
   const detailPage = async inquires => {
     try {
-      const response = await apiGetQnaDetail(inquires.qnaIdx);
-      const inquiryDetail = response.data;
       NavigationService.navigate(navName.moreInquiryDetail, {
-        inquiryDetail,
+        qnaIdx: inquires.qnaIdx,
       });
     } catch (error) {
       handleError(error);
@@ -221,6 +219,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: 999,
     width: 58,
+    height: 24,
   },
   headerText: {
     ...fontStyles.fontSize16_Semibold,

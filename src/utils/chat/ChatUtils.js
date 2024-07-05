@@ -45,7 +45,7 @@ const chatUtils = {
         } catch (error) {
           Utils.openModal({
             title: '실패',
-            body: 'MQTT 서버에 연결되어 있지 않습니다. 잠시 후 다시 시도해주세요.',
+            body: '채팅방 생성에 성공하지 못했습니다. 잠시 후 다시 시도해주세요.',
           });
           return;
         }
@@ -213,7 +213,7 @@ const chatUtils = {
       } catch (error) {
         Utils.openModal({
           title: '실패',
-          body: 'MQTT 서버에 연결되어 있지 않습니다. 잠시 후 다시 시도해주세요.',
+          body: '초대하지 못했습니다. 잠시 후 다시 시도해주세요.',
         });
         return;
       }
@@ -305,7 +305,7 @@ const chatUtils = {
       } catch (error) {
         Utils.openModal({
           title: '실패',
-          body: 'MQTT 서버에 연결되어 있지 않습니다. 잠시 후 다시 시도해주세요.',
+          body: '나가기에 성공하지 못했습니다. 잠시 후 다시 시도해주세요.',
         });
         return;
       }
@@ -353,10 +353,10 @@ const chatUtils = {
         try {
           await waitConnect();
         } catch (error) {
-          Utils.openModal({
-            title: '실패',
-            body: 'MQTT 서버에 연결되어 있지 않습니다. 잠시 후 다시 시도해주세요.',
-          });
+          // Utils.openModal({
+          //   title: '실패',
+          //   body: 'MQTT 서버에 연결되어 있지 않습니다. 잠시 후 다시 시도해주세요.',
+          // });
           return;
         }
       }
@@ -392,7 +392,7 @@ const chatUtils = {
         } catch (error) {
           Utils.openModal({
             title: '실패',
-            body: 'MQTT 서버에 연결되어 있지 않습니다. 잠시 후 다시 시도해주세요.',
+            body: '방이름 수정에 성공하지 못했습니다. 잠시 후 다시 시도해주세요.',
           });
           return;
         }
@@ -424,7 +424,7 @@ const chatUtils = {
         } catch (error) {
           Utils.openModal({
             title: '실패',
-            body: 'MQTT 서버에 연결되어 있지 않습니다. 잠시 후 다시 시도해주세요.',
+            body: '알림 허용여부를 수정하지 못했습니다. 잠시 후 다시 시도해주세요.',
           });
           return;
         }
@@ -452,7 +452,7 @@ const chatUtils = {
         } catch (error) {
           Utils.openModal({
             title: '실패',
-            body: 'MQTT 서버에 연결되어 있지 않습니다. 잠시 후 다시 시도해주세요.',
+            body: '메시지를 보내지 못했습니다. 잠시 후 다시 시도해주세요.',
           });
           return;
         }
@@ -508,7 +508,7 @@ const chatUtils = {
         } catch (error) {
           Utils.openModal({
             title: '실패',
-            body: 'MQTT 서버에 연결되어 있지 않습니다. 잠시 후 다시 시도해주세요.',
+            body: '초대를 하지 못했습니다. 잠시 후 다시 시도해주세요.',
           });
           return;
         }

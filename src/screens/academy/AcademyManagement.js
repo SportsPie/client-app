@@ -48,7 +48,14 @@ function AcademyManagement({ route }) {
         closeEvent: MODAL_CLOSE_EVENT.moveAcademy,
       });
     } catch (error) {
-      handleError(error);
+      if (error.message.includes(1098)) {
+        Utils.openModal({
+          title: '알림',
+          body: '아카데미 관리자만 \n아카데미를 삭제할 수 있습니다.',
+        });
+      } else {
+        handleError(error);
+      }
     }
     trlRef.current.disabled = false;
   };

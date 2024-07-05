@@ -84,7 +84,7 @@ function FeedVideoItem({ item, hideTitle }) {
                 letterSpacing: 0.3,
               },
             ]}>
-            조회수 {item?.cntReview}
+            조회수 {item?.cntVideo}
           </Text>
           <SPSvgs.Ellipse width={4} height={4} />
           <Text
@@ -123,7 +123,7 @@ function FeedVideoItem({ item, hideTitle }) {
                     color: COLORS.labelNeutral,
                   },
                 ]}>
-                {item?.cntReview}
+                {item?.cntComment}
               </Text>
             </View>
             <View style={styles.iconWrapper}>

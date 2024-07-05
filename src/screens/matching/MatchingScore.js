@@ -107,7 +107,7 @@ function MatchingScore({ route }) {
           {/* 스코어 */}
           <View style={styles.scoreContainer}>
             <TouchableOpacity
-              hitSlop={8}
+              hitSlop={15}
               onPress={() => decrementScore(TEAM_TYPE.HOME)}
               style={[
                 styles.scoreButton,
@@ -120,7 +120,7 @@ function MatchingScore({ route }) {
               <Text style={styles.scoreText}>{homeScore}</Text>
             </View>
             <TouchableOpacity
-              hitSlop={8}
+              hitSlop={15}
               onPress={() => incrementScore(TEAM_TYPE.HOME)}
               style={styles.scoreButton}>
               <Image source={SPIcons.icPlus} />
@@ -151,7 +151,7 @@ function MatchingScore({ route }) {
           {/* 스코어 */}
           <View style={styles.scoreContainer}>
             <TouchableOpacity
-              hitSlop={8}
+              hitSlop={15}
               onPress={() => decrementScore(TEAM_TYPE.AWAY)}
               style={[
                 styles.scoreButton,
@@ -164,7 +164,7 @@ function MatchingScore({ route }) {
               <Text style={styles.scoreText}>{awayScore}</Text>
             </View>
             <TouchableOpacity
-              hitSlop={8}
+              hitSlop={15}
               onPress={() => incrementScore(TEAM_TYPE.AWAY)}
               style={styles.scoreButton}>
               <Image source={SPIcons.icPlus} />

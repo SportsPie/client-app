@@ -18,14 +18,20 @@ import { COLORS } from '../../styles/colors';
 import fontStyles from '../../styles/fontStyles';
 import { useRoute } from '@react-navigation/native';
 import Header from '../../components/header';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
+import { handleError } from '../../utils/HandleError';
 
 function TermsService() {
+  const insets = useSafeAreaInsets();
   const [isCheckedAll, setIsCheckedAll] = useState(false);
   const [isChecked1, setIsChecked1] = useState(false);
   const [isChecked2, setIsChecked2] = useState(false);
   const [isChecked3, setIsChecked3] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
+  const [isMarketingAgree, setIsMarketingAgree] = useState(false);
   const [terms, setTerms] = useState('');
   const route = useRoute();
   const { loginType, snsKey, userLoginId, codeType } = route.params;
@@ -45,6 +51,7 @@ function TermsService() {
     setIsChecked1(newValue);
     setIsChecked2(newValue);
     setIsChecked3(newValue);
+    setIsMarketingAgree(newValue);
   };
 
   // 개별 체크 박스 클릭 시 해당 체크 상태 변경
@@ -60,6 +67,7 @@ function TermsService() {
 
   const handleCheck3 = () => {
     setIsChecked3(!isChecked3);
+    setIsMarketingAgree(!isChecked3);
     setIsCheckedAll(false); // isChecked3 변경 시 모두 동의 체크 해제
   };
 
@@ -75,10 +83,9 @@ function TermsService() {
   const fetchTermsFromAPI = async type => {
     try {
       const response = await apiTermsType(type);
-      console.log('API 응답:', response); // 콘솔에 응답 출력
       setTerms(response.data.data.contents);
     } catch (error) {
-      console.error('Error fetching terms:', error);
+      handleError(error);
     }
   };
 
@@ -86,6 +93,7 @@ function TermsService() {
     if (loginType === 'EMAIL') {
       NavigationService.navigate(navName.identifyVerification, {
         loginType,
+        isMarketingAgree,
       });
     } else {
       NavigationService.navigate(navName.identifyVerification, {
@@ -93,15 +101,18 @@ function TermsService() {
         snsKey,
         userLoginId,
         codeType,
+        isMarketingAgree,
       });
     }
   };
-  console.log('약관', codeType);
+
   return (
     <SafeAreaView style={styles.container}>
       <Header title="약관 동의" />
 
-      <ScrollView contentContainerStyle={styles.contentStyle}>
+      <ScrollView
+        contentContainerStyle={styles.contentStyle}
+        showsVerticalScrollIndicator={false}>
         <Text style={styles.headerText}>
           {'SPORTS PIE 서비스 이용약관에\n동의해주세요.'}
         </Text>
@@ -143,13 +154,22 @@ function TermsService() {
 
       {/* Modal */}
       <Modal visible={modalVisible} animationType="slide">
-        <View style={styles.modalContainer}>
-          <ScrollView>
+        <View
+          style={[
+            styles.modalContainer,
+            {
+              paddingTop: insets.top,
+            },
+          ]}>
+          <ScrollView showsVerticalScrollIndicator={false}>
             <WebView style={styles.modal} source={{ html: terms }} />
           </ScrollView>
-          <TouchableOpacity onPress={closeModal} style={styles.closeButton}>
-            <Text style={styles.closeButtonText}>닫기</Text>
-          </TouchableOpacity>
+
+          <PrimaryButton
+            text="닫기"
+            onPress={closeModal}
+            buttonStyle={styles.closeButton}
+          />
         </View>
       </Modal>
     </SafeAreaView>
@@ -177,16 +197,11 @@ const styles = StyleSheet.create({
   },
   modalContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'white',
-    padding: 20,
+    marginBottom: 24,
+    marginHorizontal: 16,
   },
   closeButton: {
-    marginTop: 20,
-    padding: 10,
-    borderRadius: 5,
-    backgroundColor: 'gray',
+    marginTop: 8,
   },
   closeButtonText: {
     color: 'white',

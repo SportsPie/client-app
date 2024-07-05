@@ -10,7 +10,10 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 import {
   apiGetAcademyConfigMngReportsDetail,
   apiPatchAcademyConfigMngReportsClose,
@@ -32,6 +35,7 @@ function AcademyReportDetailsView({ route }) {
   const reportType = route?.params?.reportType;
   const reportIdx = route?.params?.reportIdx;
   const [reportDetail, setReportDetail] = useState({});
+  const insets = useSafeAreaInsets();
 
   // modal
   const [changePrivateModalShow, setChangePrivateModalShow] = useState(false);
@@ -120,7 +124,7 @@ function AcademyReportDetailsView({ route }) {
   return (
     <SafeAreaView style={styles.container}>
       <Header title="신고내역 상세보기" />
-      <ScrollView style={{ flex: 1 }}>
+      <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
         <View style={{ flex: 1 }}>
           {/* 신고 내용 */}
           <View style={styles.contentBox}>
@@ -237,6 +241,7 @@ function AcademyReportDetailsView({ route }) {
             </TouchableOpacity>
           )}
       </View>
+
       <SPModal
         title="확인"
         contents="비공개 하시겠습니까?"
@@ -251,6 +256,7 @@ function AcademyReportDetailsView({ route }) {
           setChangePrivateModalShow(false);
         }}
       />
+
       <SPModal
         title="확인"
         contents="완료처리 하시겠습니까?"
@@ -272,7 +278,10 @@ function AcademyReportDetailsView({ route }) {
         visible={modalShow}
         onRequestClose={closeModal}>
         <SafeAreaView style={{ flex: 1, backgroundColor: '#FFF' }}>
-          <View>
+          <View
+            style={{
+              marginTop: insets.top,
+            }}>
             <TouchableOpacity
               onPress={closeModal}
               style={{

@@ -71,7 +71,7 @@ function TraningVideoDetail({ route }) {
     thumbPath: '',
   }); // 훈련 영상 상세
   const [displayAllDesc, setDisplayAllDesc] = useState(false); // 영상 소개 더보기
-  const trlRef = useRef({ current: { disabled: false } }); // 다중 요청 방지
+  const trlRef = useRef({ disabled: false }); // 다중 요청 방지
   const [isScrollable, setIsScrollable] = useState(true); // 스크롤 동작
 
   // [ state ] 모달
@@ -127,15 +127,12 @@ function TraningVideoDetail({ route }) {
   };
 
   // [ util ] 영상 진행 상태 확인 > 시청완료
-  const getProgressData = ({ playableDuration, currentTime }) => {
-    if (currentTime > 0 && !videoDetail.viewDate) {
-      const isOver90 =
-        playableDuration > 0 &&
-        currentTime > 0 &&
-        Math.floor((currentTime / playableDuration) * 100) > 90;
-
+  const getProgressData = ({ currentTime, seekableDuration }) => {
+    if (!videoDetail.viewDate) {
+      const isOver =
+        Math.floor(currentTime + 1) >= Math.floor(seekableDuration);
       // 시청완료
-      if (isOver90 && !trlRef.current.disabled) {
+      if (isOver && !trlRef.current.disabled) {
         completeWatchTrainingVideo();
       }
     }
@@ -197,19 +194,11 @@ function TraningVideoDetail({ route }) {
   return (
     <SafeAreaView style={styles.container}>
       {/* 헤더 */}
-      {isScrollable && (
-        <Header
-          title={videoDetail.trainingName}
-          onLeftIconPress={() =>
-            NavigationService.navigate(navName.trainingDetail, {
-              trainingIdx: videoDetail.trainingIdx,
-            })
-          }
-        />
-      )}
+      {isScrollable && <Header title={videoDetail.trainingName} />}
 
       {/* 바디 */}
       <ScrollView
+        showsVerticalScrollIndicator={false}
         ref={scrollRef}
         contentContainerStyle={styles.content}
         scrollEnabled={isScrollable}
@@ -219,9 +208,10 @@ function TraningVideoDetail({ route }) {
           <SPSingleVideo
             ref={fullScreenRef}
             source={videoDetail.videoPath}
-            thumbnailPath={!isVideoLoading && videoDetail.thumbPath}
+            thumbnailPath={videoDetail.thumbPath ?? ''}
             repeat={true}
-            isPaused={showViewCompleteModal} // 시청완료 팝업이 떠있을 때, 일시 정지
+            isPaused={true}
+            // isPaused={showViewCompleteModal} // 시청완료 팝업이 떠있을 때, 일시 정지
             disablePlayPause={true}
             onLoad={() => setIsVideoLoading(false)}
             onFullScreen={toggleFullScreenMode}

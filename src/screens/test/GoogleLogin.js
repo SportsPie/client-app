@@ -34,7 +34,7 @@ export default function GoogleLogin({ navigation }) {
   }, []);
 
   return (
-    <ScrollView>
+    <ScrollView showsVerticalScrollIndicator={false}>
       <Text>googleLogin</Text>
       <Button title="login" onPress={googleLogin} />
     </ScrollView>

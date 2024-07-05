@@ -163,6 +163,7 @@ const styles = {
     lineHeight: 26,
     letterSpacing: -0.004,
     marginRight: 4,
+    flexShrink: 1,
   },
   radioContainer: {
     flex: 1,

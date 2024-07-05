@@ -131,7 +131,7 @@ function AcademyIntroduction({ route }) {
   const [matchingList, setMatchingList] = useState([]);
 
   const [modalVisible, setModalVisible] = useState(false);
-  const [isJoined, setIsJoined] = useState(undefined);
+  const [isJoined, setIsJoined] = useState(false);
 
   /**
    * api
@@ -204,10 +204,8 @@ function AcademyIntroduction({ route }) {
    */
   useFocusEffect(
     useCallback(() => {
-      if (isJoined !== undefined) {
-        getUserInfo();
-        getAcademyDetailInfo();
-      }
+      getUserInfo();
+      getAcademyDetailInfo();
       // return () => {
       //   setFistCall(false);
       // };
@@ -249,7 +247,7 @@ function AcademyIntroduction({ route }) {
         shareTitle={academyDetail?.academyName ?? ''}
         shareDescription={academyDetail?.description ?? ''}
       />
-      <ScrollView>
+      <ScrollView showsVerticalScrollIndicator={false}>
         {/* 아카데미 소개 */}
         <View style={styles.introduction}>
           <View style={styles.topBox}>
@@ -264,17 +262,17 @@ function AcademyIntroduction({ route }) {
                 </View>
               )}
             </View>
-            <View style={styles.topRow}>
-              <View>
-                <Image source={SPIcons.icStar} />
+            {academyDetail.rating !== null && (
+              <View style={styles.topRow}>
+                <View>
+                  <Image source={SPIcons.icStar} />
+                </View>
+                <Text style={styles.score}>
+                  {' '}
+                  {parseFloat(academyDetail.rating).toFixed(1)}
+                </Text>
               </View>
-              <Text style={styles.score}>
-                {' '}
-                {academyDetail.rating === null
-                  ? parseFloat(3).toFixed(1)
-                  : academyDetail.rating}
-              </Text>
-            </View>
+            )}
             <View style={[styles.topRow, { gap: 8 }]}>
               {academyDetail.instagramUrl && (
                 <TouchableOpacity
@@ -303,7 +301,7 @@ function AcademyIntroduction({ route }) {
               style={styles.middleText}
               numberOfLines={showMoreDesc ? 0 : 3}
               onTextLayout={({ nativeEvent: { lines } }) => {
-                setShouldShowMoreButton(lines.length > 3);
+                setShouldShowMoreButton(lines.length > 2);
               }}
               ellipsizeMode="tail">
               {academyDetail.description}

@@ -143,12 +143,17 @@ function WalletSend() {
 
   const checkWalletAddr = () => {
     const isValidAddr = Web3Utils.isValidAddress(receiveAddress);
-    setIsValidReceiveAddress(isValidAddr);
-
     if (!isValidAddr) {
       setAddressErrorMessage('유효하지 않은 지갑주소입니다.');
+      setIsValidReceiveAddress(false);
       return false;
     }
+    if (address === receiveAddress) {
+      setAddressErrorMessage('본인에게 송금할 수 없습니다.');
+      setIsValidReceiveAddress(false);
+      return false;
+    }
+    setIsValidReceiveAddress(true);
     setAddressErrorMessage('');
     return true;
   };
@@ -312,12 +317,14 @@ function WalletSend() {
   return !isFocus ? (
     <KeyboardAvoidingView
       style={styles.container}
-      keyboardVerticalOffset={60}
+      keyboardVerticalOffset={0}
       behavior="padding">
       <SafeAreaView style={{ flex: 1 }}>
         <Header title="보내기" />
 
-        <ScrollView contentContainerStyle={styles.content}>
+        <ScrollView
+          contentContainerStyle={styles.content}
+          showsVerticalScrollIndicator={false}>
           <Text style={styles.headerText}>얼마나 보낼까요?</Text>
 
           <View style={styles.walletWrapper}>

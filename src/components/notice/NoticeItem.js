@@ -12,10 +12,8 @@ import { COLORS } from '../../styles/colors';
 function NoticeItem({ item }) {
   const detailPage = async notice => {
     try {
-      const response = await apiGetNoticesDetail(notice.boardIdx);
-      const noticeDetail = response.data;
       NavigationService.navigate(navName.moreNoticeDetail, {
-        noticeDetail,
+        boardIdx: notice.boardIdx,
       });
     } catch (error) {
       handleError(error);

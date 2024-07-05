@@ -39,9 +39,7 @@ function MoreMyDetailModify() {
       const { data } = await apiGetMyInfo();
       if (data) {
         setMember(data.data);
-        console.log('원래정보', data.data);
       }
-      console.log(data.data);
     } catch (error) {
       handleError(error);
     }
@@ -115,7 +113,6 @@ function MoreMyDetailModify() {
           : member.userBirthday,
       userGender: userGender != null ? userGender : myGender,
     };
-    console.log('ararraarara', param);
     formData.append('dto', {
       string: JSON.stringify(param),
       type: 'application/json',
@@ -123,7 +120,6 @@ function MoreMyDetailModify() {
     try {
       if (trlRef.current.disabled) return;
       trlRef.current.disabled = true;
-      console.log('데이터', param);
       const { data } = await apiModifyMyInfo(formData);
       if (data) {
         Utils.openModal({
@@ -164,7 +160,7 @@ function MoreMyDetailModify() {
       <Header title="내 정보 수정" />
 
       <View style={styles.container}>
-        <View style={styles.rowContent}>
+        <View style={[styles.rowContent, { columnGap: 8 }]}>
           <SPInput
             containerStyle={{ flex: 1 }}
             title="휴대폰번호"
@@ -176,7 +172,7 @@ function MoreMyDetailModify() {
           <PrimaryButton
             onPress={handlePhoneNumberUpdate}
             outlineButton
-            text="본인인증"
+            text="변경"
             buttonStyle={styles.button}
           />
         </View>
@@ -233,6 +229,7 @@ const styles = StyleSheet.create({
   button: {
     alignSelf: 'flex-end',
     marginLeft: 'auto',
-    paddingHorizontal: 28,
+    // paddingHorizontal: 28,
+    padding: 12,
   },
 });

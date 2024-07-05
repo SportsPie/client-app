@@ -22,6 +22,7 @@ import { MODAL_CLOSE_EVENT } from '../../common/constants/modalCloseEvent';
 import { COLORS } from '../../styles/colors';
 import fontStyles from '../../styles/fontStyles';
 import { IS_YN } from '../../common/constants/isYN';
+import { navName } from '../../common/constants/navName';
 
 export default function AcademyJoinModal({
   academyIdx,
@@ -46,10 +47,14 @@ export default function AcademyJoinModal({
   const [fstCall, setFstCall] = useState(false);
 
   const getUserInfo = async () => {
-    if (recruitmentEnds) {
-      setShowButton(false);
-    }
     try {
+      if (!isLogin) {
+        return;
+      }
+      if (recruitmentEnds) {
+        setShowButton(false);
+        return;
+      }
       const { data } = await apiGetMyInfo();
       // 이미 아카데미 회원일 경우 가입신청 버튼 숨김
       if (data.data.academyIdx) {
@@ -81,8 +86,9 @@ export default function AcademyJoinModal({
       }
     } catch (error) {
       handleError(error);
+    } finally {
+      setFstCall(true);
     }
-    setFstCall(true);
   };
 
   const getAcademyDetail = async () => {
@@ -159,6 +165,7 @@ export default function AcademyJoinModal({
         body: '로그인이 필요한 작업입니다. \n로그인 페이지로 이동하시겠습니까?',
         confirmEvent: MODAL_CLOSE_EVENT.login,
         cancelEvent: MODAL_CLOSE_EVENT.nothing,
+        data: { goBack: true },
       });
     } else {
       setJoinModalVisible(true);
@@ -182,7 +189,7 @@ export default function AcademyJoinModal({
   useFocusEffect(
     useCallback(() => {
       getUserInfo();
-    }, [academyIdx, refresh]),
+    }, [isLogin, academyIdx, refresh]),
   );
 
   useFocusEffect(

@@ -1,4 +1,11 @@
-import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import {
+  Modal,
+  Pressable,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import React, {
   forwardRef,
   memo,
@@ -42,8 +49,8 @@ const AddressFilter = forwardRef(
       try {
         const { data } = await apiCityList();
         setCityList(data.data);
-        setGuList([]);
-        setDongList([]);
+        // setGuList([]);
+        // setDongList([]);
       } catch (error) {
         handleError(error);
       }
@@ -53,7 +60,7 @@ const AddressFilter = forwardRef(
       try {
         const { data } = await apiGuList(selectedCity);
         setGuList(data.data);
-        setDongList([]);
+        // setDongList([]);
       } catch (error) {
         handleError(error);
       }
@@ -68,10 +75,21 @@ const AddressFilter = forwardRef(
       }
     };
 
+    const resetValues = () => {
+      setSelectedCity('');
+      setSelectedGu('');
+      setSelectedDong('');
+      setSelectedTab(addrTypes.city);
+    };
+
     useFocusEffect(
       useCallback(() => {
-        getCityList();
-      }, []),
+        if (isVisible) {
+          getCityList();
+          getGuList();
+          getDongList();
+        }
+      }, [isVisible]),
     );
 
     useEffect(() => {
@@ -266,12 +284,20 @@ const AddressFilter = forwardRef(
             showsVerticalScrollIndicator={false}
           />
 
-          <PrimaryButton
-            disabled={!selectedCity}
-            text="검색"
-            buttonStyle={styles.submitButton}
-            onPress={onSubmit}
-          />
+          <View style={styles.buttonsWrapper}>
+            <PrimaryButton
+              outlineButton
+              text="재설정"
+              buttonStyle={styles.leftButton}
+              onPress={resetValues}
+            />
+            <PrimaryButton
+              disabled={!selectedCity}
+              text="검색"
+              buttonStyle={styles.rightButton}
+              onPress={onSubmit}
+            />
+          </View>
         </View>
       </Modal>
     );
@@ -327,5 +353,18 @@ const styles = StyleSheet.create({
     ...fontStyles.fontSize16_Medium,
     color: COLORS.labelAlternative,
     letterSpacing: 0.091,
+  },
+  buttonsWrapper: {
+    flexDirection: 'row',
+    columnGap: 8,
+    marginTop: 'auto',
+    paddingHorizontal: 16,
+    paddingBottom: 24,
+  },
+  leftButton: {
+    width: 98,
+  },
+  rightButton: {
+    flex: 1,
   },
 });

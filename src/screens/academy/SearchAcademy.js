@@ -131,7 +131,7 @@ function SearchAcademy() {
         const { city: addrCity, gu: addrGu, dong: addrDong } = resultAddr;
         setSearchedCity(addrCity ?? '');
         setSearchedGu(addrGu ?? '');
-        setSearchedDong(addrDong ?? '');
+        // setSearchedDong(addrDong ?? '');
       }
     } catch (error) {
       handleError(error);
@@ -139,14 +139,20 @@ function SearchAcademy() {
     setIsFocus(false);
   };
 
-  useFocusEffect(
-    useCallback(() => {
-      onFocus();
-      return () => {
-        setIsFocus(true);
-      };
-    }, []),
-  );
+  useEffect(() => {
+    onFocus();
+    return () => {
+      setIsFocus(true);
+    };
+  }, []);
+
+  // useFocusEffect(
+  //   useCallback(() => {
+  //     return () => {
+  //       setIsFocus(true);
+  //     };
+  //   }, []),
+  // );
 
   useFocusEffect(
     useCallback(() => {

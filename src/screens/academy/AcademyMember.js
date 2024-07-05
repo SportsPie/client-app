@@ -15,6 +15,7 @@ import {
   TouchableOpacity,
   View,
   useWindowDimensions,
+  Linking,
 } from 'react-native';
 import Carousel from 'react-native-snap-carousel';
 import Swiper from 'react-native-swiper';
@@ -41,12 +42,78 @@ import GeoLocationUtils from '../../utils/GeoLocationUtils';
 import { handleError } from '../../utils/HandleError';
 import Utils from '../../utils/Utils';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { IS_YN } from '../../common/constants/isYN';
+import fontStyles from '../../styles/fontStyles';
+import { ACTIVE_OPACITY } from '../../common/constants/constants';
+import { isBefore } from 'date-fns';
 
 // 경기 일정
 function MatchingBox({ data }) {
   const title = data?.title;
   const gender = MATCH_GENDER[data?.genderCode]?.desc;
-  const matchState = MATCH_STATE[data?.matchState]?.desc;
+  const currentDate = new Date();
+
+  const isMatchOver = isBefore(
+    new Date(`${data.matchDate} ${data.matchTime}`),
+    currentDate,
+  );
+
+  const isMatchClose = isBefore(new Date(data.closeDate), currentDate);
+
+  const getStatusStyle = matchState => {
+    switch (matchState) {
+      case MATCH_STATE.APPLY.code:
+        if (isMatchClose) {
+          return {
+            backgroundColor: 'rgba(255, 66, 66, 0.16)',
+            color: '#FF4242',
+            desc: '경기취소',
+          };
+        }
+        return {
+          backgroundColor: 'rgba(255, 103, 31, 0.16)',
+          color: '#FF671F',
+          desc: '경기예정',
+        };
+      case MATCH_STATE.REVIEW.code:
+      case MATCH_STATE.CONFIRM.code:
+        return {
+          backgroundColor: 'rgba(135, 141, 150, 0.16)',
+          color: 'rgba(46, 49, 53, 0.80)',
+          desc: '경기완료',
+        };
+      case MATCH_STATE.READY.code:
+        if (isMatchOver) {
+          return {
+            backgroundColor: 'rgba(50, 83, 255, 0.16)',
+            color: '#3253FF',
+            desc: '경기중',
+          };
+        }
+        return {
+          backgroundColor: 'rgba(36, 161, 71, 0.16)',
+          color: '#24A147',
+          desc: '경기대기',
+        };
+      case MATCH_STATE.FINISH.code:
+      case MATCH_STATE.REJECT.code:
+        return {
+          backgroundColor: 'rgba(50, 83, 255, 0.16)',
+          color: '#3253FF',
+          desc: '경기중',
+        };
+      case MATCH_STATE.EXPIRE.code:
+      case MATCH_STATE.CANCEL.code:
+        return {
+          backgroundColor: 'rgba(255, 66, 66, 0.16)',
+          color: '#FF4242',
+          desc: '경기취소',
+        };
+      default:
+        return {};
+    }
+  };
+
   const date = `${data?.matchDate} ${data?.matchTime}`;
   const momentDate = moment(date);
   const newFormatString = momentDate.format('MMMM Do dddd A h:mm');
@@ -76,8 +143,14 @@ function MatchingBox({ data }) {
             </Text>
           </View>
         </View>
-        <View style={styles.matchingStatus}>
-          <Text style={styles.matchingStatusText}>{matchState}</Text>
+        <View style={[styles.matchingStatus, getStatusStyle(data?.matchState)]}>
+          <Text
+            style={[
+              styles.matchingStatusText,
+              { color: getStatusStyle(data?.matchState).color },
+            ]}>
+            {getStatusStyle(data?.matchState).desc}
+          </Text>
         </View>
       </View>
       <Text style={styles.matchingTitle} numberOfLines={1} ellipsizeMode="tail">
@@ -97,12 +170,13 @@ function MatchingBox({ data }) {
 
 function CarouselSection({ data }) {
   const screenWidth = Dimensions.get('window').width;
+  const itemWidth = data.length > 1 ? screenWidth - 60 : screenWidth - 16;
   const renderItem = ({ item }) => <MatchingBox data={item} />;
 
   return (
     <Carousel
       sliderWidth={screenWidth}
-      itemWidth={screenWidth - 60}
+      itemWidth={itemWidth}
       data={data}
       renderItem={renderItem}
       activeSlideAlignment="center"
@@ -168,7 +242,7 @@ function Academy({ navigation }) {
       } = academyMainData;
 
       if (isLogin) {
-        if (data?.isAcademyAdmin) {
+        if (data?.isAcademyAdmin || data?.isAcademyCreator) {
           setAcademyMemberType(ACADEMY_MEMBER_TYPE.ADMIN);
         } else if (data?.isAcademyMember) {
           setAcademyMemberType(ACADEMY_MEMBER_TYPE.MEMBER);
@@ -230,6 +304,21 @@ function Academy({ navigation }) {
   /**
    * function
    */
+  const checkRecruitEndRender = item => {
+    if (item.closeYn === IS_YN.Y || item.dday < 0) {
+      return (
+        <View style={[styles.recruitEndBox, { alignSelf: 'flex-start' }]}>
+          <Text style={styles.recruitEndText}>모집종료</Text>
+        </View>
+      );
+    }
+    return (
+      <View style={[styles.recruitingBox, { alignSelf: 'flex-start' }]}>
+        <Text style={styles.recruitingText}>모집중</Text>
+      </View>
+    );
+  };
+
   const homeTownMargin = index => {
     const marginStyle = {};
     if (index % 2 === 0) {
@@ -271,7 +360,7 @@ function Academy({ navigation }) {
   useFocusEffect(
     useCallback(() => {
       onFocus();
-    }, [refresh]),
+    }, [isLogin, refresh]),
   );
 
   if (!firstCall || refresh) {
@@ -283,223 +372,384 @@ function Academy({ navigation }) {
   }
 
   return (
-    <SafeAreaView edges={['top']} style={styles.container}>
-      <Header
-        title="아카데미"
-        hideLeftIcon
-        rightContent={
-          <Pressable
-            onPress={() => {
-              NavigationService.navigate(navName.searchAcademy);
-            }}>
-            <SPSvgs.Search />
-          </Pressable>
-        }
-      />
-      <ScrollView>
-        {/* 아카데미 광고/공지 이미지 */}
-        <View style={styles.swiperBox}>
-          <Swiper
-            style={{ height: imageHeight }}
-            showsButtons={false}
-            autoplay
-            autoplayTimeout={5}
-            scrollEventThrottle={16} // 스크롤 이벤트를 16ms 마다 처리
-            decelerationRate="fast" // 스크롤 감속률을 빠르게 설정
-            paginationStyle={{
-              justifyContent: 'flex-start',
-              position: 'absolute',
-              left: 16,
-              bottom: 36,
-              paddingVertical: 8,
-            }}
-            dotStyle={{
-              backgroundColor: '#FFF',
-              opacity: 0.4,
-              width: 12,
-              height: 3,
-              marginHorizontal: 2,
-              marginVertical: 2.5,
-            }}
-            activeDotStyle={{
-              backgroundColor: '#FFF',
-              width: 24,
-              height: 3,
-            }}>
-            {bannerList &&
-              bannerList.length > 0 &&
-              bannerList.map((img, index) => {
-                return (
-                  <View
-                    // eslint-disable-next-line react/no-array-index-key
-                    key={index}
-                    style={[styles.slide, { height: imageHeight }]}>
-                    <Image
-                      // resizeMode="cover"
-                      source={{
-                        uri: img.filePath,
-                      }}
-                      style={[styles.image]}
-                    />
-                  </View>
-                );
-              })}
-          </Swiper>
-        </View>
-        {/* 아카데미 미소속 */}
-        <View style={styles.noBelong}>
-          {academyMemberType === ACADEMY_MEMBER_TYPE.NO_MEMBER &&
-            !waitAcademy && (
-              <View style={styles.noBelongDetail}>
-                {/* 아카데미 만들기 */}
-                <View style={styles.academyProduce}>
-                  <Text style={styles.academyProduceTitle}>
-                    원하는 아카데미를 찾지 못했나요?
-                  </Text>
-                  <View style={styles.academyProduceBox}>
-                    <Text style={styles.academyProduceText}>
-                      나에게 맞는 아카데미를 직접 운영해보세요
-                    </Text>
+    firstCall && (
+      <SafeAreaView edges={['top']} style={styles.container}>
+        <Header
+          title="아카데미"
+          hideLeftIcon
+          rightContent={
+            <Pressable
+              onPress={() => {
+                NavigationService.navigate(navName.searchAcademy);
+              }}>
+              <SPSvgs.Search />
+            </Pressable>
+          }
+        />
+        <ScrollView showsVerticalScrollIndicator={false}>
+          {/* 아카데미 광고/공지 이미지 */}
+          <View style={styles.swiperBox}>
+            <Swiper
+              style={{ height: imageHeight }}
+              showsButtons={false}
+              autoplay
+              autoplayTimeout={5}
+              scrollEventThrottle={16} // 스크롤 이벤트를 16ms 마다 처리
+              decelerationRate="fast" // 스크롤 감속률을 빠르게 설정
+              paginationStyle={{
+                justifyContent: 'flex-start',
+                position: 'absolute',
+                left: 16,
+                bottom: 36,
+                paddingVertical: 8,
+              }}
+              dotStyle={{
+                backgroundColor: '#FFF',
+                opacity: 0.4,
+                width: 12,
+                height: 3,
+                marginHorizontal: 2,
+                marginVertical: 2.5,
+              }}
+              activeDotStyle={{
+                backgroundColor: '#FFF',
+                width: 24,
+                height: 3,
+              }}>
+              {bannerList &&
+                bannerList.length > 0 &&
+                bannerList.map((img, index) => {
+                  return (
                     <TouchableOpacity
+                      activeOpacity={1}
                       onPress={() => {
-                        NavigationService.navigate(navName.academyRegist);
+                        if (img.linkUrl) {
+                          Linking.openURL(img.linkUrl);
+                        }
                       }}
-                      style={styles.academyProduceBtn}>
-                      <Text style={styles.buttonText}>아카데미 만들기</Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-                {/* 우리 동네 아카데미 */}
-                <View style={styles.academyAround}>
-                  <View style={styles.topBox}>
-                    <Text style={styles.topTitle}>우리 동네 아카데미</Text>
-                    <TouchableOpacity
-                      onPress={() => {
-                        NavigationService.navigate(navName.nearbyAcademy);
-                      }}>
-                      <Text style={styles.topBtn}>모두 보기</Text>
-                    </TouchableOpacity>
-                  </View>
-                  {nearbyAcademyList && nearbyAcademyList.length > 0 && (
-                    <View style={styles.location}>
+                      // eslint-disable-next-line react/no-array-index-key
+                      key={index}
+                      style={[styles.slide, { height: imageHeight }]}>
                       <Image
-                        source={SPIcons.icMyLocation}
-                        style={styles.locationIcon}
+                        // resizeMode="cover"
+                        source={{
+                          uri: img.filePath,
+                        }}
+                        style={[styles.image]}
                       />
-                      <Text style={styles.locationText}>{address}</Text>
-                    </View>
-                  )}
-                  <View>
-                    {nearbyAcademyList && nearbyAcademyList.length > 0 ? (
-                      <FlatList
-                        data={
-                          nearbyAcademyList.length % 2 === 1
-                            ? [
-                                ...nearbyAcademyList.slice(0, 3),
-                                { isEmpty: true },
-                              ]
-                            : nearbyAcademyList.slice(0, 4)
-                        }
-                        scrollEnabled={false}
-                        renderItem={({ item, index }) => (
-                          <ImageBackground
-                            source={{ uri: item.thumbPath }}
-                            style={[
-                              styles.contentsBox,
-                              styles.homeContentsBox,
-                              { height: dynamicHeight },
-                              homeTownMargin(index),
-                              item.isEmpty && {
-                                backgroundColor: 'transparent',
-                              },
-                            ]}>
-                            {!item.isEmpty && (
-                              <View
-                                style={{
-                                  ...styles.imageOverlay,
-                                  backgroundColor: 'rgba(0, 0, 0, 0.38)',
-                                  flex: 1,
-                                }}>
-                                <TouchableOpacity
-                                  onPress={() => academyPage(item)}>
-                                  <View style={styles.homeTownBox}>
-                                    <View style={styles.homeTownDistance}>
-                                      <Text style={styles.homeTownDistanceText}>
-                                        {Utils.addDistanceUnit(item.distance)}
-                                      </Text>
-                                    </View>
-                                    <Text
-                                      style={styles.homeTownText}
-                                      numberOfLines={1} // 한 줄로 제한
-                                      ellipsizeMode="tail">
-                                      {item.academyName}
-                                    </Text>
-                                  </View>
-                                </TouchableOpacity>
-                              </View>
-                            )}
-                          </ImageBackground>
-                        )}
-                        keyExtractor={(item, index) =>
-                          item.academyIdx || `empty-${index}`
-                        }
-                        numColumns={2}
-                      />
-                    ) : (
-                      // 아카데미 없을때 보여짐
-                      <View style={styles.noneAcademy}>
-                        <Image
-                          source={SPIcons.icMap}
-                          style={{ width: 80, height: 80 }}
-                        />
-                        <View>
-                          <Text style={styles.noneAcademyText}>
-                            주변에 아카데미가 없어요.
-                          </Text>
-                          <Text style={styles.noneAcademyText}>
-                            아카데미를 검색해보세요.
-                          </Text>
-                        </View>
-                        <TouchableOpacity
-                          style={styles.searchBtn}
-                          onPress={() =>
-                            NavigationService.navigate(navName.searchAcademy)
-                          }>
-                          <Text style={styles.searchBtnText}>
-                            아카데미 검색하기
-                          </Text>
-                        </TouchableOpacity>
-                      </View>
-                    )}
-                  </View>
-                </View>
-              </View>
-            )}
-          {/* 가입신청 대기 */}
-          {academyMemberType === ACADEMY_MEMBER_TYPE.NO_MEMBER &&
-            waitAcademy && (
-              <View style={styles.noBelongDetail}>
-                <View style={[styles.introduction, { marginHorizontal: 0 }]}>
-                  <View style={styles.topBox}>
-                    <Text style={styles.topTitle}>내 아카데미</Text>
-                    <View>
+                    </TouchableOpacity>
+                  );
+                })}
+            </Swiper>
+          </View>
+          {/* 아카데미 미소속 */}
+          <View style={styles.noBelong}>
+            {academyMemberType === ACADEMY_MEMBER_TYPE.NO_MEMBER &&
+              !waitAcademy && (
+                <View style={styles.noBelongDetail}>
+                  {/* 아카데미 만들기 */}
+                  <View style={styles.academyProduce}>
+                    <Text style={styles.academyProduceTitle}>
+                      원하는 아카데미를 찾지 못했나요?
+                    </Text>
+                    <View style={styles.academyProduceBox}>
+                      <Text style={styles.academyProduceText}>
+                        나에게 맞는 아카데미를 직접 운영해보세요
+                      </Text>
                       <TouchableOpacity
                         onPress={() => {
-                          NavigationService.navigate(navName.academyDetail, {
-                            academyIdx: waitAcademy.academyIdx,
-                          });
-                        }}>
-                        <View>
-                          <Image source={SPIcons.icArrowRightNoraml} />
-                        </View>
+                          NavigationService.navigate(navName.academyRegist);
+                        }}
+                        style={styles.academyProduceBtn}>
+                        <Text style={styles.buttonText}>아카데미 만들기</Text>
                       </TouchableOpacity>
                     </View>
                   </View>
+                  {/* 우리 동네 아카데미 */}
+                  <View style={styles.academyAround}>
+                    <View style={styles.topBox}>
+                      <Text style={styles.topTitle}>우리 동네 아카데미</Text>
+                      <TouchableOpacity
+                        onPress={() => {
+                          NavigationService.navigate(navName.nearbyAcademy);
+                        }}>
+                        <Text style={styles.topBtn}>모두 보기</Text>
+                      </TouchableOpacity>
+                    </View>
+                    {nearbyAcademyList && nearbyAcademyList.length > 0 && (
+                      <View style={styles.location}>
+                        <Image
+                          source={SPIcons.icMyLocation}
+                          style={styles.locationIcon}
+                        />
+                        <Text style={styles.locationText}>{address}</Text>
+                      </View>
+                    )}
+                    <View>
+                      {nearbyAcademyList && nearbyAcademyList.length > 0 ? (
+                        <FlatList
+                          data={
+                            nearbyAcademyList.length % 2 === 1
+                              ? [
+                                  ...nearbyAcademyList.slice(0, 3),
+                                  { isEmpty: true },
+                                ]
+                              : nearbyAcademyList.slice(0, 4)
+                          }
+                          scrollEnabled={false}
+                          renderItem={({ item, index }) => (
+                            <ImageBackground
+                              source={{ uri: item.thumbPath }}
+                              style={[
+                                styles.contentsBox,
+                                styles.homeContentsBox,
+                                { height: dynamicHeight },
+                                homeTownMargin(index),
+                                item.isEmpty && {
+                                  backgroundColor: 'transparent',
+                                },
+                              ]}>
+                              {!item.isEmpty && (
+                                <View
+                                  style={{
+                                    ...styles.imageOverlay,
+                                    backgroundColor: 'rgba(0, 0, 0, 0.38)',
+                                    flex: 1,
+                                  }}>
+                                  <TouchableOpacity
+                                    onPress={() => academyPage(item)}>
+                                    <View style={styles.homeTownBox}>
+                                      <View style={styles.homeTownDistance}>
+                                        <Text
+                                          style={styles.homeTownDistanceText}>
+                                          {Utils.addDistanceUnit(item.distance)}
+                                        </Text>
+                                      </View>
+                                      <Text
+                                        style={styles.homeTownText}
+                                        numberOfLines={1} // 한 줄로 제한
+                                        ellipsizeMode="tail">
+                                        {item.academyName}
+                                      </Text>
+                                    </View>
+                                  </TouchableOpacity>
+                                </View>
+                              )}
+                            </ImageBackground>
+                          )}
+                          keyExtractor={(item, index) =>
+                            item.academyIdx || `empty-${index}`
+                          }
+                          numColumns={2}
+                        />
+                      ) : (
+                        // 아카데미 없을때 보여짐
+                        <View style={styles.noneAcademy}>
+                          <Image
+                            source={SPIcons.icMap}
+                            style={{ width: 80, height: 80 }}
+                          />
+                          <View>
+                            <Text style={styles.noneAcademyText}>
+                              주변에 아카데미가 없어요.
+                            </Text>
+                            <Text style={styles.noneAcademyText}>
+                              아카데미를 검색해보세요.
+                            </Text>
+                          </View>
+                          <TouchableOpacity
+                            style={styles.searchBtn}
+                            onPress={() =>
+                              NavigationService.navigate(navName.searchAcademy)
+                            }>
+                            <Text style={styles.searchBtnText}>
+                              아카데미 검색하기
+                            </Text>
+                          </TouchableOpacity>
+                        </View>
+                      )}
+                    </View>
+                  </View>
+                </View>
+              )}
+            {/* 가입신청 대기 */}
+            {academyMemberType === ACADEMY_MEMBER_TYPE.NO_MEMBER &&
+              waitAcademy && (
+                <View style={styles.noBelongDetail}>
+                  <View style={[styles.introduction, { marginHorizontal: 0 }]}>
+                    <View style={styles.topBox}>
+                      <Text style={styles.topTitle}>내 아카데미</Text>
+                      <View>
+                        <TouchableOpacity
+                          onPress={() => {
+                            NavigationService.navigate(navName.academyDetail, {
+                              academyIdx: waitAcademy.academyIdx,
+                            });
+                          }}>
+                          <View>
+                            <Image source={SPIcons.icArrowRightNoraml} />
+                          </View>
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                    <View style={styles.academyInfo}>
+                      {waitAcademy?.logoPath ? (
+                        <View style={styles.academyImg}>
+                          <Image
+                            source={{ uri: waitAcademy?.logoPath }}
+                            style={styles.image}
+                          />
+                        </View>
+                      ) : (
+                        <View style={styles.academyImg}>
+                          <Image
+                            source={SPIcons.icMyAcademy}
+                            style={styles.image}
+                          />
+                        </View>
+                      )}
+
+                      <View>
+                        <Text style={styles.name}>
+                          {waitAcademy.academyName}
+                        </Text>
+                        <View style={styles.academyTextBox}>
+                          <Text style={styles.info}>
+                            {waitAcademy.addrCity} · {waitAcademy.addrGu}
+                          </Text>
+                          {waitAcademy.rating !== null && (
+                            <View style={styles.VerticalLine} />
+                          )}
+                          {waitAcademy.rating !== null && (
+                            <View style={styles.review}>
+                              <Image source={SPIcons.icStar} />
+                              <Text style={styles.info}>
+                                {parseFloat(waitAcademy.rating).toFixed()}
+                              </Text>
+                            </View>
+                          )}
+                        </View>
+                      </View>
+                    </View>
+                    <TouchableOpacity
+                      onPress={e => {
+                        cancelJoinAcademy();
+                        e.stopPropagation();
+                      }}
+                      style={[styles.academyProduceBtn]}>
+                      <Text
+                        style={[styles.buttonText, { textAlign: 'center' }]}>
+                        가입신청 취소
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                  {/* 우리 동네 아카데미 */}
+                  {nearbyAcademyList && nearbyAcademyList.length > 0 && (
+                    <View style={styles.academyAround}>
+                      <View style={styles.topBox}>
+                        <Text style={styles.topTitle}>우리 동네 아카데미</Text>
+                        <TouchableOpacity
+                          onPress={() => {
+                            NavigationService.navigate(navName.nearbyAcademy);
+                          }}>
+                          <Text style={styles.topBtn}>모두 보기</Text>
+                        </TouchableOpacity>
+                      </View>
+                      <View style={styles.location}>
+                        <Image
+                          source={SPIcons.icMyLocation}
+                          style={styles.locationIcon}
+                        />
+                        <Text style={styles.locationText}>{address}</Text>
+                      </View>
+                      <View>
+                        <FlatList
+                          data={
+                            nearbyAcademyList.length % 2 === 1
+                              ? [
+                                  ...nearbyAcademyList.slice(0, 4),
+                                  { isEmpty: true },
+                                ]
+                              : nearbyAcademyList.slice(0, 4)
+                          }
+                          scrollEnabled={false}
+                          renderItem={({ item, index }) => (
+                            <ImageBackground
+                              source={{ uri: item.thumbPath }}
+                              style={[
+                                styles.contentsBox,
+                                styles.homeContentsBox,
+                                { height: dynamicHeight },
+                                homeTownMargin(index),
+                                item.isEmpty && {
+                                  backgroundColor: 'transparent',
+                                },
+                              ]}>
+                              {!item.isEmpty && (
+                                <View
+                                  style={{
+                                    ...styles.imageOverlay,
+                                    backgroundColor: 'rgba(0, 0, 0, 0.38)',
+                                    flex: 1,
+                                  }}>
+                                  <TouchableOpacity
+                                    onPress={() => academyPage(item)}>
+                                    <View style={styles.homeTownBox}>
+                                      <View style={styles.homeTownDistance}>
+                                        <Text
+                                          style={styles.homeTownDistanceText}>
+                                          {Utils.addDistanceUnit(item.distance)}
+                                        </Text>
+                                      </View>
+                                      <Text
+                                        style={styles.homeTownText}
+                                        numberOfLines={1} // 한 줄로 제한
+                                        ellipsizeMode="tail">
+                                        {item.academyName}
+                                      </Text>
+                                    </View>
+                                  </TouchableOpacity>
+                                </View>
+                              )}
+                            </ImageBackground>
+                          )}
+                          keyExtractor={(item, index) =>
+                            item.academyIdx || `empty-${index}`
+                          }
+                          numColumns={2}
+                        />
+                      </View>
+                    </View>
+                  )}
+                </View>
+              )}
+          </View>
+          {/* 아카데미 소속 회원 */}
+          {(academyMemberType === ACADEMY_MEMBER_TYPE.MEMBER ||
+            academyMemberType === ACADEMY_MEMBER_TYPE.ADMIN) &&
+            myAcademy && (
+              <View>
+                {/* 내 아카데미 */}
+                <Pressable
+                  style={styles.introduction}
+                  onPress={() => {
+                    NavigationService.navigate(navName.academyDetail, {
+                      academyIdx: myAcademy?.academyIdx,
+                    });
+                  }}>
+                  <View style={styles.topBox}>
+                    <Text style={styles.topTitle}>내 아카데미</Text>
+                    <View>
+                      <View>
+                        <Image source={SPIcons.icArrowRightNoraml} />
+                      </View>
+                    </View>
+                  </View>
                   <View style={styles.academyInfo}>
-                    {waitAcademy?.logoPath ? (
+                    {myAcademy?.logoPath ? (
                       <View style={styles.academyImg}>
                         <Image
-                          source={{ uri: waitAcademy?.logoPath }}
+                          source={{ uri: myAcademy.logoPath }}
                           style={styles.image}
                         />
                       </View>
@@ -511,344 +761,237 @@ function Academy({ navigation }) {
                         />
                       </View>
                     )}
-
-                    <View>
-                      <Text style={styles.name}>{waitAcademy.academyName}</Text>
+                    <View style={{ flexShrink: 1 }}>
+                      <Text style={[styles.name]}>{myAcademy.academyName}</Text>
                       <View style={styles.academyTextBox}>
                         <Text style={styles.info}>
-                          {waitAcademy.addrCity} · {waitAcademy.addrGu}
+                          {myAcademy.addrCity} · {myAcademy.addrGu}
                         </Text>
-                        <View style={styles.VerticalLine} />
-                        <View style={styles.review}>
-                          <Image source={SPIcons.icStar} />
-                          <Text style={styles.info}>4.0</Text>
-                        </View>
+                        {myAcademy.rating !== null && (
+                          <View style={styles.VerticalLine} />
+                        )}
+                        {myAcademy.rating !== null && (
+                          <View style={styles.review}>
+                            <Image source={SPIcons.icStar} />
+                            <Text style={styles.info}>
+                              {parseFloat(myAcademy.rating).toFixed(1)}
+                            </Text>
+                          </View>
+                        )}
                       </View>
                     </View>
                   </View>
-                  <TouchableOpacity
-                    onPress={e => {
-                      cancelJoinAcademy();
-                      e.stopPropagation();
-                    }}
-                    style={[styles.academyProduceBtn]}>
-                    <Text style={[styles.buttonText, { textAlign: 'center' }]}>
-                      가입신청 취소
-                    </Text>
-                  </TouchableOpacity>
+                  {notice.contents && (
+                    <TouchableOpacity
+                      activeOpacity={ACTIVE_OPACITY}
+                      style={styles.announcementBox}
+                      onPress={() => {
+                        NavigationService.navigate(
+                          navName.academyCommunityDetail,
+                          {
+                            feedIdx: notice.feedIdx,
+                            academyIdx: notice.academyIdx,
+                          },
+                        );
+                      }}>
+                      <Text style={styles.announcementTitle}>공지사항</Text>
+                      <Text
+                        style={styles.announcementText}
+                        numberOfLines={3}
+                        ellipsizeMode="tail">
+                        {notice.contents}
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                </Pressable>
+                {/* 경기일정 */}
+                <View style={styles.matching}>
+                  <View
+                    style={[styles.matchingTopBox, { marginHorizontal: 16 }]}>
+                    <Text style={styles.topTitle}>경기일정</Text>
+
+                    <TouchableOpacity
+                      activeOpacity={ACTIVE_OPACITY}
+                      onPress={() => {
+                        NavigationService.navigate(navName.matchingSchedule);
+                      }}>
+                      {/* <Image source={SPIcons.icArrowRightNoraml} /> */}
+                      <Text style={styles.topBtn}>모두 보기</Text>
+                    </TouchableOpacity>
+                  </View>
+                  {matchScheduleList && matchScheduleList.length > 0 ? (
+                    <CarouselSection data={matchScheduleList} />
+                  ) : (
+                    <View style={styles.noneMatchingContainer}>
+                      <View style={styles.noneMatchingBox}>
+                        <Text style={styles.noneText}>
+                          예정된 경기 일정이 없어요.
+                        </Text>
+                        <Text style={styles.noneText}>
+                          다른 아카데미의 경기 매칭 일정을 확인해보세요.
+                        </Text>
+                      </View>
+                      <View style={styles.moreBtn}>
+                        <TouchableOpacity
+                          onPress={() =>
+                            NavigationService.navigate(navName.matchingSchedule)
+                          }
+                          style={styles.moreBtnBox}>
+                          <Text style={styles.moreBtnText}>
+                            경기매칭 둘러보기
+                          </Text>
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                  )}
                 </View>
-                {/* 우리 동네 아카데미 */}
-                {nearbyAcademyList && nearbyAcademyList.length > 0 && (
-                  <View style={styles.academyAround}>
-                    <View style={styles.topBox}>
-                      <Text style={styles.topTitle}>우리 동네 아카데미</Text>
-                      <TouchableOpacity
-                        onPress={() => {
-                          NavigationService.navigate(navName.nearbyAcademy);
-                        }}>
-                        <Text style={styles.topBtn}>모두 보기</Text>
-                      </TouchableOpacity>
-                    </View>
-                    <View style={styles.location}>
-                      <Image
-                        source={SPIcons.icMyLocation}
-                        style={styles.locationIcon}
-                      />
-                      <Text style={styles.locationText}>{address}</Text>
-                    </View>
-                    <View>
-                      <FlatList
-                        data={
-                          nearbyAcademyList.length % 2 === 1
-                            ? [
-                                ...nearbyAcademyList.slice(0, 4),
-                                { isEmpty: true },
-                              ]
-                            : nearbyAcademyList.slice(0, 4)
-                        }
-                        scrollEnabled={false}
-                        renderItem={({ item, index }) => (
-                          <ImageBackground
-                            source={{ uri: item.thumbPath }}
-                            style={[
-                              styles.contentsBox,
-                              styles.homeContentsBox,
-                              { height: dynamicHeight },
-                              homeTownMargin(index),
-                              item.isEmpty && {
-                                backgroundColor: 'transparent',
+              </View>
+            )}
+          {/* 운영자 */}
+          {academyMemberType === ACADEMY_MEMBER_TYPE.ADMIN &&
+            finishMatchList &&
+            finishMatchList.length > 0 && (
+              <View style={styles.operatorReview}>
+                <View style={styles.topBox}>
+                  <Text style={styles.topTitle}>종료된 경기 리뷰 써보세요</Text>
+                </View>
+                <View />
+                {finishMatchList && finishMatchList.length > 0 ? (
+                  <FlatList
+                    data={finishMatchList}
+                    scrollEnabled={false}
+                    renderItem={({ item, index }) => (
+                      <View style={styles.operatorReviwBox}>
+                        <View>
+                          <View
+                            style={[styles.matchingDay, { marginBottom: 6 }]}>
+                            <Image
+                              source={SPIcons.icDate}
+                              style={styles.matchingDayIcon}
+                            />
+                            <Text style={styles.matchingDayText}>
+                              {moment(
+                                `${item.matchDate} ${item.matchTime}`,
+                                'YYYY-MM-DD HH:mm',
+                              ).format('MMMM Do dddd A hh:mm')}
+                            </Text>
+                          </View>
+                          <View style={styles.matchingDay}>
+                            <Image
+                              source={SPIcons.icMarker}
+                              style={styles.matchingDayIcon}
+                            />
+                            <Text style={styles.matchingDayText}>
+                              {item.matchPlace}
+                            </Text>
+                          </View>
+                        </View>
+                        <TouchableOpacity
+                          onPress={() => {
+                            NavigationService.navigate(
+                              navName.matchingRegistReview,
+                              {
+                                matchIdx: item.matchIdx,
                               },
-                            ]}>
-                            {!item.isEmpty && (
-                              <View
-                                style={{
-                                  ...styles.imageOverlay,
-                                  backgroundColor: 'rgba(0, 0, 0, 0.38)',
-                                  flex: 1,
-                                }}>
-                                <TouchableOpacity
-                                  onPress={() => academyPage(item)}>
-                                  <View style={styles.homeTownBox}>
-                                    <View style={styles.homeTownDistance}>
-                                      <Text style={styles.homeTownDistanceText}>
-                                        {Utils.addDistanceUnit(item.distance)}
-                                      </Text>
-                                    </View>
-                                    <Text
-                                      style={styles.homeTownText}
-                                      numberOfLines={1} // 한 줄로 제한
-                                      ellipsizeMode="tail">
-                                      {item.academyName}
-                                    </Text>
-                                  </View>
-                                </TouchableOpacity>
-                              </View>
-                            )}
-                          </ImageBackground>
-                        )}
-                        keyExtractor={(item, index) =>
-                          item.academyIdx || `empty-${index}`
-                        }
-                        numColumns={2}
-                      />
-                    </View>
+                            );
+                          }}
+                          style={[
+                            styles.academyReviewBtn,
+                            { alignSelf: 'flex-start' },
+                          ]}>
+                          <Text style={styles.reviewBtn}>리뷰 쓰기</Text>
+                        </TouchableOpacity>
+                      </View>
+                    )}
+                  />
+                ) : (
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.noContent}>
+                      리뷰를 쓸 수 있는 종료된 경기가 존재하지 않습니다.
+                    </Text>
                   </View>
                 )}
               </View>
             )}
-        </View>
-        {/* 아카데미 소속 회원 */}
-        {(academyMemberType === ACADEMY_MEMBER_TYPE.MEMBER ||
-          academyMemberType === ACADEMY_MEMBER_TYPE.ADMIN) &&
-          myAcademy && (
-            <View>
-              {/* 내 아카데미 */}
-              <Pressable
-                style={styles.introduction}
+          {/* 아카데미 회원 모집 */}
+          <View style={styles.recruitment}>
+            <View style={styles.matchingTopBox}>
+              <Text style={styles.topTitle}>아카데미 회원 모집</Text>
+              <TouchableOpacity
                 onPress={() => {
-                  NavigationService.navigate(navName.academyDetail, {
-                    academyIdx: myAcademy?.academyIdx,
+                  NavigationService.navigate(navName.academyRecruitment, {
+                    pageType: RECRUIT_PAGE_TYPE.ALL,
                   });
                 }}>
-                <View style={styles.topBox}>
-                  <Text style={styles.topTitle}>내 아카데미</Text>
-                  <View>
-                    <View>
-                      <Image source={SPIcons.icArrowRightNoraml} />
-                    </View>
-                  </View>
-                </View>
-                <View style={styles.academyInfo}>
-                  {myAcademy?.logoPath ? (
-                    <View style={styles.academyImg}>
-                      <Image
-                        source={{ uri: myAcademy.logoPath }}
-                        style={styles.image}
-                      />
-                    </View>
-                  ) : (
-                    <View style={styles.academyImg}>
-                      <Image
-                        source={SPIcons.icMyAcademy}
-                        style={styles.image}
-                      />
-                    </View>
-                  )}
-                  <View style={{ flexShrink: 1 }}>
-                    <Text style={[styles.name]}>{myAcademy.academyName}</Text>
-                    <View style={styles.academyTextBox}>
-                      <Text style={styles.info}>
-                        {myAcademy.addrCity} · {myAcademy.addrGu}
-                      </Text>
-                      <View style={styles.VerticalLine} />
-                      <View style={styles.review}>
-                        <Image source={SPIcons.icStar} />
-                        <Text style={styles.info}>
-                          {myAcademy.rating === null
-                            ? parseFloat(3).toFixed(1)
-                            : myAcademy.rating}
-                        </Text>
-                      </View>
-                    </View>
-                  </View>
-                </View>
-                <View style={styles.announcementBox}>
-                  <Text style={styles.announcementTitle}>공지사항</Text>
-                  <Text
-                    style={styles.announcementText}
-                    numberOfLines={3}
-                    ellipsizeMode="tail">
-                    {notice.contents}
-                  </Text>
-                </View>
-              </Pressable>
-              {/* 경기일정 */}
-              <View style={styles.matching}>
-                <View style={[styles.matchingTopBox, { marginHorizontal: 16 }]}>
-                  <Text style={styles.topTitle}>경기일정</Text>
-
+                {/* <Image source={SPIcons.icArrowRightNoraml} /> */}
+                <Text style={styles.topBtn}>모두 보기</Text>
+              </TouchableOpacity>
+            </View>
+            {academyRecruitList && academyRecruitList.length > 0 ? (
+              <FlatList
+                data={academyRecruitList}
+                scrollEnabled={false}
+                renderItem={({ item, index }) => (
                   <TouchableOpacity
                     onPress={() => {
-                      NavigationService.navigate(navName.matchingSchedule);
-                    }}>
-                    <Image source={SPIcons.icArrowRightNoraml} />
-                  </TouchableOpacity>
-                </View>
-                {matchScheduleList && matchScheduleList.length > 0 ? (
-                  <CarouselSection data={matchScheduleList} />
-                ) : (
-                  <View style={styles.noneMatchingContainer}>
-                    <View style={styles.noneMatchingBox}>
-                      <Text style={styles.noneText}>
-                        예정된 경기 일정이 없어요.
-                      </Text>
-                      <Text style={styles.noneText}>
-                        다른 아카데미의 경기 매칭 일정을 확인해보세요.
-                      </Text>
-                    </View>
-                    <View style={styles.moreBtn}>
-                      <TouchableOpacity
-                        onPress={() =>
-                          NavigationService.navigate(navName.matchingSchedule)
-                        }
-                        style={styles.moreBtnBox}>
-                        <Text style={styles.moreBtnText}>
-                          경기매칭 둘러보기
-                        </Text>
-                      </TouchableOpacity>
-                    </View>
-                  </View>
-                )}
-              </View>
-            </View>
-          )}
-        {/* 운영자 */}
-        {academyMemberType === ACADEMY_MEMBER_TYPE.ADMIN &&
-          finishMatchList &&
-          finishMatchList.length > 0 && (
-            <View style={styles.operatorReview}>
-              <View style={styles.topBox}>
-                <Text style={styles.topTitle}>종료된 경기 리뷰 써보세요</Text>
-              </View>
-              <View />
-              {finishMatchList && finishMatchList.length > 0 ? (
-                <FlatList
-                  data={finishMatchList}
-                  scrollEnabled={false}
-                  renderItem={({ item, index }) => (
-                    <View style={styles.operatorReviwBox}>
-                      <View>
-                        <View style={[styles.matchingDay, { marginBottom: 6 }]}>
-                          <Image
-                            source={SPIcons.icDate}
-                            style={styles.matchingDayIcon}
-                          />
-                          <Text style={styles.matchingDayText}>
-                            {moment(
-                              `${item.matchDate} ${item.matchTime}`,
-                              'YYYY-MM-DD HH:mm',
-                            ).format('MMMM Do dddd A hh:mm')}
-                          </Text>
-                        </View>
-                        <View style={styles.matchingDay}>
-                          <Image
-                            source={SPIcons.icMarker}
-                            style={styles.matchingDayIcon}
-                          />
-                          <Text style={styles.matchingDayText}>
-                            {item.matchPlace}
-                          </Text>
-                        </View>
-                      </View>
-                      <TouchableOpacity
-                        onPress={() => {
-                          NavigationService.navigate(
-                            navName.matchingRegistReview,
-                            {
-                              matchIdx: item.matchIdx,
-                            },
-                          );
-                        }}
+                      NavigationService.navigate(
+                        navName.academyRecruitmentDetail,
+                        { recruitIdx: item.recruitIdx },
+                      );
+                    }}
+                    style={[styles.recruitmentBox]}>
+                    <View
+                      style={{
+                        flexDirection: 'row',
+                        justifyContent: 'space-between',
+                      }}>
+                      <View
                         style={[
-                          styles.academyReviewBtn,
+                          styles.recruitmentGender,
                           { alignSelf: 'flex-start' },
                         ]}>
-                        <Text style={styles.reviewBtn}>리뷰 쓰기</Text>
-                      </TouchableOpacity>
+                        <Text style={styles.recruitmentGenderText}>
+                          {MATCH_GENDER[item?.genderCode]?.desc}
+                        </Text>
+                      </View>
+                      {checkRecruitEndRender(item)}
                     </View>
-                  )}
-                />
-              ) : (
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.noContent}>
-                    리뷰를 쓸 수 있는 종료된 경기가 존재하지 않습니다.
-                  </Text>
-                </View>
-              )}
-            </View>
-          )}
-        {/* 아카데미 회원 모집 */}
-        <View style={styles.recruitment}>
-          <View style={styles.matchingTopBox}>
-            <Text style={styles.topTitle}>아카데미 회원 모집</Text>
-            <TouchableOpacity
-              onPress={() => {
-                NavigationService.navigate(navName.academyRecruitment, {
-                  pageType: RECRUIT_PAGE_TYPE.ALL,
-                });
-              }}>
-              <Image source={SPIcons.icArrowRightNoraml} />
-            </TouchableOpacity>
+                    <Text style={styles.recruitmentTitle}>{item.title}</Text>
+                    <View style={styles.recruitmentTextBox}>
+                      <View>
+                        <Text style={styles.recruitmentText}>
+                          {item.academyName}
+                        </Text>
+                      </View>
+                      <View
+                        style={{
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          gap: 8,
+                        }}>
+                        <Text style={styles.recruitmentText}>{`${
+                          item.addrCity
+                        } ${item.addrGu ? '・' : ''} ${item.addrGu}`}</Text>
+                        <View style={styles.VerticalLine} />
+                        <Text style={styles.recruitmentText}>
+                          {moment(item.startDate).format('YYYY.MM.DD')}
+                        </Text>
+                      </View>
+                    </View>
+                  </TouchableOpacity>
+                )}
+              />
+            ) : (
+              <View>
+                <Text style={styles.noContent}>
+                  모집 공고가 존재하지 않습니다.
+                </Text>
+              </View>
+            )}
           </View>
-          {academyRecruitList && academyRecruitList.length > 0 ? (
-            <FlatList
-              data={academyRecruitList}
-              scrollEnabled={false}
-              renderItem={({ item, index }) => (
-                <TouchableOpacity
-                  onPress={() => {
-                    NavigationService.navigate(
-                      navName.academyRecruitmentDetail,
-                      { recruitIdx: item.recruitIdx },
-                    );
-                  }}
-                  style={[styles.recruitmentBox]}>
-                  <View
-                    style={[
-                      styles.recruitmentGender,
-                      { alignSelf: 'flex-start' },
-                    ]}>
-                    <Text style={styles.recruitmentGenderText}>
-                      {MATCH_GENDER[item?.genderCode]?.desc}
-                    </Text>
-                  </View>
-                  <Text style={styles.recruitmentTitle}>{item.title}</Text>
-                  <View style={styles.recruitmentTextBox}>
-                    <Text style={styles.recruitmentText}>
-                      {item.academyName}
-                    </Text>
-                    <View style={styles.VerticalLine} />
-                    <Text style={styles.recruitmentText}>{`${item.addrCity} ${
-                      item.addrGu ? '・' : ''
-                    } ${item.addrGu}`}</Text>
-                    <View style={styles.VerticalLine} />
-                    <Text style={styles.recruitmentText}>
-                      {moment(item.startDate).format('YYYY.MM.DD')}
-                    </Text>
-                  </View>
-                </TouchableOpacity>
-              )}
-            />
-          ) : (
-            <View>
-              <Text style={styles.noContent}>
-                모집 공고가 존재하지 않습니다.
-              </Text>
-            </View>
-          )}
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+        </ScrollView>
+      </SafeAreaView>
+    )
   );
 }
 
@@ -941,7 +1084,7 @@ const styles = StyleSheet.create({
   },
   academyInfo: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     gap: 8,
     marginBottom: 16,
     width: '100%',
@@ -1121,6 +1264,9 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: 8,
     marginBottom: 16,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(135, 141, 150, 0.22)',
   },
   recruitmentGender: {
     backgroundColor: 'rgba(49, 55, 121, 0.08)',
@@ -1143,10 +1289,9 @@ const styles = StyleSheet.create({
     letterSpacing: -0.004,
   },
   recruitmentTextBox: {
-    flexWrap: 'wrap',
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+    gap: 4,
   },
   recruitmentText: {
     fontSize: 12,
@@ -1374,5 +1519,28 @@ const styles = StyleSheet.create({
     color: '#313779',
     lineHeight: 22,
     letterSpacing: 0.144,
+  },
+  recruitEndBox: {
+    borderWidth: 1,
+    borderRadius: 4,
+    borderColor: 'rgba(135, 141, 150, 0.22)',
+    paddingHorizontal: 4,
+    paddingVertical: 3,
+  },
+  recruitEndText: {
+    ...fontStyles.fontSize11_Semibold,
+    color: 'rgba(46, 49, 53, 0.60)',
+  },
+  recruitingBox: {
+    borderWidth: 1,
+    backgroundColor: 'rgba(255, 103, 31, 0.08)',
+    borderColor: 'transparent',
+    borderRadius: 4,
+    paddingHorizontal: 4,
+    paddingVertical: 3,
+  },
+  recruitingText: {
+    ...fontStyles.fontSize11_Semibold,
+    color: '#FF671F',
   },
 });

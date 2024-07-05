@@ -26,6 +26,7 @@ function MoreStatModify() {
   const [mainFoot, setMainFoot] = useState('');
   const [careerType, setCareerType] = useState([]);
   const [isValid, setIsValid] = useState(false);
+  const [throttle, setThrottle] = useState(false);
   // const [showCompleteModal, setShowCompleteModal] = useState(false);
 
   // --------------------------------------------------
@@ -108,6 +109,8 @@ function MoreStatModify() {
   };
   const modifyStat = async () => {
     try {
+      if (throttle) return;
+      setThrottle(true);
       const validRes = validateAllInput();
       if (!validRes.isValid) {
         Utils.openModal({
@@ -137,6 +140,7 @@ function MoreStatModify() {
     } catch (error) {
       handleError(error);
     }
+    setThrottle(false);
   };
 
   // --------------------------------------------------

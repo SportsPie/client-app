@@ -13,7 +13,7 @@ const MAX_DESC_LENGTH = 100;
 function ChallengeVideoDescription({
   videoIdx = '',
   parentVideoIdx = '',
-  memberName = '',
+  nickName = '',
   profilePath = '',
   title = '',
   description = '',
@@ -40,7 +40,7 @@ function ChallengeVideoDescription({
             <Avatar disableEditMode imageSize={24} imageURL={profilePath} />
             <View style={styles.userNameSection}>
               <Text style={fontStyles.fontSize13_Semibold}>
-                {memberName ?? ''}
+                {nickName ?? ''}
               </Text>
             </View>
           </View>
@@ -65,7 +65,7 @@ function ChallengeVideoDescription({
       <View style={styles.videoScripWrapper}>
         <Text style={styles.videoScripText}>
           {!collapse && description.length > MAX_DESC_LENGTH
-            ? description.substring(0, MAX_DESC_LENGTH) + '...'
+            ? `${description.substring(0, MAX_DESC_LENGTH)}...`
             : description}
         </Text>
 

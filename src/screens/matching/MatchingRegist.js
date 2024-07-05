@@ -55,12 +55,16 @@ function MatchingRegist() {
   // 경기일
   const [matchDate, setMatchDate] = useState(null);
   const [matchTime, setMatchTime] = useState(null);
-  const [matchTempTime, setMatchTempTime] = useState(moment().toDate());
+  const [matchTempTime, setMatchTempTime] = useState(
+    moment().hour(13).minute(0).second(0).toDate(),
+  );
 
   // 신청기간
   const [closeDate, setCloseDate] = useState(null);
   const [closeTime, setCloseTime] = useState(null);
-  const [closeTempTime, setCloseTempTime] = useState(moment().toDate());
+  const [closeTempTime, setCloseTempTime] = useState(
+    moment().hour(13).minute(0).second(0).toDate(),
+  );
 
   // 주소
   const [addrCity, setAddrCity] = useState('');
@@ -110,8 +114,8 @@ function MatchingRegist() {
       trlRef.current.disabled = true;
 
       const matchTimeObj = new Date(matchTime);
-      const hours = String(matchTimeObj.getUTCHours()).padStart(2, '0');
-      const minutes = String(matchTimeObj.getUTCMinutes()).padStart(2, '0');
+      const hours = String(matchTimeObj.getHours()).padStart(2, '0');
+      const minutes = String(matchTimeObj.getMinutes()).padStart(2, '0');
       const matchTimeStr = `${hours}:${minutes}:00`;
 
       const param = {
@@ -250,7 +254,8 @@ function MatchingRegist() {
     matchMethod == null ||
     !selectedGender ||
     !selectedClassType ||
-    !description;
+    !description ||
+    description.length < 10;
 
   const onSelectAddress = data => {
     setAddr(data.address);
@@ -300,14 +305,14 @@ function MatchingRegist() {
           behavior="padding"
           isPan
           isResize
-          keyboardVerticalOffset={60}
+          keyboardVerticalOffset={0}
           style={{
             flex: 1,
             backgroundColor: COLORS.white,
             padding: 0,
             margin: 0,
           }}>
-          <ScrollView ref={scrollViewRef}>
+          <ScrollView ref={scrollViewRef} showsVerticalScrollIndicator={false}>
             <View style={styles.contentBox}>
               <View>
                 <View
@@ -458,9 +463,9 @@ function MatchingRegist() {
                       style={styles.box}
                       value={detailAddr}
                       onChange={e => {
+                        if (e.nativeEvent.text?.length > 50) return;
                         setDetailAddr(e.nativeEvent.text);
                       }}
-                      maxLength={50}
                       placeholderTextColor="#2E313599"
                     />
                   </View>
@@ -655,6 +660,7 @@ function MatchingRegist() {
                   <TextInput
                     value={classDesc}
                     onChange={e => {
+                      if (e.nativeEvent.text?.length > 45) return;
                       setClassDesc(e.nativeEvent.text);
                     }}
                     placeholder="기타 내용을 입력해주세요."
@@ -662,7 +668,6 @@ function MatchingRegist() {
                     autoCorrect={false}
                     autoCapitalize="none"
                     style={[styles.checkShowInputBox, { marginTop: 8 }]}
-                    maxLength={45}
                   />
                 )}
               </View>
@@ -677,13 +682,13 @@ function MatchingRegist() {
                       textAlignVertical="top"
                       numberOfLines={6}
                       onChange={e => {
+                        if (e.nativeEvent.text?.length > 1000) return;
                         handleNoteChange(e.nativeEvent.text);
                       }}
                       placeholder="경기에 대한 내용을 10자 이상 입력해주세요"
                       autoCorrect={false}
                       autoCapitalize="none"
                       style={styles.subTextInputBox}
-                      maxLength={1000}
                       placeholderTextColor="#2E313599"
                       keyboardShouldPersistTaps="handled"
                     />
@@ -776,7 +781,11 @@ function MatchingRegist() {
                   </Text>
                 </View>
                 <DatePicker
-                  date={now}
+                  date={
+                    modalType === MODAL_TYPE_MATCH_DATE
+                      ? matchTempTime
+                      : closeTempTime
+                  }
                   mode="time"
                   onDateChange={time => {
                     handleSelectTempTime(time, modalType);
@@ -791,30 +800,29 @@ function MatchingRegist() {
                   }}
                 />
                 <View style={styles.buttonContainer}>
-                  <TouchableOpacity
-                    style={[
-                      styles.clearBtn,
-                      spinning
-                        ? styles.disabledClearBtn
-                        : styles.enabledClearBtn,
-                    ]}
-                    disabled={spinning}
-                    onPress={async e => {
-                      e.stopPropagation();
-                      if (spinning) return;
-                      setShowTimePicker(false);
-                      handleSelectTime(modalType);
-                    }}>
-                    <Text
+                  <View style={styles.buttonContainer}>
+                    <TouchableOpacity
+                      style={styles.cancelButton}
+                      onPress={() => setShowTimePicker(false)}>
+                      <Text style={styles.cancelButtonText}>취소</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
                       style={[
-                        styles.clearBtnText,
+                        styles.confirmButton,
                         spinning
-                          ? styles.disabledClearBtnText
-                          : styles.enabledClearBtnText,
-                      ]}>
-                      확인
-                    </Text>
-                  </TouchableOpacity>
+                          ? styles.disabledClearBtn
+                          : styles.enabledClearBtn,
+                      ]}
+                      disabled={spinning}
+                      onPress={async e => {
+                        e.stopPropagation();
+                        if (spinning) return;
+                        setShowTimePicker(false);
+                        handleSelectTime(modalType);
+                      }}>
+                      <Text style={styles.confirmButtonText}>확인</Text>
+                    </TouchableOpacity>
+                  </View>
                 </View>
               </View>
             </TouchableOpacity>

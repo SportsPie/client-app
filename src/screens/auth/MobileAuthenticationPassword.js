@@ -34,15 +34,10 @@ function MobileAuthenticationPassword() {
           userPhoneNo: parsedData.mobileNo,
           userLoginId,
         });
-      } else {
-        throw new CustomException('본인인증에 오류가 발생하였습니다.');
       }
     } catch (error) {
-      if (error instanceof CustomException) {
-        handleError(error);
-      } else {
-        handleError(new CustomException('잘못된 요청입니다.'));
-      }
+      handleError(error);
+      NavigationService.goBack();
     }
   };
 

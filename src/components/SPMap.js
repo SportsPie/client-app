@@ -1,5 +1,5 @@
 import React, { memo, useEffect, useRef, useState } from 'react';
-import { Alert, Keyboard, View } from 'react-native';
+import { Alert, FlatList, Keyboard, View } from 'react-native';
 import NaverMapView, {
   Align,
   Marker,
@@ -8,12 +8,14 @@ import NaverMapView, {
 import SPImages from '../assets/images';
 import Utils from '../utils/Utils';
 import AcademyItem from './search-academy/AcademyItem';
+import { COLORS } from '../styles/colors';
 
 function SPMap({ hideMyLocation, center, data }) {
   const mapRef = useRef();
   const [showAcademyModal, setShowAcademyModal] = useState(false);
-  const [academy, setAcademy] = useState({});
-  const [dataList, setDataList] = useState([]);
+  const [academyList, setAcademyList] = useState([]);
+  const [selectedIndex, setSelectedIndex] = useState();
+  const [dataObj, setDataObj] = useState({});
 
   const changeMyLocation = e => {
     console.log('🚀 ~ changeMyLocation ~ e:', e);
@@ -42,6 +44,15 @@ function SPMap({ hideMyLocation, center, data }) {
     }
   };
 
+  const selected = index => {
+    // if (academyList && academyList.length > 0) {
+    //   const selectedAcademy = academyList.find(item => item.academyIdx === idx);
+    //   return !!selectedAcademy;
+    // }
+    // return false;
+    return selectedIndex === index;
+  };
+
   useEffect(() => {
     setShowAcademyModal(false);
   }, [data]);
@@ -56,9 +67,24 @@ function SPMap({ hideMyLocation, center, data }) {
 
   useEffect(() => {
     if (data && data.length > 0) {
-      setDataList([...data]);
+      const clusterData = data.reduce((acc, cur) => {
+        const key = `${cur.latitude}-${cur.longitude}`;
+
+        if (!acc[key]) {
+          acc[key] = [];
+        }
+
+        acc[key].push(cur);
+
+        return acc;
+      }, {});
+      setDataObj(clusterData);
     }
   }, [data]);
+
+  useEffect(() => {
+    if (!showAcademyModal) setSelectedIndex(null);
+  }, [showAcademyModal]);
 
   return (
     <View
@@ -70,7 +96,10 @@ function SPMap({ hideMyLocation, center, data }) {
         style={{ width: '100%', height: '100%' }}
         showsMyLocationButton={showsMyLocationButton}
         zoomControl={false}
-        onMapClick={e => locationHandler(e)}
+        onMapClick={e => {
+          locationHandler(e);
+          setSelectedIndex(null);
+        }}
         onTouch={e => {
           Keyboard.dismiss();
           setShowAcademyModal(false);
@@ -78,9 +107,37 @@ function SPMap({ hideMyLocation, center, data }) {
         useTextureView>
         {!hideMyLocation && <Marker coordinate={center} />}
 
-        {dataList &&
-          dataList.length > 0 &&
-          dataList.map((item, index) => {
+        {dataObj &&
+          Object.keys(dataObj).length > 0 &&
+          Object.keys(dataObj).map((key, index) => {
+            if (dataObj[key]?.length > 1) {
+              const [lat, lng] = key.split('-');
+              return (
+                <Marker
+                  /* eslint-disable-next-line react/no-array-index-key */
+                  key={index}
+                  image={
+                    selected(index)
+                      ? SPImages.clickedMultipleBadge
+                      : SPImages.multipleBadge
+                  }
+                  onClick={() => {
+                    setSelectedIndex(index);
+                    setAcademyList(dataObj[key]);
+                    setShowAcademyModal(true);
+                  }}
+                  coordinate={{
+                    latitude: Number(lat),
+                    longitude: Number(lng),
+                  }}
+                  caption={{
+                    text: `${dataObj[key].length}`,
+                    align: Align.Center,
+                  }}
+                />
+              );
+            }
+            const item = dataObj[key][0];
             let academyName = item?.academyName;
             const textLength = academyName?.length;
             let imageId = 1;
@@ -94,10 +151,16 @@ function SPMap({ hideMyLocation, center, data }) {
             }
             return (
               <Marker
-                key={item.academyIdx || index}
-                image={SPImages[`mapBadge${imageId}`]}
+                /* eslint-disable-next-line react/no-array-index-key */
+                key={index}
+                image={
+                  selected(index)
+                    ? SPImages[`clickedMapBadge${imageId}`]
+                    : SPImages[`mapBadge${imageId}`]
+                }
                 onClick={() => {
-                  setAcademy(item);
+                  setSelectedIndex(index);
+                  setAcademyList([item]);
                   setShowAcademyModal(true);
                 }}
                 coordinate={{
@@ -109,9 +172,23 @@ function SPMap({ hideMyLocation, center, data }) {
             );
           })}
       </NaverMapView>
-      {showAcademyModal && (
+      {showAcademyModal && academyList?.length > 1 && (
+        <AcademyPopup
+          itemList={academyList}
+          containerStyle={{
+            position: 'absolute',
+            bottom: 86,
+            left: 0,
+            right: 0,
+            borderRadius: 16,
+            backgroundColor: COLORS.white,
+            maxHeight: 384,
+          }}
+        />
+      )}
+      {showAcademyModal && academyList?.length === 1 && (
         <AcademyItem
-          item={academy}
+          item={academyList[0]}
           containerStyle={{
             position: 'absolute',
             bottom: 86,
@@ -121,6 +198,18 @@ function SPMap({ hideMyLocation, center, data }) {
         />
       )}
     </View>
+  );
+}
+
+function AcademyPopup({ itemList, containerStyle }) {
+  return (
+    <FlatList
+      data={itemList}
+      contentContainerStyle={[{ gap: 8, padding: 16 }]}
+      style={[containerStyle]}
+      keyExtractor={(item, index) => `academy-${index}`}
+      renderItem={({ item }) => <AcademyItem item={item} />}
+    />
   );
 }
 

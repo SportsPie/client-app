@@ -1,5 +1,5 @@
 import moment from 'moment';
-import React, { memo, useState } from 'react';
+import React, { memo, useCallback, useEffect, useState } from 'react';
 import {
   Image,
   Modal,
@@ -20,8 +20,11 @@ import SPMoreModal, {
   MODAL_MORE_TYPE,
 } from '../SPMoreModal';
 import { IS_YN } from '../../common/constants/isYN';
+import { apiGetMyInfo } from '../../api/RestAPI';
+import { handleError } from '../../utils/HandleError';
+import { useFocusEffect } from '@react-navigation/native';
 
-function FeedItem({ item }) {
+function FeedItem({ item, onDelete }) {
   const [modalShow, setModalShow] = useState(false);
   const [deleteGroupModalShow, setDeleteGroupModalShow] = useState(false);
   const [editGroupModalShow, setEditGroupModalShow] = useState(false);
@@ -31,6 +34,7 @@ function FeedItem({ item }) {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedItem, setSelectedItem] = useState({});
   const [isAdminFeed, setIsAdminFeed] = useState(false);
+  const [userInfo, setUserInfo] = useState(null);
 
   const openModal = modalItem => {
     setIsMyFeed(true);
@@ -43,14 +47,38 @@ function FeedItem({ item }) {
     setModalVisible(false);
   };
 
+  const getUserInfo = async () => {
+    try {
+      const { data } = await apiGetMyInfo();
+      setUserInfo(data);
+    } catch (error) {
+      handleError(error);
+    }
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      getUserInfo();
+    }, []),
+  );
+
   return (
     <View style={styles.container}>
       <Pressable
         onPress={() => {
-          NavigationService.navigate(navName.academyCommunity, {
-            academyIdx: item.academyIdx,
-            userIdx: item.userIdx,
-          });
+          if (item.academyIdx != null) {
+            // `null`과 `undefined`를 동시에 체크
+            NavigationService.navigate(navName.academyCommunityDetail, {
+              academyIdx: item.academyIdx,
+              userIdx: item.userIdx,
+              feedIdx: item.feedIdx,
+            });
+          } else {
+            NavigationService.navigate(navName.communityDetails, {
+              userIdx: item.userIdx,
+              feedIdx: item.feedIdx,
+            });
+          }
         }}
         style={{ borderRadius: 12 }}>
         <View style={styles.communityFrame}>
@@ -62,7 +90,11 @@ function FeedItem({ item }) {
                 letterSpacing: 0.3,
               },
             ]}>
-            {item?.comment}
+            {item?.userIdx !== userInfo?.data.userIdx
+              ? '내가 댓글 단 글'
+              : item?.academyName
+              ? `${item.academyName} 커뮤니티에 쓴 글`
+              : '커뮤니티에 쓴 글'}
           </Text>
           <Text
             style={[
@@ -89,23 +121,49 @@ function FeedItem({ item }) {
           {item?.contents}
         </Text>
       </Pressable>
-
-      <View style={styles.communityIcon}>
-        <SPMoreModal
-          visible={modalVisible}
-          onClose={closeModal}
-          type={MODAL_MORE_TYPE.FEED}
-          idx={selectedItem?.feedIdx}
-          onConfirm={() => {
-            setChangeEvent(prev => !prev);
-          }}
-          memberButtons={
-            isMyFeed
-              ? [MODAL_MORE_BUTTONS.EDIT, MODAL_MORE_BUTTONS.REMOVE]
-              : [MODAL_MORE_BUTTONS.REPORT]
-          }
-        />
-
+      <View style={[styles.itemWrapper]}>
+        <View style={[styles.reactWrapper]}>
+          <SPSvgs.HeartOutline width={20} height={20} />
+          <Text
+            style={[
+              fontStyles.fontSize12_Semibold,
+              {
+                color: COLORS.labelNeutral,
+                marginRight: 20,
+              },
+            ]}>
+            {item?.cntLike}
+          </Text>
+        </View>
+        <View style={styles.reactWrapper}>
+          <SPSvgs.BubbleChatOutline width={20} height={20} />
+          <Text
+            style={[
+              fontStyles.fontSize12_Semibold,
+              {
+                color: COLORS.labelNeutral,
+              },
+            ]}>
+            {item?.cntComment}
+          </Text>
+        </View>
+        <View style={styles.communityIcon}>
+          <SPMoreModal
+            visible={modalVisible}
+            onClose={closeModal}
+            type={MODAL_MORE_TYPE.FEED}
+            idx={selectedItem?.feedIdx}
+            onConfirm={() => {
+              setChangeEvent(prev => !prev);
+              onDelete(); // 상태 업데이트
+            }}
+            memberButtons={
+              isMyFeed
+                ? [MODAL_MORE_BUTTONS.EDIT, MODAL_MORE_BUTTONS.REMOVE]
+                : [MODAL_MORE_BUTTONS.REPORT]
+            }
+          />
+        </View>
         <Pressable
           style={[
             styles.iconWrapper,
@@ -146,5 +204,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     columnGap: 4,
     alignItems: 'center',
+  },
+  reactWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    columnGap: 4,
+  },
+  itemWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
 });

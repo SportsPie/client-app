@@ -338,7 +338,9 @@ function ChallengeContentPlayer({ route }) {
               imageSize={24}
               imageURL={targetVideo.profilePath}
             />
-            <Text style={styles.usernameText}>{targetVideo.memberName}</Text>
+            <Text style={styles.usernameText}>
+              {targetVideo.memberNickName}
+            </Text>
             <Text style={styles.dateText}>{`조회수 ${Utils.changeNumberComma(
               targetVideo.cntView,
             )}`}</Text>

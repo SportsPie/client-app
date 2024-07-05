@@ -106,7 +106,7 @@ function PageMoveTest({ navigation }) {
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <Header title="pageMoveTest" />
-      <ScrollView>
+      <ScrollView showsVerticalScrollIndicator={false}>
         <Text>Home</Text>
         <Buttons navigation={navigation} />
       </ScrollView>
@@ -119,7 +119,7 @@ function Login({ navigation, noMove }) {
   const dispatch = useDispatch();
 
   return (
-    <ScrollView>
+    <ScrollView showsVerticalScrollIndicator={false}>
       <Text>loginTestPage</Text>
       <Button
         title="login"
@@ -156,7 +156,7 @@ function SignedTestPage({ navigation }) {
     }, []),
   );
   return (
-    <ScrollView>
+    <ScrollView showsVerticalScrollIndicator={false}>
       <Text>signed</Text>
       <Buttons navigation={navigation} />
     </ScrollView>
@@ -172,7 +172,7 @@ function SignedTestPage2({ navigation }) {
     }, []),
   );
   return (
-    <ScrollView>
+    <ScrollView showsVerticalScrollIndicator={false}>
       <Text>signed2</Text>
       <Buttons navigation={navigation} />
     </ScrollView>
@@ -180,7 +180,7 @@ function SignedTestPage2({ navigation }) {
 }
 function NoSignedTestPage({ navigation }) {
   return (
-    <ScrollView>
+    <ScrollView showsVerticalScrollIndicator={false}>
       <Text>nosigned</Text>
       <Buttons navigation={navigation} />
     </ScrollView>
@@ -188,7 +188,7 @@ function NoSignedTestPage({ navigation }) {
 }
 function NoSignedTestPage2({ navigation }) {
   return (
-    <ScrollView>
+    <ScrollView showsVerticalScrollIndicator={false}>
       <Text>nosigned2</Text>
       <Buttons navigation={navigation} />
     </ScrollView>
@@ -197,7 +197,7 @@ function NoSignedTestPage2({ navigation }) {
 
 function CommonTestPage({ navigation }) {
   return (
-    <ScrollView>
+    <ScrollView showsVerticalScrollIndicator={false}>
       <Text>common</Text>
       <Buttons navigation={navigation} />
     </ScrollView>
@@ -205,7 +205,7 @@ function CommonTestPage({ navigation }) {
 }
 function CommonTestPage2({ navigation }) {
   return (
-    <ScrollView>
+    <ScrollView showsVerticalScrollIndicator={false}>
       <Text>common2</Text>
       <Buttons navigation={navigation} />
     </ScrollView>

@@ -190,12 +190,15 @@ function MasterVideoDetail({ route }) {
             }
           />
 
-          <ScrollView ref={pageRef} contentContainerStyle={styles.content}>
+          <ScrollView
+            ref={pageRef}
+            contentContainerStyle={styles.content}
+            showsVerticalScrollIndicator={false}>
             {/* 동영상 & 썸네일 */}
             {videoDetail.videoPath && (
               <SPSingleVideo
                 source={videoDetail.videoPath}
-                thumbnailPath={!isVideoLoading && videoDetail.thumbPath}
+                thumbnailPath={videoDetail.thumbPath ?? ''}
                 repeat={true}
                 isPaused={true}
                 disablePlayPause={true}
@@ -208,7 +211,7 @@ function MasterVideoDetail({ route }) {
             <MasterVideoDescription
               videoIdx={videoDetail.videoIdx}
               isLike={videoDetail.isLike}
-              memberName={videoDetail.memberName}
+              nickName={videoDetail.memberNickName}
               profilePath={videoDetail.profilePath}
               title={videoDetail.title}
               description={videoDetail.contents}

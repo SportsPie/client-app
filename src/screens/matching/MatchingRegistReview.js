@@ -4,6 +4,7 @@ import {
   Alert,
   FlatList,
   Image,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -125,14 +126,14 @@ export default function MatchingRegistReview({ route }) {
       <SPKeyboardAvoidingView
         behavior="padding"
         isResize
-        keyboardVerticalOffset={60}
+        keyboardVerticalOffset={0}
         style={{
           flex: 1,
         }}>
         <SafeAreaView style={styles.container}>
           <Header title="리뷰작성" />
 
-          <View>
+          <ScrollView style={{ flex: 1 }}>
             <View style={styles.topBox}>
               <View style={styles.topTextBox}>
                 <Text style={styles.topText}>좋은 경기를 펼쳤나요?</Text>
@@ -169,7 +170,7 @@ export default function MatchingRegistReview({ route }) {
               ]}>
               <Text style={styles.title}>MVP</Text>
             </View>
-          </View>
+          </ScrollView>
           <FlatList
             data={players}
             renderItem={({ item: player }) => (
@@ -221,6 +222,7 @@ export default function MatchingRegistReview({ route }) {
               <TextInput
                 value={review}
                 onChange={e => {
+                  if (e.nativeEvent.text?.length > 50) return;
                   setReview(e.nativeEvent.text);
                 }}
                 multiline
@@ -230,7 +232,6 @@ export default function MatchingRegistReview({ route }) {
                 autoCorrect={false}
                 autoCapitalize="none"
                 style={styles.box}
-                maxLength={50}
               />
               <View
                 style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>

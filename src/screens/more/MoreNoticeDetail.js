@@ -1,6 +1,6 @@
-import { useRoute } from '@react-navigation/native';
+import { useFocusEffect, useRoute } from '@react-navigation/native';
 import moment from 'moment/moment';
-import React, { memo } from 'react';
+import React, { memo, useCallback, useState } from 'react';
 import {
   Image,
   ScrollView,
@@ -12,15 +12,21 @@ import { COLORS } from '../../styles/colors';
 import fontStyles from '../../styles/fontStyles';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Header from '../../components/header';
+import NavigationService from '../../navigation/NavigationService';
+import { navName } from '../../common/constants/navName';
+import { apiGetNoticesDetail } from '../../api/RestAPI';
+import { handleError } from '../../utils/HandleError';
 
 function MoreNoticeDetail() {
   const route = useRoute();
-  const { noticeDetail } = route.params;
-  const fileUrl =
-    noticeDetail.data.files && noticeDetail.data.files.length > 0
-      ? noticeDetail.data.files[0].fileUrl
-      : null;
-  console.log('detail', noticeDetail);
+  const { boardIdx } = route.params;
+  const [noticeDetail, setNoticeDetail] = useState({});
+  // const fileUrl =
+  //   noticeDetail.data.files && noticeDetail.data.files.length > 0
+  //     ? noticeDetail.data.files[0].fileUrl
+  //     : null;
+  const fileUrl = null;
+
   const { width } = useWindowDimensions();
   let imageHeight;
   if (width <= 480) {
@@ -29,12 +35,28 @@ function MoreNoticeDetail() {
     const aspectRatio = 328 / 219;
     imageHeight = width / aspectRatio;
   }
+  const getNoticeDetail = async () => {
+    try {
+      const { data } = await apiGetNoticesDetail(boardIdx);
+      setNoticeDetail(data.data);
+    } catch (error) {
+      handleError(error);
+    }
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      getNoticeDetail();
+    }, []),
+  );
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <Header />
 
-      <ScrollView contentContainerStyle={styles.container}>
+      <ScrollView
+        contentContainerStyle={styles.container}
+        showsVerticalScrollIndicator={false}>
         <Text
           style={[
             fontStyles.fontSize24_Bold,
@@ -42,7 +64,7 @@ function MoreNoticeDetail() {
               color: COLORS.black,
             },
           ]}>
-          {noticeDetail?.data?.title ?? ''}
+          {noticeDetail?.title ?? ''}
         </Text>
 
         <Text
@@ -53,13 +75,18 @@ function MoreNoticeDetail() {
               letterSpacing: 0.3,
             },
           ]}>
-          {moment(noticeDetail?.data?.regDate).format('YYYY.MM.DD')}
+          {moment(noticeDetail?.regDate).format('YYYY.MM.DD')}
         </Text>
-        {fileUrl && <Image source={{ uri: fileUrl }} style={styles.image} />}
-        {noticeDetail?.data?.filePath && (
+        {noticeDetail?.files?.length > 0 && (
+          <Image
+            source={{ uri: noticeDetail.files[0].fileUrl }}
+            style={[styles.image, { height: imageHeight }]}
+          />
+        )}
+        {noticeDetail?.filePath && (
           <Image
             source={{
-              uri: noticeDetail?.data?.filePath,
+              uri: noticeDetail?.filePath,
             }}
             style={{
               width: '100%',
@@ -78,7 +105,7 @@ function MoreNoticeDetail() {
               color: COLORS.labelNormal,
             },
           ]}>
-          {noticeDetail?.data?.contents ?? ''}
+          {noticeDetail?.contents ?? ''}
         </Text>
       </ScrollView>
     </SafeAreaView>
@@ -93,8 +120,8 @@ const styles = StyleSheet.create({
     rowGap: 8,
   },
   image: {
-    width: 328,
-    height: 218.67,
+    width: '100%',
+    // height: 218.67,
     borderRadius: 10,
     marginBottom: 10,
   },

@@ -40,7 +40,8 @@ const GeoLocationUtils = {
               return;
             }
           } else {
-            return null;
+            resolve(null);
+            return;
           }
           reject(error);
         },

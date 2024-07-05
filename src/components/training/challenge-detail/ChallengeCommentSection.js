@@ -340,14 +340,16 @@ const ChallengeCommentSection = forwardRef(
               <TextInput
                 style={styles.textInput}
                 defaultValue={editCommentInput}
-                onChangeText={text => setEditCommentInput(text)}
+                onChangeText={text => {
+                  if (text?.length > 1000) return;
+                  setEditCommentInput(text);
+                }}
                 multiline={true}
                 placeholder="댓글을 남겨보세요."
                 placeholderTextColor="#1A1C1E"
                 autoFocus={true}
                 autoCorrect={false}
                 autoCapitalize="none"
-                maxLength={1000}
                 textAlignVertical="top"
                 retrunKeyType="next"
               />

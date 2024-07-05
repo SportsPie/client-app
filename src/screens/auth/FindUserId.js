@@ -33,18 +33,32 @@ function hideEmail(email) {
 
 function FindUserId() {
   const route = useRoute();
+  const memberData = route.params?.memberData;
 
   return (
-    <SafeAreaView>
+    <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }}>
       <Header title="아이디 찾기" />
 
       <View style={styles.container}>
+        {memberData?.loginType !== 'EMAIL' && (
+          <Text style={styles.subText}>
+            {memberData?.loginType === 'GOOGLE'
+              ? '구글 계정을 통해 인증받았습니다.'
+              : memberData?.loginType === 'KAKAO'
+              ? '카카오 계정을 통해 인증받았습니다.'
+              : memberData?.loginType === 'FACEBOOK'
+              ? '페이스북 계정을 통해 인증받았습니다.'
+              : memberData?.loginType === 'APPLE'
+              ? '애플 계정을 통해 인증받았습니다.'
+              : ``}
+          </Text>
+        )}
         <View style={styles.userIDValue}>
           <Text style={fontStyles.fontSize18_Semibold}>
-            {hideEmail(route.params.memberData.data.data.userLoginId)}
+            {hideEmail(memberData?.userLoginId)}
           </Text>
           <Text style={styles.dateText}>
-            {route.params.memberData.data.data.regDate.split(' ')[0]}
+            {memberData?.regDate.split(' ')[0]}
           </Text>
         </View>
 
@@ -76,6 +90,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 16,
     paddingBottom: 24,
+    rowGap: 8,
   },
   buttonGroup: {
     marginTop: 'auto',
@@ -89,6 +104,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+  },
+  subText: {
+    ...fontStyles.fontSize14_Medium,
+    color: COLORS.labelAlternative,
   },
   dateText: {
     ...fontStyles.fontSize12_Medium,

@@ -31,7 +31,7 @@ import { handleError } from './HandleError';
 import { MqttUtils } from './MqttUtils';
 import { USER_TYPE } from './chat/ChatMapper';
 import ChatUtils from './chat/ChatUtils';
-
+const emojiRegex = require('emoji-regex');
 const Utils = {
   // 이메일 체크
   hideEmail(email) {
@@ -524,7 +524,7 @@ const Utils = {
       handleError(error);
     }
   },
-  logout: async () => {
+  logout: async (showToast, isLeave) => {
     try {
       // await removeStorage('accessToken');
       // await removeStorage('refreshToken');
@@ -537,7 +537,19 @@ const Utils = {
       await ChatUtils.reCreateChatTable();
       MqttUtils.disconnect();
       store.dispatch(authAction.removeAuth());
-      NavigationService.reset(navName.home, { logout: true });
+      NavigationService.reset(navName.login);
+      if (isLeave) {
+        setTimeout(() => {
+          Utils.openModal({
+            title: '성공',
+            body: '정상적으로 탈퇴처리가 되셨습니다.',
+          });
+        }, 0);
+        return;
+      }
+      if (showToast) {
+        SPToast.show({ text: '로그아웃 되었습니다.' });
+      }
     } catch (error) {
       handleError(error);
     }
@@ -711,6 +723,19 @@ const Utils = {
     } catch (_) {
       return false;
     }
+  },
+  removeSymbolAndBlank: str => {
+    let text = str.replace(
+      /[`~!@#$%^&*()_|₩+\-=?;:'"’”“‘,.<>\{\}\[\]\\\/]/gi,
+      '',
+    );
+    text = text.replace(emojiRegex(), '');
+    if (text.trim() === '') {
+      text = text.trim();
+    } else {
+      text = text.replace('  ', ' ');
+    }
+    return text;
   },
 };
 

@@ -139,6 +139,7 @@ function MoreQuestion() {
       <View>
         <ScrollView
           contentContainerStyle={styles.filterWrapper}
+          showsVerticalScrollIndicator={false}
           showsHorizontalScrollIndicator={false}
           horizontal>
           {categories.map(category => (

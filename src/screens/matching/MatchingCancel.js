@@ -9,6 +9,8 @@ import SPIcons from '../../assets/icon';
 import SPModal from '../../components/SPModal';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Header from '../../components/header';
+import DismissKeyboard from '../../components/DismissKeyboard';
+import SPKeyboardAvoidingView from '../../components/SPKeyboardAvoidingView';
 
 const MC_CANCEL = 'MC_CANCEL';
 const MC_REAPPLY = 'MC_REAPPLY';
@@ -105,85 +107,87 @@ function MatchingCancel({ route }) {
   }, []);
 
   return (
-    <SafeAreaView style={styles.radioContainer}>
-      <Header closeIcon />
+    <DismissKeyboard>
+      <SafeAreaView style={styles.radioContainer}>
+        <Header closeIcon />
 
-      <View style={styles.radioBox}>
-        {cancelReason.map(item => (
+        <View style={styles.radioBox}>
+          {cancelReason.map(item => (
+            <TouchableOpacity
+              style={styles.radioWrapper}
+              onPress={() => handleSelect(item)}>
+              <Image
+                source={
+                  selectedReasonCode === item.codeSub
+                    ? SPIcons.icFillRadio
+                    : SPIcons.icBasicRadio
+                }
+                style={{ width: 32, height: 32 }}
+              />
+              <Text style={styles.radioLabel}>{item.groupName}</Text>
+              <Text style={styles.radioLabel}>
+                {item.codeName ? item.codeName : '-'}
+              </Text>
+            </TouchableOpacity>
+          ))}
+
+          {selectedReasonCode === MC_ETC && (
+            <View>
+              <Text style={styles.radioSubLabel}>사유</Text>
+              <TextInput
+                style={styles.detailReasonInput}
+                value={selectedReason}
+                multiline
+                textAlignVertical="top"
+                numberOfLines={6}
+                onChange={e => {
+                  if (e.nativeEvent.text?.length > 100) return;
+                  setSelectedReason(e.nativeEvent.text);
+                }}
+                placeholder="경기 취소 사유를 입력해주세요."
+                autoCorrect={false}
+                autoCapitalize="none"
+                placeholderTextColor="#2E313599"
+              />
+            </View>
+          )}
+        </View>
+        <View style={styles.appealBox}>
           <TouchableOpacity
-            style={styles.radioWrapper}
-            onPress={() => handleSelect(item)}>
-            <Image
-              source={
-                selectedReasonCode === item.codeSub
-                  ? SPIcons.icFillRadio
-                  : SPIcons.icBasicRadio
-              }
-              style={{ width: 32, height: 32 }}
-            />
-            <Text style={styles.radioLabel}>{item.groupName}</Text>
-            <Text style={styles.radioLabel}>
-              {item.codeName ? item.codeName : '-'}
-            </Text>
+            style={styles.appealOutlineBtn}
+            onPress={() => setConfirmModalVisible(true)}>
+            <Text style={styles.appealOutlineBtnText}>경기취소</Text>
           </TouchableOpacity>
-        ))}
-
-        {selectedReasonCode === MC_ETC && (
-          <View>
-            <Text style={styles.radioSubLabel}>사유</Text>
-            <TextInput
-              style={styles.detailReasonInput}
-              value={selectedReason}
-              multiline
-              textAlignVertical="top"
-              numberOfLines={6}
-              onChange={e => {
-                setSelectedReason(e.nativeEvent.text);
-              }}
-              placeholder="경기 취소 사유를 입력해주세요."
-              autoCorrect={false}
-              autoCapitalize="none"
-              maxLength={100}
-              placeholderTextColor="#2E313599"
-            />
-          </View>
-        )}
-      </View>
-      <View style={styles.appealBox}>
-        <TouchableOpacity
-          style={styles.appealOutlineBtn}
-          onPress={() => setConfirmModalVisible(true)}>
-          <Text style={styles.appealOutlineBtnText}>경기취소</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.appealBtn}
-          onPress={() => setReapplyModalVisible(true)}>
-          <Text style={styles.appealBtnText}>매칭 재등록</Text>
-        </TouchableOpacity>
-      </View>
-      <SPModal
-        title="경기취소"
-        contents="매치를 취소하시겠습니까?"
-        visible={confirmModalVisible}
-        twoButton
-        onConfirm={() => {
-          cancelMatch(MC_CANCEL);
-        }}
-        onCancel={closeConfirmModal}
-        onClose={closeConfirmModal}
-      />
-      <SPModal
-        title="매칭 재등록"
-        contents="매치를 취소하고 다시 새 매치를 등록할까요?"
-        visible={reapplyModalVisible}
-        twoButton
-        onConfirm={() => {
-          cancelMatch(MC_REAPPLY);
-        }}
-        onCancel={closeReapplyModal}
-        onClose={closeReapplyModal}
-      />
-    </SafeAreaView>
+          <TouchableOpacity
+            style={styles.appealBtn}
+            onPress={() => setReapplyModalVisible(true)}>
+            <Text style={styles.appealBtnText}>매칭 재등록</Text>
+          </TouchableOpacity>
+        </View>
+        <SPModal
+          title="경기취소"
+          contents="매치를 취소하시겠습니까?"
+          visible={confirmModalVisible}
+          twoButton
+          onConfirm={() => {
+            cancelMatch(MC_CANCEL);
+          }}
+          onCancel={closeConfirmModal}
+          onClose={closeConfirmModal}
+        />
+        <SPModal
+          title="매칭 재등록"
+          contents="매치를 취소하고 다시 새 매치를 등록할까요?"
+          visible={reapplyModalVisible}
+          twoButton
+          onConfirm={() => {
+            cancelMatch(MC_REAPPLY);
+          }}
+          onCancel={closeReapplyModal}
+          onClose={closeReapplyModal}
+        />
+      </SafeAreaView>
+    </DismissKeyboard>
   );
 }
 

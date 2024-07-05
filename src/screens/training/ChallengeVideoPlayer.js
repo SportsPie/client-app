@@ -1,5 +1,5 @@
-import React, { memo } from 'react';
-import { Platform, Pressable, StyleSheet, Text } from 'react-native';
+import React, { memo, useState } from 'react';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import {
   SafeAreaView,
   useSafeAreaFrame,
@@ -24,7 +24,21 @@ function ChallengeVideoPlayer({ route }) {
 
   // [ hook ]
   const { width: windowWidth, height: windowHeight } = useSafeAreaFrame();
-  const insets = useSafeAreaInsets();
+  // const insets = useSafeAreaInsets();
+
+  // [ state ]
+  const [position, setPosition] = useState('relative');
+
+  // [ util ] 동영상 로드 완료
+  const onVideoLoad = e => {
+    // 동영상 높이 조정
+    const { orientation } = e.naturalSize;
+
+    // 가로영상
+    if (orientation === 'landscape') {
+      setPosition('absolute');
+    }
+  };
 
   // [ return ]
   return (
@@ -55,15 +69,21 @@ function ChallengeVideoPlayer({ route }) {
           uri: videoURL,
         }}
         style={{
-          position: 'absolute',
+          position: position,
           width: windowWidth,
-          height:
-            Platform.OS === 'ios'
-              ? windowHeight - (insets.top + insets.bottom)
-              : windowHeight,
+          height: windowHeight,
+          // height:
+          //   Platform.OS === 'ios'
+          //     ? windowHeight - (insets.top + insets.bottom)
+          //     : windowHeight,
         }}
+        onLoad={onVideoLoad}
         repeat
         disablePlayPause={false}
+        disableVolume
+        disableTimer
+        disableBack
+        disableFullscreen
       />
     </SafeAreaView>
   );

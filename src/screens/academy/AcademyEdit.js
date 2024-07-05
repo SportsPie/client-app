@@ -200,21 +200,21 @@ export default function AcademyEdit({ route }) {
       // academy info
       const params = {
         academyIdx,
-        academyName,
-        description,
+        academyName: Utils.removeSymbolAndBlank(academyName?.trim()),
+        description: description?.trim(),
         addrCity: city,
         addrGu: gu,
         addrDong: dong,
-        addressFull: `${addr} ${detailAddr}`,
+        addressFull: `${addr} ${detailAddr?.trim()}`,
         latitude,
         longitude,
-        phoneNo: ceoPhone,
-        workTime,
+        phoneNo: ceoPhone?.trim(),
+        workTime: workTime?.trim(),
         openMatchPublicYn: matchHistoryOpen,
         autoApprovalYn: autoJoin,
-        memo,
-        homepageUrl: homePageUrl,
-        instagramUrl: instagram,
+        memo: memo?.trim(),
+        homepageUrl: homePageUrl?.trim(),
+        instagramUrl: instagram?.trim(),
         planTypeList: getFilterList(),
         removePlanTypeList:
           removePlanTypeList && removePlanTypeList.length > 0
@@ -441,7 +441,7 @@ export default function AcademyEdit({ route }) {
   };
 
   const checkValues = () => {
-    if (!academyName) {
+    if (!academyName?.trim()) {
       Utils.openModal({ title: '알림', body: '아카데미 이름을 입력해주세요' });
       return false;
     }
@@ -449,11 +449,11 @@ export default function AcademyEdit({ route }) {
       Utils.openModal({ title: '알림', body: '주소를 입력해주세요' });
       return false;
     }
-    if (!ceoPhone) {
+    if (!ceoPhone?.trim()) {
       Utils.openModal({ title: '알림', body: '대표번호를 입력해주세요.' });
       return false;
     }
-    if (!workTime) {
+    if (!workTime?.trim()) {
       Utils.openModal({ title: '알림', body: '운영시간을 입력해주세요.' });
       return false;
     }
@@ -461,21 +461,21 @@ export default function AcademyEdit({ route }) {
       Utils.openModal({ title: '알림', body: '대표이미지를 등록해주세요.' });
       return false;
     }
-    if (instagram && !Utils.isValidUrl(instagram)) {
+    if (instagram?.trim() && !Utils.isValidUrl(instagram?.trim())) {
       Utils.openModal({
         title: '알림',
         body: '인스타그램 주소를 확인해주세요.(http://www.example.com)',
       });
       return false;
     }
-    if (homePageUrl && !Utils.isValidUrl(homePageUrl)) {
+    if (homePageUrl?.trim() && !Utils.isValidUrl(homePageUrl?.trim())) {
       Utils.openModal({
         title: '알림',
         body: '홈페이지 주소를 확인해주세요.(http://www.example.com)',
       });
       return false;
     }
-    if (!description) {
+    if (!description?.trim()) {
       Utils.openModal({
         title: '알림',
         body: '아카데미 소개글을 입력해주세요.',
@@ -516,7 +516,7 @@ export default function AcademyEdit({ route }) {
           <SPKeyboardAvoidingView
             behavior="padding"
             isResize={true}
-            keyboardVerticalOffset={60}
+            keyboardVerticalOffset={0}
             style={{
               flex: 1,
               backgroundColor: COLORS.white,
@@ -525,6 +525,7 @@ export default function AcademyEdit({ route }) {
             }}>
             <View style={styles.container}>
               <ScrollView
+                showsVerticalScrollIndicator={false}
                 style={{
                   flex: 1,
                   backgroundColor: COLORS.background,
@@ -595,13 +596,16 @@ export default function AcademyEdit({ route }) {
                     <TextInput
                       value={academyName}
                       onChange={e => {
-                        setAcademyName(e.nativeEvent.text);
+                        if (e.nativeEvent.text?.length > 45) return;
+                        const text = Utils.removeSymbolAndBlank(
+                          e.nativeEvent.text,
+                        );
+                        setAcademyName(text);
                       }}
                       placeholder="아카데미 이름을 입력하세요"
                       autoCorrect={false}
                       autoCapitalize="none"
                       style={styles.box}
-                      maxLength={45}
                     />
                   </View>
                   <View>
@@ -636,9 +640,9 @@ export default function AcademyEdit({ route }) {
                         style={styles.box}
                         value={detailAddr}
                         onChange={e => {
+                          if (e.nativeEvent.text?.length > 50) return;
                           setDetailAddr(e.nativeEvent.text);
                         }}
-                        maxLength={50}
                       />
                     </View>
                   </View>
@@ -653,9 +657,9 @@ export default function AcademyEdit({ route }) {
                         value={Utils.onlyNumber(ceoPhone)}
                         keyboardType="phone-pad"
                         onChange={e => {
+                          if (e.nativeEvent.text?.length > 15) return;
                           setCeoPhone(Utils.onlyNumber(e.nativeEvent.text));
                         }}
-                        maxLength={15}
                       />
                     </View>
                   </View>
@@ -669,9 +673,9 @@ export default function AcademyEdit({ route }) {
                         style={styles.box}
                         value={workTime}
                         onChange={e => {
+                          if (e.nativeEvent.text?.length > 45) return;
                           setWorkTime(e.nativeEvent.text);
                         }}
-                        maxLength={45}
                       />
                     </View>
                   </View>
@@ -823,13 +827,13 @@ export default function AcademyEdit({ route }) {
                     <TextInput
                       value={instagram}
                       onChange={e => {
+                        if (e.nativeEvent.text?.length > 100) return;
                         setInstagram(e.nativeEvent.text);
                       }}
                       placeholder="주소 입력"
                       autoCorrect={false}
                       autoCapitalize="none"
                       style={styles.box}
-                      maxLength={100}
                     />
                   </View>
                   <View>
@@ -837,13 +841,13 @@ export default function AcademyEdit({ route }) {
                     <TextInput
                       value={homePageUrl}
                       onChange={e => {
+                        if (e.nativeEvent.text?.length > 100) return;
                         setHomePageUrl(e.nativeEvent.text);
                       }}
                       placeholder="주소 입력"
                       autoCorrect={false}
                       autoCapitalize="none"
                       style={styles.box}
-                      maxLength={100}
                     />
                   </View>
                   <View>
@@ -855,13 +859,13 @@ export default function AcademyEdit({ route }) {
                       textAlignVertical="top"
                       numberOfLines={6}
                       onChange={e => {
+                        if (e.nativeEvent.text?.length > 1000) return;
                         setDescription(e.nativeEvent.text);
                       }}
                       placeholder="아카데미 소개"
                       autoCorrect={false}
                       autoCapitalize="none"
                       style={[styles.box, { minHeight: 98 }]}
-                      maxLength={1000}
                     />
                     <View
                       style={{
@@ -928,12 +932,12 @@ export default function AcademyEdit({ route }) {
                       <TextInput
                         value={classDesc}
                         onChange={e => {
+                          if (e.nativeEvent.text?.length > 45) return;
                           setClassDesc(e.nativeEvent.text);
                         }}
                         autoCorrect={false}
                         autoCapitalize="none"
                         style={[styles.box, { marginTop: 4 }]}
-                        maxLength={45}
                       />
                     )}
                   </View>
@@ -994,12 +998,12 @@ export default function AcademyEdit({ route }) {
                       <TextInput
                         value={teachingDesc}
                         onChange={e => {
+                          if (e.nativeEvent.text?.length > 45) return;
                           setTeachingDesc(e.nativeEvent.text);
                         }}
                         autoCorrect={false}
                         autoCapitalize="none"
                         style={[styles.box, { marginTop: 4 }]}
-                        maxLength={45}
                       />
                     )}
                   </View>
@@ -1060,6 +1064,7 @@ export default function AcademyEdit({ route }) {
                     <TextInput
                       value={memo}
                       onChange={e => {
+                        if (e.nativeEvent.text?.length > 50) return;
                         setMemo(e.nativeEvent.text);
                       }}
                       multiline
@@ -1070,7 +1075,6 @@ export default function AcademyEdit({ route }) {
                       autoCorrect={false}
                       autoCapitalize="none"
                       style={[styles.box, { minHeight: 98 }]}
-                      maxLength={50}
                     />
                     <View
                       style={{

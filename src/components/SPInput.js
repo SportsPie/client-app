@@ -105,6 +105,10 @@ export default function SPInput({
 
   const handleChange = e => {
     if (noEditable) return;
+    if (
+      e.nativeEvent.text.length > maxLength ? maxLength + plusMaxLength : null
+    )
+      return;
     if (onlyNumber) {
       e.nativeEvent.text = Utils.changeIntegerForInput(e.nativeEvent.text);
     }
@@ -134,6 +138,7 @@ export default function SPInput({
 
   const handleChangeText = e => {
     if (noEditable) return;
+    if (e.length > maxLength ? maxLength + plusMaxLength : null) return;
     const regex = emojiRegex();
     const noEmojiText = e.replace(regex, '');
 
@@ -218,7 +223,6 @@ export default function SPInput({
           autoComplete={autoComplete}
           autoFocus={autoFocus}
           autoCapitalize={autoCapitalize || 'none'}
-          maxLength={maxLength ? maxLength + plusMaxLength : null}
           textAlign={textAlign}
           textAlignVertical={textAlignVertical || 'top'} // Ensure placeholder text is aligned to the top
           {...props}

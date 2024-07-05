@@ -1,12 +1,12 @@
 import React, {
   forwardRef,
+  memo,
   useEffect,
   useImperativeHandle,
   useRef,
   useState,
 } from 'react';
 import {
-  Dimensions,
   Image,
   Platform,
   Pressable,
@@ -14,11 +14,12 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import VideoPlayer from 'react-native-video-controls';
 import {
-  useSafeAreaInsets,
   useSafeAreaFrame,
+  useSafeAreaInsets,
 } from 'react-native-safe-area-context';
+import convertToProxyURL from 'react-native-video-cache';
+import VideoPlayer from 'react-native-video-controls';
 import SPIcons from '../assets/icon';
 import { SPSvgs } from '../assets/svg';
 
@@ -27,8 +28,6 @@ const SPSingleVideo = forwardRef(
     {
       source,
       thumbnailPath,
-      width,
-      height,
       repeat = true,
       isPaused = false,
       getProgressData,
@@ -44,12 +43,21 @@ const SPSingleVideo = forwardRef(
     // [ css ]
     const { width: windowWidth, height: windowHeight } = useSafeAreaFrame();
     const insets = useSafeAreaInsets();
-    const screenHeight = Dimensions.get('window').height;
     const styles = StyleSheet.create({
       video: {
         width: windowWidth,
         margin: 0,
         padding: 0,
+      },
+      thumbnailWrapper: {
+        position: 'absolute',
+        left: 0,
+        right: 0,
+        top: 0,
+        bottom: 0,
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 999,
       },
     });
 
@@ -63,7 +71,6 @@ const SPSingleVideo = forwardRef(
     // [ state ]
     const [videoHeight, setVideoHeight] = useState(240); // 영상 Default 높이
     const [pause, setPause] = useState(isPaused); // 정지 or 재생 상태값
-    const [playTime, setPlayTime] = useState(0); // 재생시간
     const [isVideoLoaded, setIsVideoLoaded] = useState(false); // 영상 로드 완료 유무
     const [isFullScreen, setIsFullScreen] = useState(false); // 풀 스크린 유무
 
@@ -93,8 +100,6 @@ const SPSingleVideo = forwardRef(
 
     // [ util ] 영상 재생중 메타데이터
     const onProgress = progressData => {
-      const { currentTime } = progressData;
-      setPlayTime(currentTime);
       if (getProgressData) getProgressData(progressData);
     };
 
@@ -111,7 +116,7 @@ const SPSingleVideo = forwardRef(
           return prev;
         }
         // 풀 스크린 전환 > 스크롤 Disable
-        else if (onFullScreen && onFullScreen.name === 'toggleFullScreenMode') {
+        if (onFullScreen && onFullScreen.name === 'toggleFullScreenMode') {
           onFullScreen(prev);
         }
         return !prev;
@@ -144,7 +149,7 @@ const SPSingleVideo = forwardRef(
         <VideoPlayer
           ref={videoRef}
           source={{
-            uri: source,
+            uri: convertToProxyURL(source),
           }}
           onLoad={onVideoLoad}
           onProgress={onProgress}
@@ -159,52 +164,54 @@ const SPSingleVideo = forwardRef(
           toggleResizeModeOnFullscreen={false}
           repeat={repeat}
           paused={pause}
+          bufferConfig={{
+            minBufferMs: 15000,
+            maxBufferMs: 50000,
+            bufferForPlaybackMs: 2500,
+            bufferForPlaybackAfterRebufferMs: 5000,
+            backBufferDurationMs: 120000,
+            cacheSizeMB: 1024,
+            live: {
+              targetOffsetMs: 500,
+            },
+          }}
+          playWhenInactive={true}
+          poster={thumbnailPath}
+          posterResizeMode="cover"
         />
 
         {/* 정지 화면 & 썸네일 */}
-        <View
-          style={{
-            width: '100%',
-            height: '100%',
-            position: 'absolute',
-            justifyContent: 'center',
-            alignItems: 'center',
-            visibility: pause ? 'hidden' : '',
-          }}>
-          <TouchableOpacity
+        {isVideoLoaded && (
+          <View
             style={{
               width: '100%',
               height: '100%',
+              position: 'absolute',
               justifyContent: 'center',
               alignItems: 'center',
-              position: 'relative',
-            }}
-            // 터치 이벤트
-            onPress={() => {
-              setPause(prev => !prev);
+              visibility: pause ? 'hidden' : '',
             }}>
-            {/* 최초 로드 > 썸네일 & 재생 버튼 */}
-            {thumbnailPath && playTime === 0 && isVideoLoaded && (
-              <Image
-                source={{ uri: thumbnailPath }}
-                style={{
-                  width: windowWidth,
-                  height: videoHeight,
-                  position: 'absolute',
-                }}
-              />
-            )}
+            <TouchableOpacity
+              style={{
+                width: '100%',
+                height: '100%',
+                justifyContent: 'center',
+                alignItems: 'center',
+                position: 'relative',
+              }}
+              // 터치 이벤트
+              onPress={() => {
+                setPause(prev => !prev);
+              }}>
+              {/* 시작/정지 버튼 */}
+              {pause && (
+                <Image
+                  source={SPIcons.icPlay}
+                  style={{ width: 30, height: 30 }}
+                />
+              )}
 
-            {/* 시작/정지 버튼 */}
-            {isVideoLoaded && pause && (
-              <Image
-                source={SPIcons.icPlay}
-                style={{ width: 30, height: 30 }}
-              />
-            )}
-
-            {/* 풀스크린 버튼 */}
-            {isVideoLoaded && (
+              {/* 풀스크린 버튼 */}
               <Pressable
                 style={{
                   width: 25,
@@ -216,12 +223,12 @@ const SPSingleVideo = forwardRef(
                 onPress={toggleFullScreen}>
                 <SPSvgs.FullScreen />
               </Pressable>
-            )}
-          </TouchableOpacity>
-        </View>
+            </TouchableOpacity>
+          </View>
+        )}
       </View>
     );
   },
 );
 
-export default SPSingleVideo;
+export default memo(SPSingleVideo);

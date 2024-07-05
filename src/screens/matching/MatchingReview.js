@@ -120,27 +120,13 @@ function MatchingReview({ route }) {
 
   const renderByJoinType = () => {
     if (!joinType) return;
-    switch (joinType) {
-      case JOIN_TYPE.NO_LOGIN:
-        setHideReviewItem(true);
-        break;
-      case JOIN_TYPE.NO_JOIN:
-        setHideReviewItem(true);
-        break;
-      case JOIN_TYPE.ACADEMY_WAIT:
-        setHideReviewItem(true);
-        break;
-      case JOIN_TYPE.ACADEMY_MEMBER:
-        setHideReviewItem(false);
-        break;
-      case JOIN_TYPE.ACADEMY_ADMIN:
-        setHideReviewItem(false);
-        break;
-      case JOIN_TYPE.JOIN_OR_WAIT:
-        setHideReviewItem(true);
-        break;
-      default:
-        break;
+    if (
+      joinType === JOIN_TYPE.ACADEMY_ADMIN ||
+      joinType === JOIN_TYPE.ACADEMY_MEMBER
+    ) {
+      setHideReviewItem(false);
+    } else {
+      setHideReviewItem(true);
     }
   };
 
@@ -265,7 +251,7 @@ function MatchingReview({ route }) {
               {/* )} */}
             </View>
             <View>
-              <Text style={styles.name}>{item.memberName}</Text>
+              <Text style={styles.name}>{item.memberNickName}</Text>
               <Text style={styles.dateCreated}>
                 {moment(item.regDate).format('YYYY.MM.DD A hh:mm')}
               </Text>

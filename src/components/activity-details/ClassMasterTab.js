@@ -86,8 +86,12 @@ function ClassMasterTab() {
     getFeeds();
   }, [selectedCategory, currentPage]);
 
-  const renderListEmpty = useCallback(() => {
-    return <ListEmptyView text="커뮤니티에 글이 존재하지 않습니다." />;
+  const renderVideoListEmpty = useCallback(() => {
+    return <ListEmptyView text="클래스마스터에 영상이 존재하지 않습니다." />;
+  }, []);
+
+  const renderApplyListEmpty = useCallback(() => {
+    return <ListEmptyView text="클래스마스터에 댓글이 존재하지 않습니다." />;
   }, []);
 
   const renderMasterClassItem = useCallback(
@@ -181,7 +185,11 @@ function ClassMasterTab() {
             }
             onEndReached={handleEndReached}
             onEndReachedThreshold={0.5}
-            ListEmptyComponent={renderListEmpty}
+            ListEmptyComponent={
+              selectedCategory === 'video'
+                ? renderVideoListEmpty()
+                : renderApplyListEmpty()
+            }
             contentContainerStyle={{
               rowGap: selectedCategory === 'video' ? 16 : 0,
               paddingTop: selectedCategory === 'video' ? 16 : 0,

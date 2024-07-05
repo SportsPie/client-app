@@ -78,7 +78,6 @@ function MoreProfile() {
         setPlayer(info.player || {});
         setStats(info.stats || {});
         setUserIdx(data.data.member.userIdx);
-        console.log(member);
       }
     } catch (error) {
       handleError(error);
@@ -421,7 +420,10 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   menuTileContainer: {
-    backgroundColor: COLORS.fillNormal,
+    // backgroundColor: COLORS.fillNormal,
+    backgroundColor: '#F1F5FF',
+    borderWidth: 1,
+    borderColor: 'rgba(135, 141, 150, 0.08)',
     borderRadius: 12,
     padding: 16,
     width: (SCREEN_WIDTH - 40) / 2,
@@ -437,7 +439,8 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   scoreItem: {
-    backgroundColor: COLORS.fillNormal,
+    // backgroundColor: COLORS.fillNormal,
+    backgroundColor: '#F1F5FF',
     width: (SCREEN_WIDTH - 49) / 3,
     padding: 8,
     borderRadius: 8,

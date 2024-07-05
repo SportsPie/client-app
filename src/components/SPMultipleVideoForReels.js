@@ -174,7 +174,6 @@ function SPMultipleVideoForReels({
         );
       }}
       snapToInterval={windowHeight}
-      decelerationRate={0.65}
       viewabilityConfig={viewabilityConfig}
       onViewableItemsChanged={onViewableItemsChanged}
     />

@@ -76,6 +76,7 @@ import BottomTabCommunity from './bottom-tab/BottomTabCommunity';
 import BottomTabTrainingOutline from './bottom-tab/BottomTabTrainingOutline';
 import BottomTabTraining from './bottom-tab/BottomTabTraining';
 import InputClose from './InputClose';
+import LargeLogoWithText from './LargeLogoWithText';
 
 export class SPSvgs {
   static SportPieLogo = SportPieLogo;
@@ -144,6 +145,7 @@ export class SPSvgs {
   static Comment = Comment;
   static Upgrade = Upgrade;
   static InputClose = InputClose;
+  static LargeLogoWithText = LargeLogoWithText;
 
   //Bottom tab
   static BottomTabHomeOutline = BottomTabHomeOutline;

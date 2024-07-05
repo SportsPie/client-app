@@ -23,6 +23,7 @@ const PAGE_SIZE = 20; // 페이지 사이즈
 // 트레이닝 챌린지 영상 댓글
 function ChallengeLastComment({ videoIdx = '' }) {
   const commentSectionRef = useRef();
+  const textRef = useRef(null);
 
   // [ state ] 댓글 리스트, 페이징
   const [commentList, setCommentList] = useState([]);
@@ -30,6 +31,19 @@ function ChallengeLastComment({ videoIdx = '' }) {
   const [totalCount, setTotalCount] = useState(0);
   const [isLast, setIsLast] = useState(true);
   const [loading, setLoading] = useState(true);
+  const [isCollapseText, setIsCollapseText] = useState(false);
+  const [showExpandButton, setShowExpandButton] = useState(false);
+
+  const handleLayout = event => {
+    const { height } = event.nativeEvent.layout;
+    const lineHeight = 20;
+    const maxHeight = 1 * lineHeight;
+
+    if (Math.floor(height) > maxHeight && !showExpandButton) {
+      setShowExpandButton(true);
+      setIsCollapseText(true);
+    }
+  };
 
   // [ util ] 코멘트 페이징
   const getNextPage = () => {
@@ -114,9 +128,9 @@ function ChallengeLastComment({ videoIdx = '' }) {
             />
             <View style={styles.commentSection}>
               <View style={styles.userAndDateSection}>
-                {commentList[0].memberName && (
+                {commentList[0].memberNickName && (
                   <Text style={styles.memberNameText}>
-                    {commentList[0].memberName}
+                    {commentList[0].memberNickName}
                   </Text>
                 )}
 
@@ -124,7 +138,23 @@ function ChallengeLastComment({ videoIdx = '' }) {
                   {format(commentList[0].regDate, 'yyyy.MM.dd')}
                 </Text>
               </View>
-              <Text style={styles.commentText}>{commentList[0].comment}</Text>
+
+              <Text
+                ref={textRef}
+                onLayout={handleLayout}
+                numberOfLines={isCollapseText ? 1 : undefined}
+                style={styles.commentText}>
+                {commentList[0].comment}
+              </Text>
+              {showExpandButton && isCollapseText && (
+                <Text
+                  onPress={() => {
+                    setIsCollapseText(false);
+                  }}
+                  style={styles.commentText}>
+                  더보기
+                </Text>
+              )}
             </View>
           </View>
         )}
@@ -176,6 +206,7 @@ const styles = StyleSheet.create({
   },
   commentSection: {
     rowGap: 4,
+    flex: 1,
   },
   userAndDateSection: {
     flexDirection: 'row',

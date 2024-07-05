@@ -455,11 +455,6 @@ export const apiDeleteAcademyConfigMngManagers = userIdx => {
   return api.delete(`${API_ACADEMY_CONFIG}/mng/managers/${userIdx}`);
 };
 
-// SPIC_IF_364 :: 관리자 양도
-export const apiPutAcademyConfigMngManagers = (userIdx, data) => {
-  return api.put(`${API_ACADEMY_CONFIG}/mng/managers/${userIdx}`);
-};
-
 // SPIC_IF_370 :: 대회 접수 내역 리스트 조회
 export const apiGetMngTournament = data => {
   return api.get(`${API_ACADEMY_CONFIG}/mng/tournament`, { params: data });

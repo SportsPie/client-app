@@ -32,6 +32,7 @@ function SPModal({
   textAlign,
   maxLength,
   value,
+  onChangeText,
 }) {
   const [showModal, setShowModal] = useState(visible);
   const [inputText, setInputText] = useState('');
@@ -133,16 +134,19 @@ function SPModal({
                       textAlign={textAlign || 'left'}
                       style={[styles.textInput, textInputStyle]} // textInputStyle을 스타일 배열에 추가
                       placeholder={placeholder || '텍스트 입력'}
-                      value={inputText}
-                      onChangeText={setInputText}
-                      maxLength={maxLength}
+                      value={value || inputText}
+                      onChangeText={text => {
+                        if (text?.length > maxLength) return;
+                        setInputText(text);
+                        if (onChangeText) onChangeText(text);
+                      }}
                     />
 
                     {/* x 표시를 포함한 TouchableOpacity */}
                     {textCancelButton && (
                       <TouchableOpacity
                         activeOpacity={ACTIVE_OPACITY}
-                        onPress={() => setInputText('')}
+                        onPress={() => onChangeText('')}
                         style={{ position: 'absolute', right: 10 }}>
                         <SPSvgs.InputClose />
                       </TouchableOpacity>
@@ -266,6 +270,7 @@ const styles = StyleSheet.create({
   },
   textInput: {
     flexGrow: 1,
+    height: 48,
   },
 });
 

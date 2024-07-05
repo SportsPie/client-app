@@ -141,8 +141,12 @@ api.interceptors.response.use(
       `${code}` === '1004' ||
       `${code}` === '1005' ||
       `${code}` === '1006' ||
+      `${code}` === '1097' ||
       `${code}` === '1099'
     ) {
+      if (originalRequest.url.includes('/api/v1/auth/login')) {
+        return Promise.reject(new NetworkException(message, code));
+      }
       await Utils.logout();
       return Promise.reject(new InvalidUserException(message));
     }

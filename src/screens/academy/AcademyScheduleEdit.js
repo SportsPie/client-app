@@ -193,7 +193,7 @@ function AcademyScheduleEdit({ route }) {
       <SPKeyboardAvoidingView
         behavior="padding"
         isResize
-        keyboardVerticalOffset={60}
+        keyboardVerticalOffset={0}
         style={{
           flex: 1,
           padding: 0,
@@ -225,7 +225,10 @@ function AcademyScheduleEdit({ route }) {
             <View style={styles.textInputBox}>
               <TextInput
                 value={contents}
-                onChangeText={e => setContents(e)}
+                onChangeText={text => {
+                  if (text?.length > 45) return;
+                  setContents(text);
+                }}
                 multiline
                 textAlignVertical="top"
                 numberOfLines={3}
@@ -234,7 +237,6 @@ function AcademyScheduleEdit({ route }) {
                 autoCapitalize="none"
                 style={styles.box}
                 placeholderTextColor="rgba(46, 49, 53, 0.60)"
-                maxLength={45}
               />
               <View
                 style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>

@@ -234,7 +234,7 @@ function AcademyRecruitmentEdit({ route }) {
     return (
       title &&
       description &&
-      description.length > 10 &&
+      description.length > 9 &&
       selectedGenderType &&
       selectedClassType &&
       selectedPeriodType &&
@@ -298,7 +298,9 @@ function AcademyRecruitmentEdit({ route }) {
         }}>
         <SafeAreaView style={styles.container}>
           <Header title="아카데미 회원 모집 공고" />
-          <ScrollView style={styles.subContainer}>
+          <ScrollView
+            style={styles.subContainer}
+            showsVerticalScrollIndicator={false}>
             <View style={styles.subBox}>
               <Text style={styles.mainTitle}>공고 정보</Text>
               {/* 제목 */}
@@ -309,8 +311,10 @@ function AcademyRecruitmentEdit({ route }) {
                     style={styles.subTextInput}
                     placeholder="공고 제목을 입력해주세요."
                     value={title}
-                    onChangeText={value => setTitle(value)}
-                    maxLength={45}
+                    onChangeText={value => {
+                      if (value?.length > 45) return;
+                      setTitle(value);
+                    }}
                   />
                 </View>
               </View>
@@ -549,7 +553,7 @@ function AcademyRecruitmentEdit({ route }) {
                                 textMonthFontWeight: '600',
                               }}
                               monthFormat="yyyy년 MM월"
-                              minDate={moment().format('YYYY-MM-DD')}
+                              // minDate={moment().format('YYYY-MM-DD')}
                               maxDate={moment(endDate).format('YYYY-MM-DD')}
                             />
                           </View>

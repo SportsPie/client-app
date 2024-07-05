@@ -1,4 +1,4 @@
-import React, { memo } from 'react';
+import React, { memo, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Avatar from '../../Avatar';
 import fontStyles from '../../../styles/fontStyles';
@@ -15,8 +15,8 @@ function CommentSectionItem({ item, onPressMore = () => null }) {
       <View style={styles.content}>
         <View style={styles.userWrapper}>
           {/* 작성자 */}
-          {item?.memberName && (
-            <Text style={styles.memberNameText}>{item?.memberName}</Text>
+          {item?.memberNickName && (
+            <Text style={styles.memberNameText}>{item?.memberNickName}</Text>
           )}
 
           {/* 작성일 */}

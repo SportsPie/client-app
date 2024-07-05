@@ -50,8 +50,8 @@ function ChallengeAddDetails({ route }) {
   const descRef = useRef();
 
   // [ state ] 입력
-  const [title, setTitle] = useState(''); // 제목
-  const [description, setDescription] = useState(''); // 내용
+  const [title, setTitle] = useState(undefined); // 제목
+  const [description, setDescription] = useState(undefined); // 내용
   const [isOpenVideo, setIsOpenVideo] = useState(false); // 공개 유무
   const [isAgreed, setIsAgreed] = useState(false); // 동의 유무
 
@@ -102,7 +102,7 @@ function ChallengeAddDetails({ route }) {
       <SPKeyboardAvoidingView
         behavior="padding"
         isResize
-        keyboardVerticalOffset={60}
+        keyboardVerticalOffset={0}
         style={{
           flex: 1,
           backgroundColor: COLORS.white,
@@ -112,7 +112,9 @@ function ChallengeAddDetails({ route }) {
         <SafeAreaView style={styles.container}>
           <Header title="세부정보 추가" />
 
-          <ScrollView contentContainerStyle={styles.content}>
+          <ScrollView
+            contentContainerStyle={styles.content}
+            showsVerticalScrollIndicator={false}>
             {/* 동영상 */}
             <SPVideo
               width="100%"
@@ -137,8 +139,9 @@ function ChallengeAddDetails({ route }) {
                 onBlur={e => descRef.current.focus()}
                 maxLength={15}
                 bottomTextStyle={{ textAlign: 'right' }}
-                bottomText={`${title.length} / 15`}
+                bottomText={`${title !== undefined ? title.length : 0} / 15`}
                 returnKeyType="done"
+                error={title !== undefined && title.trim() === ''}
               />
 
               <SPInput
@@ -150,7 +153,10 @@ function ChallengeAddDetails({ route }) {
                 onChange={e => setDescription(e.nativeEvent.text)}
                 maxLength={300}
                 bottomTextStyle={{ textAlign: 'right' }}
-                bottomText={`${description.length} / 300`}
+                bottomText={`${
+                  description !== undefined ? description.length : 0
+                } / 300`}
+                error={description !== undefined && description.trim() === ''}
               />
 
               {/* 영상 공개 */}

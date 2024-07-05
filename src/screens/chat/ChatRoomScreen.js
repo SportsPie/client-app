@@ -334,7 +334,7 @@ function ChatRoomScreen({ navigation, route }) {
     <SPKeyboardAvoidingView
       behavior="padding"
       isResize
-      keyboardVerticalOffset={60}
+      keyboardVerticalOffset={0}
       style={{
         flex: 1,
         alignItems: 'center',

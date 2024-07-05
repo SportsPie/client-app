@@ -2,12 +2,14 @@
 import { useFocusEffect } from '@react-navigation/native';
 import React, { memo, useCallback, useMemo, useRef, useState } from 'react';
 import {
+  Image,
   ImageBackground,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
+  TouchableOpacity,
   View,
 } from 'react-native';
 import { useSelector } from 'react-redux';
@@ -29,6 +31,8 @@ import { handleError } from '../../utils/HandleError';
 import Utils from '../../utils/Utils';
 import SPKeyboardAvoidingView from '../../components/SPKeyboardAvoidingView';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import SPIcons from '../../assets/icon';
+import SPModal from '../../components/SPModal';
 
 /**
  * CommunityWrite
@@ -51,6 +55,7 @@ function CommunityWrite({ route }) {
   // modal
   const [photoList, setPhotoList] = useState([]);
   const [showPhotoModal, setShowPhotoModal] = useState(false);
+  const [showFixCheckModal, setShowFixCheckModal] = useState(false);
 
   /**
    * api
@@ -201,6 +206,14 @@ function CommunityWrite({ route }) {
     }
   };
 
+  const toggleCheckbox = () => {
+    if (!topFeed) {
+      setShowFixCheckModal(true);
+    } else {
+      setTopFeed(prevState => !prevState);
+    }
+  };
+
   /**
    * useEffect
    */
@@ -229,7 +242,7 @@ function CommunityWrite({ route }) {
       <SPKeyboardAvoidingView
         behavior="padding"
         isResize
-        keyboardVerticalOffset={60}
+        keyboardVerticalOffset={0}
         style={{
           flex: 1,
         }}>
@@ -237,24 +250,28 @@ function CommunityWrite({ route }) {
           {renderHeader}
 
           <View style={styles.inputSection}>
-            <TextInput
-              value={contents}
-              onChange={e => {
-                setContents(e.nativeEvent.text);
-              }}
-              multiline
-              scrollEnabled={false}
-              textAlignVertical="top"
-              numberOfLines={3}
-              placeholder="내용을 입력해 주세요."
-              autoCorrect={false}
-              autoCapitalize="none"
-              style={styles.input}
-              placeholderTextColor="rgba(46, 49, 53, 0.60)"
-              maxLength={10000}
-            />
+            <ScrollView
+              style={{ flex: 1 }}
+              showsVerticalScrollIndicator={false}>
+              <TextInput
+                value={contents}
+                onChange={e => {
+                  if (e.nativeEvent.text?.length > 2000) return;
+                  setContents(e.nativeEvent.text);
+                }}
+                multiline
+                scrollEnabled={false}
+                textAlignVertical="top"
+                numberOfLines={3}
+                placeholder="내용을 입력해 주세요."
+                autoCorrect={false}
+                autoCapitalize="none"
+                style={styles.input}
+                placeholderTextColor="rgba(46, 49, 53, 0.60)"
+              />
+            </ScrollView>
             <Text style={styles.textLengthText}>
-              {Utils.changeNumberComma(contents?.length ?? 0)}/10,000
+              {Utils.changeNumberComma(contents?.length ?? 0)}/2,000
             </Text>
           </View>
 
@@ -263,6 +280,7 @@ function CommunityWrite({ route }) {
               <ScrollView
                 contentContainerStyle={styles.imageSection}
                 horizontal
+                showsVerticalScrollIndicator={false}
                 showsHorizontalScrollIndicator={false}>
                 {photoList?.map((image, index) => {
                   return (
@@ -297,6 +315,7 @@ function CommunityWrite({ route }) {
               <ScrollView
                 contentContainerStyle={styles.hashtagContent}
                 horizontal
+                showsVerticalScrollIndicator={false}
                 showsHorizontalScrollIndicator={false}>
                 {tagList?.map((tag, index) => {
                   const isSelected = selectedTagList.includes(tag.value);
@@ -324,19 +343,52 @@ function CommunityWrite({ route }) {
 
           <View>
             <Divider />
-            <Pressable
-              disabled={photoList?.length === 5}
-              onPress={openGallery}
-              style={styles.pickImageButton}>
-              <SPSvgs.Gallery
-                width={18}
-                height={18}
-                fill={
-                  photoList?.length === 5 ? COLORS.lineBorder : COLORS.darkBlue
-                }
-              />
-            </Pressable>
+            <View style={styles.bottomBox}>
+              <Pressable
+                disabled={photoList?.length === 5}
+                onPress={openGallery}
+                style={styles.pickImageButton}>
+                <SPSvgs.Gallery
+                  width={18}
+                  height={18}
+                  fill={
+                    photoList?.length === 5
+                      ? COLORS.lineBorder
+                      : COLORS.darkBlue
+                  }
+                />
+              </Pressable>
+              {isAdmin && (
+                <View>
+                  <TouchableOpacity
+                    style={styles.checkboxWrapper}
+                    onPress={toggleCheckbox}>
+                    <Image
+                      source={
+                        !topFeed ? SPIcons.icOutlineCheck : SPIcons.icChecked
+                      }
+                      style={{ width: 32, height: 32 }}
+                    />
+                    <Text style={styles.checkboxLabel}>공지로 등록하기</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+            </View>
           </View>
+          <SPModal
+            title="고정하기"
+            contents={`게시물을 최대 3개까지만 고정할 수 있습니다. \n이 게시물을 고정하면 가장 오래된 \n고정 게시물이 해제됩니다.`}
+            visible={showFixCheckModal}
+            onConfirm={() => {
+              setTopFeed(true);
+            }}
+            onCancel={() => {
+              setShowFixCheckModal(false);
+            }}
+            onClose={() => {
+              setShowFixCheckModal(false);
+            }}
+          />
         </SafeAreaView>
 
         <SPSelectPhotoModal
@@ -414,8 +466,8 @@ const styles = StyleSheet.create({
     borderColor: COLORS.lineBorder,
     justifyContent: 'center',
     alignItems: 'center',
-    marginHorizontal: 16,
-    marginVertical: 8,
+    // marginHorizontal: 16,
+    // marginVertical: 8,
   },
   imageSection: {
     paddingHorizontal: 16,
@@ -430,5 +482,25 @@ const styles = StyleSheet.create({
   },
   closeIcon: {
     margin: 4,
+  },
+  bottomBox: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderTopWidth: 1,
+    borderTopColor: '#D9D9D9',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+  },
+  checkboxWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  checkboxLabel: {
+    fontSize: 16,
+    fontWeight: 400,
+    color: '#1A1C1E',
+    lineHeight: 24,
+    letterSpacing: 0.091,
   },
 });

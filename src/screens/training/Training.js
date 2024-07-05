@@ -14,6 +14,7 @@ import {
   TouchableOpacity,
   View,
   useWindowDimensions,
+  Platform,
 } from 'react-native';
 import { FlatList, RefreshControl } from 'react-native-gesture-handler';
 import LinearGradient from 'react-native-linear-gradient';
@@ -217,7 +218,7 @@ function TabButton({ title, activeTab, setActiveTab }) {
 }
 
 // PIE 트레이닝 메인
-function Training({ navigation, route }) {
+function Training({ route }) {
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const imageHeight = width <= 480 ? 141 : (width * 9) / 16;
@@ -229,9 +230,7 @@ function Training({ navigation, route }) {
   const [loading, setLoading] = useState(false); // 트레이닝 로딩
   const [bannerList, setBannerList] = useState([]); // 슬라이드 배너 리스트
   const [trainingObject, setTrainingObject] = useState([]); // 기초튼튼 훈련 카테고리별 리스트
-  const initTab = route.params?.activeTab || '기초튼튼 훈련';
-  const [activeTab, setActiveTab] = useState(initTab); // 기초튼튼 훈련, 챌린지
-
+  const [activeTab, setActiveTab] = useState('기초튼튼 훈련'); // 기초튼튼 훈련, 챌린지
   const [challengeLoading, setChallengeLoading] = useState(false); // 챌린지 로딩
   const [challengeList, setChallengeList] = useState([]); // 챌린지 리스트
   const [challengePage, setChallengePage] = useState({
@@ -239,6 +238,21 @@ function Training({ navigation, route }) {
     key: null, // 챌린지 페이지 Key
     isLast: false, // 챌린지 페이지 마지막
   });
+
+  useFocusEffect(
+    useCallback(() => {
+      if (route.params?.activeTab) {
+        console.log(
+          '🚀 ~ useCallback ~ route.params?.activeTab:',
+          route.params?.activeTab,
+        );
+        setActiveTab(route.params?.activeTab);
+      }
+    }, [route.params?.activeTab]),
+  );
+
+  const paddingTop = Platform.OS === 'ios' ? insets.top : 14;
+
   // [ util ] 외부 링크 열기 ( with 브라우저 )
   const openExternalLink = async url => {
     if (url) {
@@ -324,6 +338,14 @@ function Training({ navigation, route }) {
     await apiPatchBannerViewCnt(idx);
   };
 
+  useFocusEffect(
+    useCallback(() => {
+      return () => {
+        setActiveTab('기초튼튼 훈련');
+      };
+    }, []),
+  );
+
   // [ useFocusEffect ] 트레이닝 리스트 & 챌린지 리스트
   useFocusEffect(
     useCallback(() => {
@@ -340,12 +362,6 @@ function Training({ navigation, route }) {
   );
 
   // [ useEffect ] 챌린지 페이징
-  useEffect(() => {
-    if (challengePage.page) {
-      getChallengeList();
-    }
-  }, [challengePage.page]);
-
   useFocusEffect(
     useCallback(() => {
       if (challengePage.page) getChallengeList();
@@ -361,7 +377,7 @@ function Training({ navigation, route }) {
         hideLeftIcon
         headerContainerStyle={{
           backgroundColor: COLORS.darkBlue,
-          paddingTop: insets.top,
+          paddingTop,
           paddingBottom: 14,
         }}
         headerTextStyle={{
@@ -387,10 +403,12 @@ function Training({ navigation, route }) {
               setActiveTab={setActiveTab}
             />
           </View>
-          <View style={styles.tabDetailBox}>
+          <View>
             {/* Tab > 기초튼튼 훈련 */}
             {activeTab === '기초튼튼 훈련' && (
-              <ScrollView style={{ marginBottom: 65 }}>
+              <ScrollView
+                style={{ marginBottom: 60 }}
+                showsVerticalScrollIndicator={false}>
                 <View>
                   {/* 슬라이드 배너 */}
                   {bannerList.length > 0 && (
@@ -638,7 +656,7 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     gap: 16,
     paddingHorizontal: 16,
-    marginBottom: 65,
+    marginBottom: 60,
   },
   usersBox: {
     flexDirection: 'row',

@@ -41,10 +41,6 @@ function QNAItem({ item }) {
         <View style={styles.answerWrapper}>
           <View style={styles.titleWrapper}>
             <SPSvgs.LetterA />
-
-            <Text style={[fontStyles.fontSize16_Semibold, { flex: 1 }]}>
-              여행자를 위한 10가지 필수 아이템 추천
-            </Text>
           </View>
 
           <Text

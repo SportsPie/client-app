@@ -52,22 +52,22 @@ const web3Utils = {
       throw new CustomException('잔액 조회에 실패하였습니다.');
     }
   },
-  getAllowance: async () => {
-    try {
-      const wallet = await walletUtils.getWalletAddress();
-      const contract = new web3.eth.Contract(
-        SPAbis.bnbPie,
-        BNB_TOKEN_CONTRACT_ADDRESS,
-      );
-      const allowance = await contract.methods
-        .allowance(wallet, ADMIN_WALLET)
-        .call();
-      return allowance;
-    } catch (error) {
-      console.log('error', error);
-      throw new CustomException('PIE 전송에 실패하였습니다.');
-    }
-  },
+  // getAllowance: async () => {
+  //   try {
+  //     const wallet = await walletUtils.getWalletAddress();
+  //     const contract = new web3.eth.Contract(
+  //       SPAbis.bnbPie,
+  //       BNB_TOKEN_CONTRACT_ADDRESS,
+  //     );
+  //     const allowance = await contract.methods
+  //       .allowance(wallet, ADMIN_WALLET)
+  //       .call();
+  //     return allowance;
+  //   } catch (error) {
+  //     console.log('error', error);
+  //     throw new CustomException('PIE 전송에 실패하였습니다.');
+  //   }
+  // },
   sendToken: async (toWallet, toValue) => {
     try {
       const wallet = await walletUtils.getWalletAddress();

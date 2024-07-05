@@ -1,4 +1,4 @@
-import React, { memo, useMemo, useState } from 'react';
+import React, { memo, useCallback, useMemo, useState } from 'react';
 import {
   ScrollView,
   View,
@@ -6,8 +6,9 @@ import {
   StyleSheet,
   TouchableOpacity,
   Pressable,
+  Keyboard,
 } from 'react-native';
-import { useRoute } from '@react-navigation/native';
+import { useFocusEffect, useRoute } from '@react-navigation/native';
 import moment from 'moment';
 import { PROGRESS_STATUS } from '../../common/constants/progressStatus';
 import Header from '../../components/header';
@@ -18,10 +19,29 @@ import Divider from '../../components/Divider';
 import NavigationService from '../../navigation/NavigationService';
 import { navName } from '../../common/constants/navName';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { handleError } from '../../utils/HandleError';
+import { apiGetQnaDetail } from '../../api/RestAPI';
 
 function MoreInquiryDetail() {
   const route = useRoute();
-  const { inquiryDetail } = route.params;
+  const [inquiryDetail, setInquiryDetail] = useState(null);
+  const { qnaIdx } = route.params;
+  const detailPage = async () => {
+    try {
+      const response = await apiGetQnaDetail(qnaIdx);
+      setInquiryDetail(response.data);
+      NavigationService.navigate(navName.moreInquiryDetail, {
+        inquiryDetail,
+      });
+    } catch (error) {
+      handleError(error);
+    }
+  };
+  useFocusEffect(
+    useCallback(() => {
+      detailPage();
+    }, []),
+  );
 
   const renderHeader = useMemo(() => {
     return (
@@ -82,24 +102,26 @@ function MoreInquiryDetail() {
             <Text style={styles.timeText}>
               {moment(inquiryDetail?.data?.regDate)?.format('YYYY.MM.DD')}
             </Text>
-            <Text
-              style={[
-                styles.statusWrapper,
-                {
-                  backgroundColor:
-                    PROGRESS_STATUS?.[inquiryDetail?.data?.qnaState]?.value ===
-                    'WAIT'
-                      ? COLORS.peach
-                      : `${COLORS.darkBlue}10`,
-                  color:
-                    PROGRESS_STATUS?.[inquiryDetail?.data?.qnaState]?.value ===
-                    'WAIT'
-                      ? COLORS.orange
-                      : COLORS.darkBlue,
-                },
-              ]}>
-              {statusTextValue}
-            </Text>
+            <View style={styles.statusWrapperBox}>
+              <Text
+                style={[
+                  styles.statusWrapper,
+                  {
+                    backgroundColor:
+                      PROGRESS_STATUS?.[inquiryDetail?.data?.qnaState]
+                        ?.value === 'WAIT'
+                        ? COLORS.peach
+                        : `${COLORS.darkBlue}10`,
+                    color:
+                      PROGRESS_STATUS?.[inquiryDetail?.data?.qnaState]
+                        ?.value === 'WAIT'
+                        ? COLORS.orange
+                        : COLORS.darkBlue,
+                  },
+                ]}>
+                {statusTextValue}
+              </Text>
+            </View>
           </View>
 
           <Text style={styles.titleText}>{inquiryDetail?.data?.title}</Text>
@@ -143,14 +165,17 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  statusWrapper: {
-    ...fontStyles.fontSize12_Semibold,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
+  statusWrapperBox: {
     minWidth: 59,
     borderRadius: 999,
+    overflow: 'hidden',
+  },
+  statusWrapper: {
+    ...fontStyles.fontSize12_Semibold,
     textAlign: 'center',
     letterSpacing: 0.3,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
   },
   contentText: {
     ...fontStyles.fontSize14_Medium,

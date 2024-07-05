@@ -1,3 +1,4 @@
+import React, { memo, useState } from 'react';
 import {
   ImageBackground,
   Pressable,
@@ -6,19 +7,17 @@ import {
   View,
   useWindowDimensions,
 } from 'react-native';
-import { BlurView } from '@react-native-community/blur';
-import React, { memo, useState } from 'react';
-import { PrimaryButton } from '../PrimaryButton';
-import fontStyles from '../../styles/fontStyles';
-import { COLORS } from '../../styles/colors';
-import { SPSvgs } from '../../assets/svg';
-import NavigationService from '../../navigation/NavigationService';
-import { navName } from '../../common/constants/navName';
-import SPSelectVideoModal from '../SPSelectVideoModal';
-import { APPROVE_STATE } from '../../common/constants/approveState';
-import Utils from '../../utils/Utils';
-import { MODAL_CLOSE_EVENT } from '../../common/constants/modalCloseEvent';
 import SPImages from '../../assets/images';
+import { SPSvgs } from '../../assets/svg';
+import { APPROVE_STATE } from '../../common/constants/approveState';
+import { MODAL_CLOSE_EVENT } from '../../common/constants/modalCloseEvent';
+import { navName } from '../../common/constants/navName';
+import NavigationService from '../../navigation/NavigationService';
+import { COLORS } from '../../styles/colors';
+import fontStyles from '../../styles/fontStyles';
+import Utils from '../../utils/Utils';
+import { PrimaryButton } from '../PrimaryButton';
+import SPSelectVideoModal from '../SPSelectVideoModal';
 
 function ClassVideoItem({ item, index }) {
   const { width: screenWidth } = useWindowDimensions();
@@ -100,6 +99,9 @@ function ClassVideoItem({ item, index }) {
       }}>
       {/* 승인 O */}
       <ImageBackground
+        blurRadius={
+          !item.masterDate && !item.isCurrentStep && index > 2 ? 20 : 0
+        }
         style={[
           styles.itemImage,
           {
@@ -135,13 +137,9 @@ function ClassVideoItem({ item, index }) {
       {/* 승인 X */}
       {!item.masterDate && !item.isCurrentStep && index > 2 && (
         <View style={styles.blurView}>
-          <BlurView blurType="dark" blurAmount={2} style={styles.blurView}>
-            <View style={styles.blurTextWrapper}>
-              <Text style={styles.blurText}>
-                {'이전 클래스를 마스터하면\n영상을 볼 수 있어요'}
-              </Text>
-            </View>
-          </BlurView>
+          <Text style={styles.blurText}>
+            {'이전 클래스를 마스터하면\n영상을 볼 수 있어요'}
+          </Text>
         </View>
       )}
 
@@ -196,22 +194,15 @@ const styles = StyleSheet.create({
   },
   blurView: {
     position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    overflow: 'hidden',
-  },
-  blurTextWrapper: {
-    flex: 1,
+    width: '100%',
+    height: '100%',
     justifyContent: 'center',
-    alignItems: 'center',
   },
   blurText: {
     ...fontStyles.fontSize18_Medium,
     color: COLORS.white,
     textAlign: 'center',
-    alignSelf: 'center',
     letterSpacing: -0.004,
+    top: '-15%',
   },
 });

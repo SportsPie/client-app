@@ -44,6 +44,7 @@ function PerformanceInfo() {
     loginType,
     snsKey,
     codeType,
+    isMarketingAgree,
   } = route.params;
   const [position, setPosition] = useState('');
   const [tall, setTall] = useState('');
@@ -115,6 +116,7 @@ function PerformanceInfo() {
           careerList: career,
           mainFoot,
           optionSelected: true,
+          marketingAgree: isMarketingAgree,
           fcmToken: token ?? '',
         };
         formData.append('dto', {
@@ -127,7 +129,7 @@ function PerformanceInfo() {
           .then(async response => {
             await Utils.login(response.data.data);
             NavigationService.navigate(navName.completeSign, {
-              userName,
+              userNickName,
             });
           })
           .catch(error => {
@@ -157,6 +159,7 @@ function PerformanceInfo() {
           careerList: career,
           mainFoot,
           optionSelected: true,
+          marketingAgree: isMarketingAgree,
           snsKey,
           fcmToken: token ?? '',
         };
@@ -171,7 +174,7 @@ function PerformanceInfo() {
           .then(async response => {
             await Utils.login(response.data.data);
             NavigationService.navigate(navName.completeSign, {
-              userName,
+              userNickName,
             });
           })
           .catch(error => {
@@ -201,6 +204,7 @@ function PerformanceInfo() {
           careerList: career,
           mainFoot,
           optionSelected: true,
+          marketingAgree: isMarketingAgree,
           snsKey,
         };
         formData.append('dto', {
@@ -214,7 +218,7 @@ function PerformanceInfo() {
           .then(async response => {
             await Utils.login(response.data.data);
             NavigationService.navigate(navName.completeSign, {
-              userName,
+              userNickName,
             });
           })
           .catch(error => {
@@ -252,6 +256,7 @@ function PerformanceInfo() {
           deviceType: Platform.OS === 'ios' ? 'IOS' : 'AOS',
           deviceModel,
           optionSelected: false,
+          marketingAgree: isMarketingAgree,
           fcmToken: token ?? '',
         };
         formData.append('dto', {
@@ -264,7 +269,7 @@ function PerformanceInfo() {
           .then(async response => {
             await Utils.login(response.data.data);
             NavigationService.navigate(navName.completeSign, {
-              userName,
+              userNickName,
             });
           })
           .catch(error => {
@@ -287,6 +292,7 @@ function PerformanceInfo() {
           deviceType: Platform.OS === 'ios' ? 'IOS' : 'AOS',
           deviceModel,
           optionSelected: false,
+          marketingAgree: isMarketingAgree,
           snsKey,
           fcmToken: token ?? '',
         };
@@ -300,7 +306,7 @@ function PerformanceInfo() {
           .then(async response => {
             await Utils.login(response.data.data);
             NavigationService.navigate(navName.completeSign, {
-              userName,
+              userNickName,
             });
           })
           .catch(error => {
@@ -321,6 +327,7 @@ function PerformanceInfo() {
           osVersion,
           deviceId,
           deviceType: Platform.OS === 'ios' ? 'IOS' : 'AOS',
+          marketingAgree: isMarketingAgree,
           deviceModel,
           optionSelected: false,
           snsKey,
@@ -335,7 +342,7 @@ function PerformanceInfo() {
           .then(async response => {
             await Utils.login(response.data.data);
             NavigationService.navigate(navName.completeSign, {
-              userName,
+              userNickName,
             });
           })
           .catch(error => {

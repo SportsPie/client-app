@@ -224,7 +224,7 @@ function TrainingDetail({ route }) {
       {loading ? (
         <SPLoading />
       ) : (
-        <ScrollView>
+        <ScrollView showsVerticalScrollIndicator={false}>
           <ImageBackground
             source={
               trainingSummary.bannerPath

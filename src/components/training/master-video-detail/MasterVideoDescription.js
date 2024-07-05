@@ -14,7 +14,7 @@ const MAX_DESC_LENGTH = 100;
 function MasterVideoDescription({
   videoIdx = '',
   isLike = false,
-  memberName = '',
+  nickName = '',
   profilePath = '',
   title = '',
   description = '',
@@ -38,7 +38,7 @@ function MasterVideoDescription({
         <View style={styles.bottomSection}>
           <Avatar disableEditMode imageSize={24} imageURL={profilePath} />
           <View style={styles.userNameSection}>
-            <Text style={styles.memberNameText}>{memberName}</Text>
+            <Text style={styles.memberNameText}>{nickName}</Text>
           </View>
         </View>
 
@@ -61,7 +61,7 @@ function MasterVideoDescription({
       <View style={styles.videoScripWrapper}>
         <Text style={styles.videoScripText}>
           {!collapse && description?.length > MAX_DESC_LENGTH
-            ? description?.substring(0, MAX_DESC_LENGTH) + '...'
+            ? `${description?.substring(0, MAX_DESC_LENGTH)}...`
             : description}
         </Text>
 

@@ -92,6 +92,14 @@ function AcademyDetail({
    */
   useFocusEffect(
     useCallback(() => {
+      return () => {
+        setAcademyDetail({});
+      };
+    }, []),
+  );
+
+  useFocusEffect(
+    useCallback(() => {
       onFocus();
     }, [isJoined]),
   );
@@ -134,11 +142,17 @@ function AcademyDetail({
         shareDescription={academyDetail?.description ?? ''}
       />
       <ScrollView
+        showsVerticalScrollIndicator={false}
         contentContainerStyle={{
           paddingBottom: 24,
         }}>
         {/* 아카데미 상세 이미지 */}
-        <View style={[styles.swiperBox, isModal && { marginVertical: 24 }]}>
+        <View
+          style={[
+            styles.swiperBox,
+            isModal && { marginVertical: 24 },
+            { height: imageHeight },
+          ]}>
           {academyDetail?.files?.length > 0 && (
             <Swiper
               style={{ height: imageHeight }}
@@ -337,15 +351,13 @@ function AcademyDetail({
                 </View>
               )}
             </View>
-            {showTopRow && (
+            {showTopRow && academyDetail.rating !== null && (
               <View style={styles.topRow}>
                 <View>
                   <Image source={SPIcons.icStar} />
                 </View>
                 <Text style={styles.score}>
-                  {academyDetail.rating === null
-                    ? parseFloat(3).toFixed(1)
-                    : academyDetail.rating}
+                  {parseFloat(academyDetail.rating).toFixed(1)}
                 </Text>
               </View>
             )}
@@ -353,18 +365,24 @@ function AcademyDetail({
               <>
                 <View style={styles.contentSubBox}>
                   <Text style={styles.contentSubTitle}>매칭전적</Text>
-                  <Text style={styles.contentSubText}>1승 1무 1패</Text>
+                  <Text style={styles.contentSubText}>
+                    {`${academyDetail.winCnt}승 ${academyDetail.drawCnt}무 ${academyDetail.loseCnt}패`}
+                  </Text>
                 </View>
-                <View style={styles.contentSubBox}>
-                  <Text style={styles.contentSubTitle}>매너점수</Text>
-                  <View style={styles.reviewBox}>
-                    <Image
-                      source={SPIcons.icStar}
-                      style={{ width: 18, height: 18 }}
-                    />
-                    <Text style={styles.contentSubText}>4.5</Text>
+                {academyDetail.rating && (
+                  <View style={styles.contentSubBox}>
+                    <Text style={styles.contentSubTitle}>매너점수</Text>
+                    <View style={styles.reviewBox}>
+                      <Image
+                        source={SPIcons.icStar}
+                        style={{ width: 18, height: 18 }}
+                      />
+                      <Text style={styles.contentSubText}>
+                        {parseFloat(academyDetail.rating).toFixed(1)}
+                      </Text>
+                    </View>
                   </View>
-                </View>
+                )}
               </>
             )}
             <View style={[styles.topRow, { gap: 8 }]}>
@@ -395,7 +413,7 @@ function AcademyDetail({
               style={styles.middleText}
               numberOfLines={showMoreDesc ? 0 : 3}
               onTextLayout={({ nativeEvent: { lines } }) => {
-                setShouldShowMoreButton(lines.length > 3);
+                setShouldShowMoreButton(lines.length > 2);
               }}
               ellipsizeMode="tail">
               {academyDetail.description}

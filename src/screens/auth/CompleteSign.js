@@ -12,7 +12,7 @@ import fontStyles from '../../styles/fontStyles';
 
 function CompleteSign() {
   const route = useRoute();
-  const { userName } = route.params;
+  const { userNickName } = route.params;
 
   const handleGoToSportsPage = () => {
     NavigationService.navigate(navName.home);
@@ -28,7 +28,7 @@ function CompleteSign() {
         <Text
           style={
             fontStyles.fontSize20_Semibold
-          }>{`${userName}님, 반가워요 😊`}</Text>
+          }>{`${userNickName}님, 반가워요 😊`}</Text>
 
         <Text
           style={[

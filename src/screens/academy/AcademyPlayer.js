@@ -19,6 +19,7 @@ import { COLORS } from '../../styles/colors';
 import {
   apiDeleteAcademyConfigMngPlayersByUserIdx,
   apiGetAcademyConfigMngPlayers,
+  apiGetMyInfo,
 } from '../../api/RestAPI';
 import { handleError } from '../../utils/HandleError';
 import { GENDER } from '../../common/constants/gender';
@@ -27,12 +28,14 @@ import Utils from '../../utils/Utils';
 import { ACTIVE_OPACITY } from '../../common/constants/constants';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Header from '../../components/header';
+import { getFcmToken } from '../../utils/FirebaseMessagingService';
 
 function AcademyPlayer({ route }) {
   /**
    * state
    */
   const academyIdx = route?.params?.academyIdx;
+  const [userInfo, setUserInfo] = useState({});
   const [isCollapsed, setIsCollapsed] = useState({});
 
   const [playersGroups, setPlayersGroups] = useState({});
@@ -49,6 +52,15 @@ function AcademyPlayer({ route }) {
   /**
    * api
    */
+  const getUserInfo = async () => {
+    try {
+      const { data } = await apiGetMyInfo();
+      setUserInfo(data.data);
+    } catch (error) {
+      handleError(error);
+    }
+  };
+
   const getPlayers = async () => {
     try {
       const { data } = await apiGetAcademyConfigMngPlayers(academyIdx);
@@ -78,6 +90,14 @@ function AcademyPlayer({ route }) {
     try {
       if (trlRef.current.disabled) return;
       trlRef.current.disabled = true;
+      if (userInfo.userIdx === selectedPlayer.userIdx) {
+        Utils.openModal({
+          title: '알림',
+          body: '본인은 내보낼 수 없습니다.',
+        });
+        trlRef.current.disabled = false;
+        return;
+      }
       const { data } = await apiDeleteAcademyConfigMngPlayersByUserIdx(
         selectedPlayer.userIdx,
       );
@@ -119,6 +139,7 @@ function AcademyPlayer({ route }) {
    */
   useFocusEffect(
     useCallback(() => {
+      getUserInfo();
       getPlayers();
     }, [refresh]),
   );
@@ -223,20 +244,27 @@ function AcademyPlayer({ route }) {
                                     alignItems: 'center',
                                   }}>
                                   <View style={styles.imageBox}>
-                                    {player.profilePath && (
+                                    {player.profilePath ? (
                                       <Image
                                         source={{ uri: player.profilePath }}
+                                        style={{ height: 32, width: 32 }}
+                                      />
+                                    ) : (
+                                      <Image
+                                        source={SPIcons.icPerson}
                                         style={{ height: 32, width: 32 }}
                                       />
                                     )}
                                   </View>
                                   <View style={styles.textBox}>
                                     <View style={styles.textTop}>
-                                      <View style={styles.numberBox}>
-                                        <Text style={styles.numberText}>
-                                          {player.backNo}
-                                        </Text>
-                                      </View>
+                                      {player.backNo && (
+                                        <View style={styles.numberBox}>
+                                          <Text style={styles.numberText}>
+                                            {player.backNo}
+                                          </Text>
+                                        </View>
+                                      )}
                                       <Text style={styles.nameText}>
                                         {player.playerName}
                                       </Text>

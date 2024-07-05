@@ -109,7 +109,7 @@ function MoreStat() {
             />
             <MenuTile
               title="발사이즈"
-              value={stats.height ? `${stats.shoeSize}cm` : '-'}
+              value={stats.height ? `${stats.shoeSize}mm` : '-'}
               containerStyle={styles.statsWrapper}
             />
             <MenuTile
@@ -234,7 +234,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   menuTileContainer: {
-    backgroundColor: COLORS.fillNormal,
+    // backgroundColor: COLORS.fillNormal,
+    backgroundColor: '#F1F5FF',
+    borderWidth: 1,
+    borderColor: 'rgba(135, 141, 150, 0.08)',
     borderRadius: 12,
     padding: 16,
     width: '100%',

@@ -12,34 +12,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Header from '../../components/header';
 
 function MoreSetting() {
-  const handleLogout = () => {
-    Alert.alert(
-      '회원탈퇴',
-      '탈퇴하시겠습니까?',
-      [
-        {
-          text: '예',
-          onPress: async () => {
-            try {
-              await apiRemoveMember();
-              await Utils.logout();
-
-              NavigationService.navigate(navName.login);
-            } catch (error) {
-              handleError(error);
-            }
-          },
-        },
-        {
-          text: '아니오',
-          onPress: () => console.log('아니오를 선택하셨습니다.'),
-          style: 'cancel',
-        },
-      ],
-      { cancelable: false },
-    );
-  };
-
   const openTermsScreen = async type => {
     try {
       const response = await apiGetTermsList(type);
@@ -83,7 +55,7 @@ function MoreSetting() {
         title="회원탈퇴"
         containerStyle={styles.menu}
         titleTextStyle={styles.title}
-        onPress={handleLogout}
+        onPress={() => NavigationService.navigate(navName.unsubscribe)}
       />
     </SafeAreaView>
   );

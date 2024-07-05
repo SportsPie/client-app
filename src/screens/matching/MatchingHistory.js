@@ -16,6 +16,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import {
+  apiGetAcademyDetail,
   apiGetAcademyOpenMatchResults,
   apiGetAcademyOpenMatchResultsByIdx,
   apiPostAcademyJoin,
@@ -33,6 +34,7 @@ import NavigationService from '../../navigation/NavigationService';
 import { COLORS } from '../../styles/colors';
 import { handleError } from '../../utils/HandleError';
 import Utils from '../../utils/Utils';
+import { IS_YN } from '../../common/constants/isYN';
 
 function MatchingHistory({ route }) {
   /**
@@ -46,6 +48,7 @@ function MatchingHistory({ route }) {
   const [joinWait, setJoinWait] = useState(false);
   const [hideMatchingItem, setHideMatchingItem] = useState(false);
   const [matchSatistics, setMatchSatistics] = useState({});
+  const [openPublic, setOpenPublic] = useState(false);
 
   // list
   const [size, setSize] = useState(30);
@@ -72,6 +75,14 @@ function MatchingHistory({ route }) {
   /**
    * api
    */
+  const getAcademyDetail = async () => {
+    try {
+      const { data } = await apiGetAcademyDetail(academyIdx);
+      setOpenPublic(data.data?.academy?.openMatchPublicYn === IS_YN.Y);
+    } catch (error) {
+      handleError(error);
+    }
+  };
 
   const getUserInfo = async () => {
     try {
@@ -202,6 +213,7 @@ function MatchingHistory({ route }) {
   };
 
   const onFocus = () => {
+    getAcademyDetail();
     getMatchingSatistics();
     setIsFocus(false);
   };
@@ -245,7 +257,7 @@ function MatchingHistory({ route }) {
   const renderMatchItem = ({ item, index }) => (
     <View style={styles.contentItem}>
       {/* 미소속 회원일 경우 아래 가입신청 버튼이 보여짐 */}
-      {hideMatchingItem && index > 1 && (
+      {hideMatchingItem && !openPublic && index > 1 && (
         <View style={styles.blurWrapper}>
           <BlurView blurType="light" blurAmount={5} style={styles.blurView}>
             <View style={styles.blurContainer}>

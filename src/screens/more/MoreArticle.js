@@ -85,7 +85,6 @@ function MoreArticle() {
   );
 
   useEffect(() => {
-    console.log(`Fetching data for page: ${currentPage}`);
     getArticleInfo();
   }, [currentPage]);
 

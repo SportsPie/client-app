@@ -73,7 +73,6 @@ function MoreMyDetail() {
       if (data) {
         setMember(data.data);
       }
-      console.log(data.data);
     } catch (error) {
       handleError(error);
     }
@@ -89,7 +88,7 @@ function MoreMyDetail() {
 
       // JSON 파라미터
       const params = {
-        userNickName: newNickname,
+        userNickName: Utils.removeSymbolAndBlank(newNickname),
       };
       formData.append('dto', {
         string: JSON.stringify(params),
@@ -197,6 +196,7 @@ function MoreMyDetail() {
   };
   const closeModal = () => {
     setRegistModalShow(false);
+    setNickname(null);
   };
 
   return (
@@ -334,6 +334,8 @@ function MoreMyDetail() {
         textInputVisible={true}
         textCancelButton
         textAlign="center"
+        placeholder="16자 이내 한글 혹은 영문"
+        maxLength={16}
         textInputStyle={{
           borderWidth: 1,
           borderRadius: 10,
@@ -341,7 +343,10 @@ function MoreMyDetail() {
           paddingHorizontal: 30,
         }}
         value={nickname === null ? member?.userNickName : nickname}
-        onChangeText={text => setNickname(text)}
+        onChangeText={value => {
+          const text = Utils.removeSymbolAndBlank(value);
+          setNickname(text);
+        }}
         onConfirm={value => {
           modifyNickName(value);
         }}
@@ -352,9 +357,9 @@ function MoreMyDetail() {
           closeModal();
         }}
         // 추가: Clear 버튼을 누르면 nickname을 null로 설정
-        clearButtonProps={{
-          onPress: () => setNickname(null), // 또는 원하는 클리어 로직을 넣으세요
-        }}
+        // textCancelButton={{
+        //   onPress: () => setNickname(null), // 또는 원하는 클리어 로직을 넣으세요
+        // }}
       />
     </SafeAreaView>
   );

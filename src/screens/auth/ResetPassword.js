@@ -106,7 +106,9 @@ function ResetPassword() {
       <SafeAreaView style={{ flex: 1 }}>
         <Header title="비밀번호 찾기" />
 
-        <ScrollView contentContainerStyle={styles.container}>
+        <ScrollView
+          contentContainerStyle={styles.container}
+          showsVerticalScrollIndicator={false}>
           <Text style={styles.mainText}>
             {'재설정할 비밀번호를\n입력해주세요.'}
           </Text>

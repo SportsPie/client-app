@@ -1,4 +1,11 @@
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import {
+  Linking,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import React, { memo, useMemo, useState, useCallback } from 'react';
 import Header from '../../components/header';
 import NaverMapView, { Marker } from 'react-native-nmap/index';
@@ -39,6 +46,9 @@ function PlaygroundDetail({ route }) {
   const getPlaygroundDetail = async () => {
     try {
       const { data } = await apiGetPlaygroundDetail(groundIdx);
+      console.log(data);
+      // instagramUrl;
+      // homepageUrl;
 
       if (data) {
         setPlaygroundInfo(data.data);
@@ -46,7 +56,6 @@ function PlaygroundDetail({ route }) {
           latitude: data.data.latitude,
           longitude: data.data.longitude,
         });
-        console.log(data.data.longitude);
       }
     } catch (error) {
       handleError(error);
@@ -88,14 +97,12 @@ function PlaygroundDetail({ route }) {
           <Text style={styles.addressText}>
             {playgroundInfo.groundAddr ? playgroundInfo.groundAddr : '-'}
           </Text>
-          <View style={styles.phoneWrapper}>
-            <SPSvgs.Phone />
-            <Text style={styles.phoneText}>
-              {playgroundInfo.phoneNo
-                ? Utils.addHypenToPhoneNumber(playgroundInfo.phoneNo)
-                : '-'}
-            </Text>
-          </View>
+          {playgroundInfo.phoneNo && (
+            <View style={styles.phoneWrapper}>
+              <SPSvgs.Phone />
+              <Text style={styles.phoneText}>{playgroundInfo.phoneNo}</Text>
+            </View>
+          )}
         </View>
 
         <NaverMapView
@@ -106,34 +113,14 @@ function PlaygroundDetail({ route }) {
         </NaverMapView>
       </View>
     );
-  }, [playgroundInfo]);
+  }, [playgroundInfo, camera]);
 
   const renderOperatingTime = useMemo(() => {
     return (
       <View style={styles.contentWrapper}>
         <Text style={styles.headlineText}>운영시간</Text>
-        {playgroundInfo.schedules &&
-          playgroundInfo.schedules
-            .filter(schedule => schedule.offYn === 'N')
-            .map((schedule, index) => (
-              <Text style={styles.contentText}>
-                {`${weekDays[schedule.week]} ${formatTime(
-                  schedule.openTime,
-                )} - ${formatTime(schedule.closeTime)}`}
-              </Text>
-            ))}
         <Text style={styles.contentText}>
-          {playgroundInfo.schedules &&
-            `휴무일 : ${
-              playgroundInfo?.schedules.filter(
-                schedule => schedule.offYn === 'Y',
-              ).length !== 0
-                ? playgroundInfo?.schedules
-                    .filter(schedule => schedule.offYn === 'Y')
-                    .map(schedule => weekDays[schedule.week])
-                    .join(', ')
-                : '없음'
-            }`}
+          {playgroundInfo.groundSchedule ? playgroundInfo.groundSchedule : '-'}
         </Text>
       </View>
     );
@@ -152,18 +139,27 @@ function PlaygroundDetail({ route }) {
 
   const renderLinks = useMemo(() => {
     return (
-      <View style={styles.contentWrapper}>
-        <Text style={styles.headlineText}>홈페이지</Text>
-
-        <View style={styles.linkWrapper}>
-          <Pressable>
-            <SPSvgs.Instagram />
-          </Pressable>
-          <Pressable>
-            <SPSvgs.Website />
-          </Pressable>
+      (playgroundInfo.instagramUrl || playgroundInfo.homepageUrl) && (
+        <View style={styles.contentWrapper}>
+          <Text style={styles.headlineText}>홈페이지</Text>
+          <View style={styles.linkWrapper}>
+            {playgroundInfo.instagramUrl && (
+              <Pressable
+                onPress={() =>
+                  Utils.openInstagram(playgroundInfo.instagramUrl)
+                }>
+                <SPSvgs.Instagram />
+              </Pressable>
+            )}
+            {playgroundInfo.homepageUrl && (
+              <Pressable
+                onPress={() => Linking.openURL(playgroundInfo.homepageUrl)}>
+                <SPSvgs.Website />
+              </Pressable>
+            )}
+          </View>
         </View>
-      </View>
+      )
     );
   }, [playgroundInfo]);
 

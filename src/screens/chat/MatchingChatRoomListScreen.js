@@ -387,6 +387,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 4,
     marginBottom: 4,
+    flexShrink: 1,
   },
   nameText: {
     fontSize: 13,
@@ -401,6 +402,7 @@ const styles = StyleSheet.create({
     color: COLORS.orange,
     lineHeight: 14,
     letterSpacing: 0.342,
+    flexShrink: 1,
   },
   timeText: {
     fontSize: 11,

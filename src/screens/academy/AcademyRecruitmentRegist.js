@@ -109,11 +109,31 @@ function AcademyRecruitmentRegist({ route }) {
     }
   };
 
+  const checkEndIsOverNow = () => {
+    if (isAlwaysRecruiting) {
+      return true;
+    }
+    const now = `${moment().format('YYYY-MM-DD')} ${moment().format(
+      'HH:mm:ss',
+    )}`;
+    const end = `${moment(endDate).format('YYYY-MM-DD')} ${moment(
+      endTime,
+    ).format('HH:mm:ss')}`;
+    return moment(now).toDate().getTime() > moment(end).toDate().getTime();
+  };
+
   const regist = async () => {
     closeModal();
     try {
       if (trlRef.current.disabled) return;
       trlRef.current.disabled = true;
+      if (checkEndIsOverNow()) {
+        Utils.openModal({
+          title: '알림',
+          body: '현재 시간이 종료일보다 빠릅니다.',
+        });
+        return;
+      }
       const params = {
         title,
         contents: description,
@@ -136,8 +156,9 @@ function AcademyRecruitmentRegist({ route }) {
       });
     } catch (error) {
       handleError(error);
+    } finally {
+      trlRef.current.disabled = false;
     }
-    trlRef.current.disabled = false;
   };
 
   /**
@@ -202,7 +223,7 @@ function AcademyRecruitmentRegist({ route }) {
     return (
       title &&
       description &&
-      description.length > 10 &&
+      description.length > 9 &&
       selectedGenderType &&
       selectedClassType &&
       selectedPeriodType &&
@@ -271,7 +292,9 @@ function AcademyRecruitmentRegist({ route }) {
         }}>
         <SafeAreaView style={styles.container}>
           <Header title="아카데미 회원 모집 공고" />
-          <ScrollView style={styles.subContainer}>
+          <ScrollView
+            style={styles.subContainer}
+            showsVerticalScrollIndicator={false}>
             <View style={styles.subBox}>
               <Text style={styles.mainTitle}>공고 정보</Text>
               {/* 제목 */}
@@ -282,8 +305,10 @@ function AcademyRecruitmentRegist({ route }) {
                     style={styles.subTextInput}
                     placeholder="공고 제목을 입력해주세요."
                     value={title}
-                    onChangeText={value => setTitle(value)}
-                    maxLength={45}
+                    onChangeText={value => {
+                      if (value?.length > 45) return;
+                      setTitle(value);
+                    }}
                   />
                 </View>
               </View>
@@ -522,7 +547,7 @@ function AcademyRecruitmentRegist({ route }) {
                                 textMonthFontWeight: '600',
                               }}
                               monthFormat="yyyy년 MM월"
-                              minDate={moment().format('YYYY-MM-DD')}
+                              // minDate={moment().format('YYYY-MM-DD')}
                               maxDate={moment(endDate).format('YYYY-MM-DD')}
                             />
                           </View>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, memo } from 'react';
+import React, { useState, useEffect, memo, useRef } from 'react';
 import {
   FlatList,
   Image,
@@ -33,6 +33,7 @@ function MatchingSelectScorer({ route }) {
   // --------------------------------------------------
   // [ State ]
   // --------------------------------------------------
+  const trlRef = useRef({ current: { disabled: false } });
   const [isCollapsed, setIsCollapsed] = useState({});
   const [selectedPlayerIdx, setSelectedPlayerIdx] = useState([]);
   const [homeAcademyIdx, setHomeAcademyIdx] = useState();
@@ -79,6 +80,8 @@ function MatchingSelectScorer({ route }) {
   };
 
   const selectPlayers = async async => {
+    if (trlRef.current.disabled) return;
+    trlRef.current.disabled = true;
     try {
       const param = constructParam();
 
@@ -103,6 +106,7 @@ function MatchingSelectScorer({ route }) {
     } catch (error) {
       handleError(error);
     }
+    trlRef.current.disabled = false;
   };
 
   // --------------------------------------------------
@@ -158,7 +162,6 @@ function MatchingSelectScorer({ route }) {
   };
 
   const handleCheckboxPress = playerIdx => {
-    console.log('playerIdx', playerIdx);
     setSelectedPlayerIdx(prevIdx =>
       prevIdx.includes(playerIdx)
         ? prevIdx.filter(idx => idx !== playerIdx)
@@ -253,14 +256,23 @@ function MatchingSelectScorer({ route }) {
         styles.contentItem,
         isCollapsed[index] ? { gap: 8 } : { gap: 0 },
       ]}>
-      <View style={styles.itemHeader}>
+      <View style={[styles.itemHeader]}>
         <View style={styles.itemTitleContainer}>
-          <Text style={styles.contentTitle}>
-            {item.title === 'unspecified' ? '미지정' : item.title}
-          </Text>
-          <Text style={[styles.contentTitle, { color: '#FF671F' }]}>
-            {item.data.length}
-          </Text>
+          <View
+            style={{
+              flex: 1,
+              flexDirection: 'row',
+              alignItems: 'flex-start',
+              gap: 8,
+              marginRight: 48,
+            }}>
+            <Text style={styles.contentTitle}>
+              {item.title === 'unspecified' ? '미지정' : item.title}
+            </Text>
+            <Text style={[styles.contentTitle, { color: '#FF671F' }]}>
+              {item.data.length}
+            </Text>
+          </View>
         </View>
         <TouchableOpacity onPress={() => toggleCollapse(index)}>
           <Image
@@ -291,10 +303,15 @@ function MatchingSelectScorer({ route }) {
                   />
                 </TouchableOpacity>
                 <View style={styles.imageBox}>
-                  {player.profilePath && (
+                  {player.profilePath ? (
                     <Image
                       source={{ uri: player.profilePath }}
-                      style={{ height: 32, width: 32 }}
+                      style={{ height: 32, width: 32, borderRadius: 16 }}
+                    />
+                  ) : (
+                    <Image
+                      source={SPIcons.icPerson}
+                      style={{ height: 32, width: 32, borderRadius: 16 }}
                     />
                   )}
                 </View>
@@ -324,7 +341,7 @@ function MatchingSelectScorer({ route }) {
                     styles.scoreButton,
                     (player.score || 0) === 0 && styles.disabledScoreButton,
                   ]}
-                  hitSlop={8}
+                  hitSlop={15}
                   disabled={
                     !selectedPlayerIdx.includes(player.userIdx) ||
                     (player.score || 0) === 0
@@ -337,7 +354,7 @@ function MatchingSelectScorer({ route }) {
                 <TouchableOpacity
                   onPress={() => incrementScore(player.userIdx)}
                   style={styles.scoreButton}
-                  hitSlop={8}
+                  hitSlop={15}
                   disabled={!selectedPlayerIdx.includes(player.userIdx)}>
                   <Image source={SPIcons.icPlus} />
                 </TouchableOpacity>
@@ -359,10 +376,15 @@ function MatchingSelectScorer({ route }) {
         .map(player => (
           <View key={player.userIdx} style={styles.selectedPlayerContainer}>
             <View style={styles.addImageBox}>
-              {player.profilePath && (
+              {player.profilePath ? (
                 <Image
                   source={{ uri: player.profilePath }}
-                  style={{ height: 24, width: 24 }}
+                  style={{ height: 32, width: 32, borderRadius: 16 }}
+                />
+              ) : (
+                <Image
+                  source={SPIcons.icPerson}
+                  style={{ height: 24, width: 24, borderRadius: 12 }}
                 />
               )}
             </View>
@@ -420,14 +442,18 @@ function MatchingSelectScorer({ route }) {
       <TouchableOpacity
         style={[
           styles.clearBtn,
-          isDisabled ? styles.disabledClearBtn : styles.enabledClearBtn,
+          isDisabled || selectedPlayerIdx?.length === 0
+            ? styles.disabledClearBtn
+            : styles.enabledClearBtn,
         ]}
-        onPress={() => setModalVisible(true)}
-        disabled={isDisabled}>
+        onPress={() => {
+          setModalVisible(true);
+        }}
+        disabled={isDisabled || selectedPlayerIdx?.length === 0}>
         <Text
           style={[
             styles.clearBtnText,
-            isDisabled
+            isDisabled || selectedPlayerIdx?.length === 0
               ? styles.disabledClearBtnText
               : styles.enabledClearBtnText,
           ]}>
@@ -519,12 +545,13 @@ const styles = {
   itemHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-start',
   },
   itemTitleContainer: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     gap: 8,
+    flexShrink: 1,
   },
   contentTitle: {
     fontSize: 18,
@@ -532,6 +559,7 @@ const styles = {
     color: '#1A1C1E',
     lineHeight: 26,
     letterSpacing: -0.004,
+    flexShrink: 1,
   },
   playerItem: {
     flexDirection: 'row',

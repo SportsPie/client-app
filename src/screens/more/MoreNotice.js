@@ -69,7 +69,6 @@ function MoreNotice() {
   );
 
   useEffect(() => {
-    console.log(`Fetching data for page: ${currentPage}`);
     getNoticeInfo();
   }, [currentPage]);
 

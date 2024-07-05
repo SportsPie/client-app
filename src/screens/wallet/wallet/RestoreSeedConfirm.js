@@ -77,7 +77,9 @@ function RestoreSeedConfirm() {
   return (
     <SafeAreaView style={styles.container}>
       <Header closeIcon />
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}>
         <View style={styles.headerWrapper}>
           <Text style={styles.headerText}>
             {'복구시드를\n안전하게 확인하세요'}

@@ -52,6 +52,7 @@ function TournamentDetail({ route }) {
   const getTournamentDetail = async () => {
     try {
       const { data } = await apiGetTournamentDetail(tournamentIdx);
+      console.log('test3');
 
       if (data) {
         setTournamentInfo(data.data);
@@ -84,6 +85,7 @@ function TournamentDetail({ route }) {
 
   const getMyInfo = async () => {
     if (!isLogin) {
+      console.log('test');
       return;
     }
     try {
@@ -139,12 +141,16 @@ function TournamentDetail({ route }) {
   const renderCompetitionInfo = useMemo(() => {
     return (
       <View>
-        <Image
-          source={{
-            uri: `${tournamentInfo.thumbUrl}`,
-          }}
-          style={styles.coverImage}
-        />
+        {tournamentInfo.thumbUrl ? (
+          <Image
+            source={{
+              uri: `${tournamentInfo.thumbUrl}`,
+            }}
+            style={styles.coverImage}
+          />
+        ) : (
+          ''
+        )}
 
         <View style={styles.statusWrapper}>
           <Text
@@ -179,17 +185,21 @@ function TournamentDetail({ route }) {
           {tournamentInfo.trnNm ? tournamentInfo.trnNm : '-'}
         </Text>
 
-        <Image
-          source={{
-            uri: `${tournamentInfo.posterUrl}`,
-          }}
-          style={[
-            styles.coverImage,
-            {
-              height: (SCREEN_HEIGHT * 491) / 800,
-            },
-          ]}
-        />
+        {tournamentInfo.posterUrl ? (
+          <Image
+            source={{
+              uri: `${tournamentInfo.posterUrl}`,
+            }}
+            style={[
+              styles.coverImage,
+              {
+                height: (SCREEN_HEIGHT * 491) / 800,
+              },
+            ]}
+          />
+        ) : (
+          ''
+        )}
 
         <View style={styles.competitionWrapper}>
           <Text style={styles.headlineText}>대회정보</Text>
@@ -338,7 +348,7 @@ function TournamentDetail({ route }) {
         {renderOtherInfo}
       </ScrollView>
 
-      {member.academyAdmin &&
+      {member?.academyAdmin &&
         (tournamentStatus.code === TOURNAMENT_STATE.REGISTERING.code ||
           tournamentInfo.isApply) && (
           <PrimaryButton

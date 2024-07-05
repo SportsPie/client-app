@@ -199,6 +199,7 @@ function Community() {
         setIsFocus(true);
         setFeedList([]);
         setIsLast(false);
+        setIsInit(true);
       };
     }, []),
   );
@@ -248,6 +249,7 @@ function Community() {
         <ScrollView
           contentContainerStyle={styles.filterWrapper}
           horizontal
+          showsVerticalScrollIndicator={false}
           showsHorizontalScrollIndicator={false}>
           {filterList &&
             filterList.length > 0 &&
@@ -307,13 +309,13 @@ function Community() {
             style={styles.searchInput}
             value={keyword}
             onChangeText={e => {
+              if (e?.length > 50) return;
               setKeyword(e);
             }}
             placeholder="검색어를 입력해주세요"
             placeholderTextColor="rgba(46, 49, 53, 0.60)"
             autoCorrect={false}
             autoCapitalize="none"
-            maxLength={50}
             onSubmitEditing={searching}
             returnKeyType="search"
           />

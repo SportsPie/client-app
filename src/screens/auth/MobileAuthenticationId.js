@@ -11,6 +11,7 @@ import { navName } from '../../common/constants/navName';
 import Header from '../../components/header';
 import NavigationService from '../../navigation/NavigationService';
 import { handleError } from '../../utils/HandleError';
+import Utils from '../../utils/Utils';
 
 function MobileAuthenticationId() {
   const webviewRef = useRef(null);
@@ -40,15 +41,25 @@ function MobileAuthenticationId() {
           userPhoneNo: parsedData.mobileNo,
         };
 
-        const memberData = await apiVerifyId(params);
-
-        if (memberData !== null) {
-          NavigationService.navigate(navName.alreadySign, { memberData });
+        const { data } = await apiVerifyId(params);
+        if (data.data !== null) {
+          NavigationService.navigate(navName.findUserId, {
+            memberData: data.data,
+          });
         }
       }
     } catch (error) {
-      handleError(error);
-      NavigationService.navigate(navName.findUser);
+      if (error.code === 1101) {
+        NavigationService.goBack(2);
+        setTimeout(() => {
+          Utils.openModal({
+            title: '알림',
+            body: '해당 휴대폰 번호로 가입된 \n아이디를 찾지 못하였습니다.',
+          });
+        }, 0);
+      } else {
+        handleError(error);
+      }
     }
   };
 

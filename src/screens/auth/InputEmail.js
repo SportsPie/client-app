@@ -10,22 +10,48 @@ import SPInput from '../../components/SPInput';
 import Header from '../../components/header';
 import NavigationService from '../../navigation/NavigationService';
 import fontStyles from '../../styles/fontStyles';
+import { handleError } from '../../utils/HandleError';
+import SPHeader from '../../components/SPHeader';
 
 function InputEmail() {
   const [email, setEmail] = useState('');
-  const [isValidEmail, setIsValidEmail] = useState(true);
+  const [isValidEmail, setIsValidEmail] = useState(false);
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const route = useRoute();
-  const { userName, userBirth, userPhoneNo, userGender, loginType } =
-    route.params;
-
+  const {
+    userName,
+    userBirth,
+    userPhoneNo,
+    userGender,
+    loginType,
+    isMarketingAgree,
+  } = route.params;
   useEffect(() => {
     const emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
     setIsValidEmail(emailPattern.test(email));
   }, [email]);
 
-  const handleBlur = () => {
+  useEffect(() => {
+    const checkEmail = async () => {
+      try {
+        await apiValidateEmail(email);
+        // 이메일 유효성 검사가 성공하면 오류 메시지를 초기화
+        setErrorMessage('');
+      } catch (error) {
+        if (error.code === 1102) {
+          setErrorMessage('중복된 아이디입니다.');
+        }
+      }
+    };
+
+    // 이메일이 유효성 검사에 필요한 조건 변경 시에만 실행
+    if (isValidEmail && isInputFocused && email !== '') {
+      checkEmail();
+    }
+  }, [isValidEmail, isInputFocused, email]);
+
+  const handleBlur = async () => {
     setIsInputFocused(false);
   };
 
@@ -54,29 +80,25 @@ function InputEmail() {
     if (!isValidEmail) {
       return;
     }
+    NavigationService.navigate(navName.inputPassword, {
+      userName,
+      userBirth,
+      userPhoneNo,
+      userGender,
+      loginType,
+      isMarketingAgree,
+      userLoginId: email,
+    });
+  };
 
-    try {
-      const response = await apiValidateEmail(email);
-
-      NavigationService.navigate(navName.inputPassword, {
-        userName,
-        userBirth,
-        userPhoneNo,
-        userGender,
-        loginType,
-        userLoginId: email,
-      });
-    } catch (error) {
-      setErrorMessage('중복된 아이디입니다.');
-      setEmail(''); // 이메일 입력란 초기화
-      setIsValidEmail(true);
-    }
+  const handleLeftButtonPress = () => {
+    NavigationService.navigate(navName.login); // navName.identifyVerification는 실제 네비게이션 이름에 맞게 수정해야 합니다.
   };
 
   return (
     <DismissKeyboard>
       <SafeAreaView style={{ flex: 1 }}>
-        <Header title="회원 가입" />
+        <SPHeader title="회원 가입" onPressLeftBtn={handleLeftButtonPress} />
 
         <View style={styles.container}>
           <Text style={fontStyles.fontSize18_Semibold}>
@@ -93,11 +115,10 @@ function InputEmail() {
               (!isValidEmail && !isInputFocused && email.trim() !== '') ||
               errorMessage
             }
-            success={isValidEmail}
+            success={isValidEmail && !errorMessage}
             keyboardType="email-address"
             onFocus={handleFocus}
           />
-
           <PrimaryButton
             text="다음"
             onPress={nextPage}

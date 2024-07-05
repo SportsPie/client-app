@@ -6,7 +6,6 @@ import React, {
   View,
 } from 'react-native';
 import { useEffect } from 'react';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import BackHandlerUtils from '../utils/BackHandlerUtils';
 import SPIcons from '../assets/icon';
 import NavigationService from '../navigation/NavigationService';
@@ -55,7 +54,6 @@ export default function SPHeader({
   leftButtonIcon,
   ...props
 }) {
-  const { top: topAsset } = useSafeAreaInsets();
   headerProps = {
     title,
     navigation,

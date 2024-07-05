@@ -37,15 +37,15 @@ function AcademyItem({ item, containerStyle }) {
 
             <View style={styles.divider} />
 
-            <View style={styles.starWrapper}>
-              <SPSvgs.Star />
-              <Text style={styles.addressText}>
-                {item?.rating === null ? parseFloat(3).toFixed(1) : item.rating}
-              </Text>
-            </View>
-
-            <View style={styles.divider} />
-
+            {item.rating != null && (
+              <View style={styles.starWrapper}>
+                <SPSvgs.Star />
+                <Text style={styles.addressText}>
+                  {parseFloat(item.rating).toFixed(1)}
+                </Text>
+              </View>
+            )}
+            {item.rating != null && <View style={styles.divider} />}
             <Text style={styles.addressText}>리뷰 {item?.reviewCnt}</Text>
           </View>
         </View>

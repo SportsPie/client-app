@@ -71,6 +71,7 @@ function SocialToken() {
           scrollEventThrottle={16}
           pagingEnabled
           horizontal
+          showsVerticalScrollIndicator={false}
           showsHorizontalScrollIndicator={false}>
           <SocialTokenBalance value={point} />
           {createdWallet && <WalletBalance value={balance} />}

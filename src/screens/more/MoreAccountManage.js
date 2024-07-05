@@ -33,7 +33,7 @@ function MoreAccountManage() {
   );
 
   const logout = async () => {
-    await Utils.logout();
+    await Utils.logout(true);
   };
 
   return (

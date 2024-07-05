@@ -115,7 +115,7 @@ function MasterLastComment({ videoIdx = '' }) {
             <View style={styles.commentSection}>
               <View style={styles.userAndDateSection}>
                 <Text style={fontStyles.fontSize13_Semibold}>
-                  {commentList[0].memberName}
+                  {commentList[0].memberNickName}
                 </Text>
                 <Text style={styles.dateText}>
                   {format(commentList[0].regDate, 'yyyy.MM.dd')}
@@ -173,6 +173,7 @@ const styles = StyleSheet.create({
   },
   commentSection: {
     rowGap: 4,
+    flexShrink: 1,
   },
   userAndDateSection: {
     flexDirection: 'row',

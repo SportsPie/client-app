@@ -53,8 +53,8 @@ function UserInfo() {
     loginType,
     snsKey,
     codeType,
+    isMarketingAgree,
   } = route.params;
-
   const nextPage = async () => {
     let params;
     if (loginType === 'EMAIL') {
@@ -67,10 +67,11 @@ function UserInfo() {
         userLoginPassword,
         logoImage,
         loginType,
-        userNickName: nickName,
+        userNickName: Utils.removeSymbolAndBlank(nickName),
         referralCode: recommend,
         userRegion: selectedRegion,
         userSubRegion: selectedSubRegion,
+        isMarketingAgree,
       };
     } else {
       params = {
@@ -83,10 +84,11 @@ function UserInfo() {
         loginType,
         snsKey,
         codeType,
-        userNickName: nickName,
+        userNickName: Utils.removeSymbolAndBlank(nickName),
         referralCode: recommend,
         userRegion: selectedRegion,
         userSubRegion: selectedSubRegion,
+        isMarketingAgree,
       };
     }
 
@@ -128,7 +130,6 @@ function UserInfo() {
     const fetchSubRegionData = async () => {
       try {
         const response = await apiGuList(selectedRegion); // selectedRegion 값 사용
-        console.log('Gu list data:', response.data);
         setSubRegions(
           response.data.data?.map(item => {
             return {
@@ -154,13 +155,14 @@ function UserInfo() {
       setSelectedSubRegion('-');
     }
   }, [selectedRegion]);
-  console.log(selectedSubRegion);
   return (
     <DismissKeyboard>
       <SafeAreaView style={{ flex: 1 }}>
         <Header title="회원 가입" />
 
-        <ScrollView contentContainerStyle={styles.container}>
+        <ScrollView
+          contentContainerStyle={styles.container}
+          showsVerticalScrollIndicator={false}>
           <Text style={fontStyles.fontSize18_Semibold}>
             {'회원님의 정보를\n입력해주세요.'}
           </Text>
@@ -176,10 +178,13 @@ function UserInfo() {
           {/* Nickname */}
           <SPInput
             title="닉네임"
-            placeholder="8자 이내 한글 혹은 영문 닉네임을 입력하세요"
-            maxLength={8}
+            placeholder="16자 이내 한글 혹은 영문 닉네임을 입력하세요"
+            maxLength={16}
             value={nickName}
-            onChangeText={setNickName}
+            onChangeText={value => {
+              const text = Utils.removeSymbolAndBlank(value);
+              setNickName(text);
+            }}
           />
 
           {/* Country */}

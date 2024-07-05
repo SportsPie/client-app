@@ -44,7 +44,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   input: {
-    width: '100%',
+    flex: 1,
     ...fontStyles.fontSize14_Regular,
+    height: '100%',
   },
 });

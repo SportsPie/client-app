@@ -7,6 +7,7 @@ import {
   Image,
   Modal,
   Platform,
+  Pressable,
   RefreshControl,
   Text,
   TextInput,
@@ -38,7 +39,10 @@ import moment from 'moment';
 import { IS_YN } from '../../common/constants/isYN';
 import AcademyJoinModal from './AcademyJoinModal';
 import { MODAL_CLOSE_EVENT } from '../../common/constants/modalCloseEvent';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 import Header from '../../components/header';
 
 // 커뮤니티 이미지 슬라이드
@@ -49,7 +53,7 @@ function CarouselSection({ challengeData, openImageModal, setSelectedImage }) {
   const calculatedHeight = screenWidth / aspectRatio; // 디바이스 크기에 비례하는 높이
   const dynamicHeight = Math.max(minHeight, calculatedHeight);
   const renderItem = ({ item }) => (
-    <TouchableOpacity
+    <Pressable
       onPress={() => {
         setSelectedImage(item.fileUrl);
         openImageModal();
@@ -62,7 +66,7 @@ function CarouselSection({ challengeData, openImageModal, setSelectedImage }) {
           { height: dynamicHeight },
         ]}
       />
-    </TouchableOpacity>
+    </Pressable>
   );
   return (
     <Carousel
@@ -86,6 +90,7 @@ function AcademyCommunity({ route }) {
    */
 
   const flatListRef = useRef();
+  const insets = useSafeAreaInsets();
 
   const [userInfo, setUserInfo] = useState(null);
   const academyIdx = route?.params.academyIdx;
@@ -346,13 +351,13 @@ function AcademyCommunity({ route }) {
             style={styles.textInput}
             value={keyword}
             onChangeText={e => {
+              if (e?.length > 50) return;
               setKeyword(e);
             }}
             placeholder="검색어를 입력해주세요"
             placeholderTextColor="rgba(46, 49, 53, 0.60)"
             autoCorrect={false}
             autoCapitalize="none"
-            maxLength={50}
             onSubmitEditing={searching}
             returnKeyType="search"
           />
@@ -436,7 +441,7 @@ function AcademyCommunity({ route }) {
                             />
                           )}
                         </View>
-                        <View>
+                        <View style={{ flexShrink: 1, flexGrow: 1 }}>
                           <Text style={styles.name}>{item.userNickname}</Text>
                           <Text style={styles.dateCreated}>
                             {moment(item.regDate).format('YYYY.MM.DD')}
@@ -471,9 +476,15 @@ function AcademyCommunity({ route }) {
                     </View>
 
                     {/* 내용 */}
-                    <View>
+                    <Pressable
+                      onPress={() => {
+                        NavigationService.navigate(
+                          navName.academyCommunityDetail,
+                          { feedIdx: item.feedIdx, academyIdx },
+                        );
+                      }}>
                       <Text style={styles.communityText}>{item.contents}</Text>
-                    </View>
+                    </Pressable>
                     {/* 이미지 슬라이드 */}
                     {item.files && item.files.length > 0 && (
                       <View style={{ overflow: 'hidden' }}>
@@ -606,7 +617,10 @@ function AcademyCommunity({ route }) {
           visible={imageModalShow}
           onRequestClose={closeImageModal}>
           <SafeAreaView style={{ flex: 1, backgroundColor: '#000' }}>
-            <View>
+            <View
+              style={{
+                marginTop: insets.top,
+              }}>
               <TouchableOpacity
                 onPress={closeImageModal}
                 style={{
@@ -738,13 +752,14 @@ const styles = {
   communityTitle: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     gap: 8,
   },
   communityLeft: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     gap: 8,
+    flexShrink: 1,
   },
   name: {
     fontSize: 13,

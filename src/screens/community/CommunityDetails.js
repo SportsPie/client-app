@@ -1,11 +1,12 @@
 import { SCREEN_WIDTH } from '@gorhom/bottom-sheet';
+import { useFocusEffect } from '@react-navigation/native';
 import React, {
   memo,
   useCallback,
+  useEffect,
   useMemo,
   useRef,
   useState,
-  useEffect,
 } from 'react';
 import {
   Dimensions,
@@ -21,16 +22,12 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 import Carousel from 'react-native-snap-carousel';
-import { SPSvgs } from '../../assets/svg';
-import Avatar from '../../components/Avatar';
-import Divider from '../../components/Divider';
-import Header from '../../components/header';
-import { COLORS } from '../../styles/colors';
-import fontStyles from '../../styles/fontStyles';
-import Utils from '../../utils/Utils';
-import moment from 'moment';
-import DismissKeyboard from '../../components/DismissKeyboard';
+import { useSelector } from 'react-redux';
 import {
   apiGetCommunityCommentList,
   apiGetCommunityDetail,
@@ -43,21 +40,25 @@ import {
   apiPostCommunityComment,
   apiPutCommunityComment,
 } from '../../api/RestAPI';
-import { handleError } from '../../utils/HandleError';
-import { REPORT_TYPE } from '../../common/constants/reportType';
-import { useSelector } from 'react-redux';
-import { useFocusEffect } from '@react-navigation/native';
-import { SPToast } from '../../components/SPToast';
-import Loading from '../../components/SPLoading';
 import SPIcons from '../../assets/icon';
+import { SPSvgs } from '../../assets/svg';
+import { REPORT_TYPE } from '../../common/constants/reportType';
+import Avatar from '../../components/Avatar';
+import DismissKeyboard from '../../components/DismissKeyboard';
+import Divider from '../../components/Divider';
+import SPHeader from '../../components/SPHeader';
+import Loading from '../../components/SPLoading';
 import SPMoreModal, {
   MODAL_MORE_BUTTONS,
   MODAL_MORE_TYPE,
 } from '../../components/SPMoreModal';
+import { SPToast } from '../../components/SPToast';
+import Header from '../../components/header';
 import NavigationService from '../../navigation/NavigationService';
-import SPHeader from '../../components/SPHeader';
-import { MODAL_CLOSE_EVENT } from '../../common/constants/modalCloseEvent';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { COLORS } from '../../styles/colors';
+import fontStyles from '../../styles/fontStyles';
+import { handleError } from '../../utils/HandleError';
+import Utils from '../../utils/Utils';
 
 function CommunityDetails({
   route,
@@ -72,11 +73,12 @@ function CommunityDetails({
   // --------------------------------------------------
   const scrollRef = useRef();
   const targetRef = useRef();
+  const insets = useSafeAreaInsets();
 
   const isLogin = useSelector(selector => selector.auth)?.isLogin;
   const contentsIdx = route?.params?.feedIdx;
 
-  const [userInfo, setUserInfo] = useState(null);
+  const [userInfo, setUserInfo] = useState({});
   const [feedDetail, setFeedDetail] = useState({});
   const [comment, setComment] = useState('');
   const [showOptionButton, setShowOptionButton] = useState(false);
@@ -306,6 +308,7 @@ function CommunityDetails({
 
   const onFocus = async () => {
     try {
+      await getUserInfo();
       await getDetail();
     } catch (error) {
       handleError(error);
@@ -322,13 +325,13 @@ function CommunityDetails({
     }, []),
   );
 
-  useFocusEffect(
-    useCallback(() => {
-      if (!isFocus) {
-        getUserInfo();
-      }
-    }, [isFocus]),
-  );
+  // useFocusEffect(
+  //   useCallback(() => {
+  //     if (!isFocus) {
+  //       getUserInfo();
+  //     }
+  //   }, [isFocus]),
+  // );
 
   useFocusEffect(
     useCallback(() => {
@@ -425,8 +428,9 @@ function CommunityDetails({
 
         <View style={styles.hashtagContainer}>
           {feedDetail?.tagsKo?.length > 0 &&
-            feedDetail?.tagsKo.map(item => (
-              <View style={styles.hashtagWrapper}>
+            feedDetail?.tagsKo.map((item, index) => (
+              // eslint-disable-next-line react/no-array-index-key
+              <View style={styles.hashtagWrapper} key={index}>
                 <Text style={styles.hashtagText}>#{item}</Text>
               </View>
             ))}
@@ -473,7 +477,7 @@ function CommunityDetails({
           {commentList && commentList.length > 0 ? (
             commentList.map((item, index) => {
               return (
-                <View style={{ rowGap: 8 }} key={item?.id}>
+                <View style={{ rowGap: 8 }} key={index}>
                   <View
                     style={[
                       styles.userInfoSection,
@@ -521,34 +525,37 @@ function CommunityDetails({
 
   const renderCommentInputSection = useMemo(() => {
     return (
-      <View style={styles.inputSection}>
-        <Avatar
-          disableEditMode
-          imageURL={userInfo?.userProfilePath}
-          imageSize={24}
-        />
-        <TextInput
-          placeholder="댓글을 남겨보세요"
-          style={styles.input}
-          value={comment}
-          onChangeText={e => {
-            setComment(e);
-          }}
-          autoCorrect={false}
-          autoCapitalize="none"
-          placeholderTextColor="rgba(46, 49, 53, 0.60)"
-          multiline
-          textAlignVertical="top"
-          retrunKeyType="next"
-        />
-        {comment && (
-          <TouchableOpacity
-            disabled={!comment}
-            onPress={() => registComment()}
-            style={styles.submitCommentButton}>
-            <SPSvgs.Send />
-          </TouchableOpacity>
-        )}
+      <View>
+        <Divider />
+        <View style={styles.inputSection}>
+          <Avatar
+            disableEditMode
+            imageURL={userInfo?.userProfilePath}
+            imageSize={24}
+          />
+          <TextInput
+            placeholder="댓글을 남겨보세요"
+            style={styles.input}
+            value={comment}
+            onChangeText={e => {
+              setComment(e);
+            }}
+            autoCorrect={false}
+            autoCapitalize="none"
+            placeholderTextColor="rgba(46, 49, 53, 0.60)"
+            multiline
+            textAlignVertical="top"
+            retrunKeyType="next"
+          />
+          {comment && (
+            <TouchableOpacity
+              disabled={!comment}
+              onPress={() => registComment()}
+              style={styles.submitCommentButton}>
+              <SPSvgs.Send />
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
     );
   }, [userInfo, comment]);
@@ -558,10 +565,11 @@ function CommunityDetails({
       <SafeAreaView style={styles.container}>
         <KeyboardAvoidingView
           behavior="padding"
-          keyboardVerticalOffset={60}
+          keyboardVerticalOffset={0}
           style={styles.container}>
           {renderHeader}
           <ScrollView
+            showsVerticalScrollIndicator={false}
             ref={scrollRef}
             onScroll={handleScroll}
             scrollEventThrottle={16}>
@@ -569,7 +577,6 @@ function CommunityDetails({
             <Divider />
             {renderComments}
           </ScrollView>
-          <Divider />
           {renderCommentInputSection}
         </KeyboardAvoidingView>
       </SafeAreaView>
@@ -613,8 +620,11 @@ function CommunityDetails({
         transparent
         visible={imageModalShow}
         onRequestClose={closeImageModal}>
-        <SafeAreaView style={{ flex: 1, backgroundColor: '#000' }}>
-          <View>
+        <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.black }}>
+          <View
+            style={{
+              marginTop: insets.top,
+            }}>
             <TouchableOpacity
               onPress={closeImageModal}
               style={{
@@ -631,6 +641,7 @@ function CommunityDetails({
             </TouchableOpacity>
             <View style={styles.searchContainer} />
           </View>
+
           <View
             style={{
               flex: 1,
@@ -655,7 +666,7 @@ function CommunityDetails({
         transparent={false}
         visible={modifyCommentModalVisible}
         onRequestClose={closeModifyCommentModal}>
-        <SafeAreaView style={{ flex: 1 }}>
+        <SafeAreaView style={{ flex: 1, paddingTop: insets.top }}>
           <SPHeader
             title="댓글 수정"
             onPressLeftBtn={closeModifyCommentModal}
@@ -685,6 +696,7 @@ function CommunityDetails({
               style={styles.textInput}
               value={modifyComment}
               onChangeText={e => {
+                if (e?.length > 1000) return;
                 setModifyComment(e);
               }}
               multiline={true}
@@ -692,7 +704,6 @@ function CommunityDetails({
               placeholderTextColor="#1A1C1E"
               autoCorrect={false}
               autoCapitalize="none"
-              maxLength={1000}
               textAlignVertical="top"
               retrunKeyType="next"
             />
@@ -708,6 +719,7 @@ export default memo(CommunityDetails);
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: COLORS.white,
   },
   feedSection: {
     paddingVertical: 24,

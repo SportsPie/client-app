@@ -319,6 +319,7 @@ const styles = StyleSheet.create({
   userNameWrapper: {
     rowGap: 2,
     marginRight: 'auto',
+    flexShrink: 1,
   },
   userNameText: {
     ...fontStyles.fontSize13_Semibold,

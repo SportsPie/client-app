@@ -11,12 +11,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 function IdentifyVerification() {
   const route = useRoute();
-  const { loginType, snsKey, userLoginId, codeType } = route.params;
-  console.log('인', codeType);
+  const { loginType, snsKey, userLoginId, codeType, isMarketingAgree } =
+    route.params;
   const nextPage = () => {
     if (loginType === 'EMAIL') {
       NavigationService.navigate(navName.mobileAuthenticationMain, {
         loginType,
+        isMarketingAgree,
       });
     } else {
       NavigationService.navigate(navName.mobileAuthenticationMain, {
@@ -24,6 +25,7 @@ function IdentifyVerification() {
         snsKey,
         userLoginId,
         codeType,
+        isMarketingAgree,
       });
     }
   };

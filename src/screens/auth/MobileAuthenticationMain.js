@@ -13,55 +13,57 @@ function MobileAuthenticationMain() {
   const webviewRef = useRef(null);
   const [encData, setEncData] = useState('');
   const route = useRoute();
-  const { loginType, snsKey, userLoginId, codeType } = route.params;
+  const { loginType, snsKey, userLoginId, codeType, isMarketingAgree } =
+    route.params;
 
-  console.log('wd', loginType);
   const onMessage = async e => {
     const parsedData = JSON.parse(e.nativeEvent.data);
-    console.log('개인정보', parsedData);
-    try {
-      if (parsedData?.result) {
-        let params;
-        if (loginType === 'EMAIL') {
-          params = {
-            userName: parsedData.name,
-            userBirth: parsedData.birthdate,
-            userGender: parsedData.gender === '0' ? 'F' : 'M',
-            userPhoneNo: parsedData.mobileNo,
-          };
-          console.log('params', params);
-          const memberData = await apiVerifyId(params);
-          if (memberData !== null) {
-            NavigationService.navigate(navName.alreadySign, { memberData });
+    if (parsedData?.result) {
+      let params;
+      if (loginType === 'EMAIL') {
+        params = {
+          userName: parsedData.name,
+          userBirth: parsedData.birthdate,
+          userGender: parsedData.gender === '0' ? 'F' : 'M',
+          userPhoneNo: parsedData.mobileNo,
+        };
+      } else {
+        params = {
+          userName: parsedData.name,
+          userBirth: parsedData.birthdate,
+          userGender: parsedData.gender === '0' ? 'F' : 'M',
+          userPhoneNo: parsedData.mobileNo,
+        };
+      }
+      try {
+        const { data } = await apiVerifyId(params);
+        if (data.data !== null) {
+          NavigationService.navigate(navName.alreadySign, {
+            memberData: data.data,
+          });
+        }
+      } catch (error) {
+        if (error.code === 1101) {
+          if (loginType === 'EMAIL') {
+            params = {
+              ...params,
+              loginType,
+              isMarketingAgree,
+            };
+            NavigationService.navigate(navName.inputEmail, params);
+          } else {
+            params = {
+              ...params,
+              loginType,
+              snsKey,
+              userLoginId,
+              codeType,
+              isMarketingAgree,
+            };
+            NavigationService.navigate(navName.userInfo, params);
           }
         } else {
-          params = {
-            userName: parsedData.name,
-            userBirth: parsedData.birthdate,
-            userGender: parsedData.gender === '0' ? 'F' : 'M',
-            userPhoneNo: parsedData.mobileNo,
-            loginType,
-            snsKey,
-            userLoginId,
-            codeType,
-          };
-          NavigationService.navigate(navName.userInfo, params);
-        }
-      }
-    } catch (error) {
-      if (error instanceof CustomException) {
-        handleError(error);
-      } else {
-        let params;
-        if (loginType === 'EMAIL') {
-          params = {
-            userName: parsedData.name,
-            userBirth: parsedData.birthdate,
-            userGender: parsedData.gender === '0' ? 'F' : 'M',
-            userPhoneNo: parsedData.mobileNo,
-            loginType,
-          };
-          NavigationService.navigate(navName.inputEmail, params);
+          handleError(error);
         }
       }
     }

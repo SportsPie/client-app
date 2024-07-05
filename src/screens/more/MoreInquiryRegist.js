@@ -1,5 +1,5 @@
 import React, { memo, useRef, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { apiPostQnaInsert, apiPutQnaModify } from '../../api/RestAPI';
 import { MODAL_CLOSE_EVENT } from '../../common/constants/modalCloseEvent';
@@ -10,6 +10,7 @@ import SPModal from '../../components/SPModal';
 import Header from '../../components/header';
 import { handleError } from '../../utils/HandleError';
 import Utils from '../../utils/Utils';
+import fontStyles from '../../styles/fontStyles';
 
 function MoreInquiryRegist({ route }) {
   const inquiryData = route?.params?.inquiryData;
@@ -17,6 +18,7 @@ function MoreInquiryRegist({ route }) {
   const [content, setContent] = useState(inquiryData?.question ?? '');
   const trlRef = useRef({ current: { disabled: false } });
   const [registModalShow, setRegistModalShow] = useState(false);
+  const [modifyModalShow, setModifyModalShow] = useState(false);
 
   // const handleSave = () => {
   //   Alert.alert(
@@ -53,7 +55,7 @@ function MoreInquiryRegist({ route }) {
   // };
 
   const regist = async () => {
-    closeModal();
+    registCloseModal();
     try {
       if (trlRef.current.disabled) return;
       trlRef.current.disabled = true;
@@ -74,7 +76,7 @@ function MoreInquiryRegist({ route }) {
   };
 
   const modify = async () => {
-    closeModal();
+    modifyCloseModal();
     try {
       if (trlRef.current.disabled) return;
       trlRef.current.disabled = true;
@@ -87,7 +89,7 @@ function MoreInquiryRegist({ route }) {
       const { data } = await apiPutQnaModify(params);
       Utils.openModal({
         title: '성공',
-        body: '문의가 저장되었습니다.',
+        body: '문의가 수정되었습니다.',
         closeEvent: MODAL_CLOSE_EVENT.goBack,
       });
     } catch (error) {
@@ -131,11 +133,18 @@ function MoreInquiryRegist({ route }) {
   //   }
   // };
 
-  const openModal = () => {
+  const registOpenModal = () => {
     setRegistModalShow(true);
   };
-  const closeModal = () => {
+  const registCloseModal = () => {
     setRegistModalShow(false);
+  };
+
+  const modifyOpenModal = () => {
+    setModifyModalShow(true);
+  };
+  const modifyCloseModal = () => {
+    setModifyModalShow(false);
   };
 
   return (
@@ -151,53 +160,75 @@ function MoreInquiryRegist({ route }) {
             onChangeText={setTitle}
           />
 
-          {inquiryData ? (
-            <PrimaryButton
-              onPress={modify}
-              text="수정"
-              buttonStyle={styles.submitButton}
-              disabled={!title || !content}
+          <View style={{ rowGap: 4 }}>
+            <SPInput
+              title="내용"
+              numberOfLines={6}
+              placeholder="문의 내용을 적어주세요"
+              textAlignVertical="top"
+              value={content}
+              onChangeText={setContent}
+              maxLength={1500}
             />
-          ) : (
-            <PrimaryButton
-              onPress={() => {
-                openModal();
-              }}
-              text="저장"
-              buttonStyle={styles.submitButton}
-              disabled={!title || !content}
-            />
-          )}
-          <SPModal
-            title="문의하기 확인"
-            contents="문의하기를 등록하시겠습니까?"
-            visible={registModalShow}
-            onConfirm={() => {
-              modify();
-            }}
-            onCancel={() => {
-              closeModal();
-            }}
-            onClose={() => {
-              closeModal();
-            }}
-          />
-
-          <SPModal
-            title="문의하기 확인"
-            contents="문의하기를 등록하시겠습니까?"
-            visible={registModalShow}
-            onConfirm={() => {
-              regist();
-            }}
-            onCancel={() => {
-              closeModal();
-            }}
-            onClose={() => {
-              closeModal();
-            }}
-          />
+            <Text
+              style={[
+                fontStyles.fontSize12_Regular,
+                {
+                  marginLeft: 'auto',
+                },
+              ]}>
+              {Utils.changeNumberComma(content?.length, true)}/1,500
+            </Text>
+          </View>
         </View>
+        {inquiryData ? (
+          <PrimaryButton
+            onPress={() => {
+              modifyOpenModal();
+            }}
+            text="수정"
+            buttonStyle={styles.submitButton}
+            disabled={!title || !content}
+          />
+        ) : (
+          <PrimaryButton
+            onPress={() => {
+              registOpenModal();
+            }}
+            text="저장"
+            buttonStyle={styles.submitButton}
+            disabled={!title || !content}
+          />
+        )}
+        <SPModal
+          title="문의하기 확인"
+          contents="문의하기를 수정하시겠습니까?"
+          visible={modifyModalShow}
+          onConfirm={() => {
+            modify();
+          }}
+          onCancel={() => {
+            modifyCloseModal();
+          }}
+          onClose={() => {
+            modifyCloseModal();
+          }}
+        />
+
+        <SPModal
+          title="문의하기 확인"
+          contents="문의하기를 등록하시겠습니까?"
+          visible={registModalShow}
+          onConfirm={() => {
+            regist();
+          }}
+          onCancel={() => {
+            registCloseModal();
+          }}
+          onClose={() => {
+            registCloseModal();
+          }}
+        />
       </SafeAreaView>
     </DismissKeyboard>
   );
@@ -213,6 +244,8 @@ const styles = StyleSheet.create({
     rowGap: 16,
   },
   submitButton: {
-    marginTop: 'auto',
+    // marginTop: 'auto',
+    marginHorizontal: 16,
+    marginVertical: 24,
   },
 });

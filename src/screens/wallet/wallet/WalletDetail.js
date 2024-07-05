@@ -241,83 +241,86 @@ function WalletDetail() {
     );
   }, [balance, address, point]);
 
-  const renderItem = useCallback(({ item, index }) => {
-    let displayDate = moment(item?.regDate).format('MM.DD');
-    // 리스트의 첫 아이템이 아닐 때만 판단
-    if (index > 0) {
-      if (tokenHistoryList[index - 1]) {
-        const prevItemDate = moment(
-          tokenHistoryList[index - 1]?.regDate,
-        ).format('MM.DD');
-        if (displayDate === prevItemDate) {
-          displayDate = null; // 이전 아이템과 날짜가 같다면 null로 설정
+  const renderItem = useCallback(
+    ({ item, index }) => {
+      let displayDate = moment(item?.regDate).format('MM.DD');
+      // 리스트의 첫 아이템이 아닐 때만 판단
+      if (index > 0) {
+        if (tokenHistoryList[index - 1]) {
+          const prevItemDate = moment(
+            tokenHistoryList[index - 1]?.regDate,
+          ).format('MM.DD');
+          if (displayDate === prevItemDate) {
+            displayDate = null; // 이전 아이템과 날짜가 같다면 null로 설정
+          }
         }
       }
-    }
 
-    return (
-      <View style={styles.itemContainer}>
-        <View style={{ width: 40 }}>
-          <Text
-            style={[
-              fontStyles.fontSize12_Medium,
-              {
-                color: COLORS.labelNeutral,
-              },
-            ]}>
-            {displayDate}
-          </Text>
-        </View>
-
-        <View style={{ rowGap: 4, flex: 1 }}>
-          <View
-            style={{
-              flexDirection: 'row',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-            }}>
-            <Text style={fontStyles.fontSize14_Medium}>
-              {item?.coinExchangeType === 'D' ? '받기' : '보내기'}
-            </Text>
+      return (
+        <View style={styles.itemContainer}>
+          <View style={{ width: 40 }}>
             <Text
               style={[
-                fontStyles.fontSize14_Semibold,
-                { color: COLORS.orange },
+                fontStyles.fontSize12_Medium,
+                {
+                  color: COLORS.labelNeutral,
+                },
               ]}>
-              {Utils.changeNumberComma(item?.amount)}
+              {displayDate}
             </Text>
           </View>
 
-          <View
-            style={{
-              rowGap: 2,
-              backgroundColor: COLORS.fillNormal,
-              borderRadius: 8,
-              padding: 8,
-            }}>
-            <Text
-              style={[
-                fontStyles.fontSize11_Medium,
-                {
-                  color: COLORS.labelAlternative,
-                },
-              ]}>
-              거래 ID
-            </Text>
-            <Text
-              style={[
-                fontStyles.fontSize11_Medium,
-                {
-                  color: COLORS.labelAlternative,
-                },
-              ]}>
-              {item?.txid}
-            </Text>
+          <View style={{ rowGap: 4, flex: 1 }}>
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+              }}>
+              <Text style={fontStyles.fontSize14_Medium}>
+                {item?.coinExchangeType === 'D' ? '받기' : '보내기'}
+              </Text>
+              <Text
+                style={[
+                  fontStyles.fontSize14_Semibold,
+                  { color: COLORS.orange },
+                ]}>
+                {Utils.changeNumberComma(item?.amount)}
+              </Text>
+            </View>
+
+            <View
+              style={{
+                rowGap: 2,
+                backgroundColor: COLORS.fillNormal,
+                borderRadius: 8,
+                padding: 8,
+              }}>
+              <Text
+                style={[
+                  fontStyles.fontSize11_Medium,
+                  {
+                    color: COLORS.labelAlternative,
+                  },
+                ]}>
+                거래 ID
+              </Text>
+              <Text
+                style={[
+                  fontStyles.fontSize11_Medium,
+                  {
+                    color: COLORS.labelAlternative,
+                  },
+                ]}>
+                {item?.txid}
+              </Text>
+            </View>
           </View>
         </View>
-      </View>
-    );
-  }, []);
+      );
+    },
+    [tokenHistoryList],
+  );
 
   const renderListEmpty = useCallback(() => {
     return (

@@ -163,7 +163,7 @@ function AcademyCompany({ route }) {
     if (!isValidFormat) {
       Utils.openModal({
         title: '확인 요청',
-        body: '유효하지 사업자등록번호입니다.',
+        body: '유효하지 않는 사업자등록번호입니다.',
       });
       return false;
     }
@@ -208,7 +208,7 @@ function AcademyCompany({ route }) {
       <SPKeyboardAvoidingView
         behavior="padding"
         isResize
-        keyboardVerticalOffset={60}
+        keyboardVerticalOffset={0}
         style={{
           flex: 1,
           backgroundColor: COLORS.white,
@@ -222,6 +222,7 @@ function AcademyCompany({ route }) {
           }}>
           <Header title="사업자 인증" />
           <ScrollView
+            showsVerticalScrollIndicator={false}
             style={{
               flex: 1,
               gap: 16,
@@ -243,11 +244,11 @@ function AcademyCompany({ route }) {
                   ]}
                   placeholder="사업자등록번호 10자리를 숫자로 입력해주세요."
                   value={inputs.businessNo}
-                  onChangeText={value =>
-                    handleInputChange('businessNo', value, true)
-                  }
+                  onChangeText={value => {
+                    if (value?.length > 15) return;
+                    handleInputChange('businessNo', value, true);
+                  }}
                   keyboardType="numeric"
-                  maxLength={15}
                 />
               </View>
             </View>
@@ -258,8 +259,10 @@ function AcademyCompany({ route }) {
                   style={styles.subTextInput}
                   placeholder="대표자명을 입력해주세요."
                   value={inputs.ceoName}
-                  onChangeText={value => handleInputChange('ceoName', value)}
-                  maxLength={15}
+                  onChangeText={value => {
+                    if (value?.length > 15) return;
+                    handleInputChange('ceoName', value);
+                  }}
                 />
               </View>
             </View>
@@ -278,11 +281,11 @@ function AcademyCompany({ route }) {
                   ]}
                   placeholder="개업연월일 8자리를(YYYYMMDD) 입력해 주세요."
                   value={inputs.openDate}
-                  onChangeText={value =>
-                    handleInputChange('openDate', value, true)
-                  }
+                  onChangeText={value => {
+                    if (value?.length > 8) return;
+                    handleInputChange('openDate', value, true);
+                  }}
                   keyboardType="numeric"
-                  maxLength={8}
                 />
               </View>
             </View>

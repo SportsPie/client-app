@@ -173,7 +173,10 @@ function AcademyPlayerDetail({ route }) {
         titleColor="#FFF"
       />
       {/* 선수 프로필 */}
-      <ScrollView onScroll={handleScroll} scrollEventThrottle={16}>
+      <ScrollView
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
+        showsVerticalScrollIndicator={false}>
         <View>
           <View style={styles.playerProfile}>
             <View

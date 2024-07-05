@@ -1,8 +1,4 @@
 // authPage : 로그인 후 갈 수 있는 페이지
-import moreNotice from '../../screens/more/MoreNotice';
-import AcademyCompanyManagement from '../../screens/academy/AcademyCompanyManagement';
-import CommunityEdit from '../../screens/community/CommunityEdit';
-
 const authPage = {
   socialToken: 'socialToken',
   socialTokenDetail: 'socialTokenDetail',
@@ -96,6 +92,7 @@ const authPage = {
   challengeVideoPlayer: 'challengeVideoPlayer',
   moreNotice: 'moreNotice',
   moreNoticeDetail: 'moreNoticeDetail',
+  unsubscribe: 'Unsubscribe',
 
   // 아래는 테스트용
   signedTestPage: 'signedTestPage',

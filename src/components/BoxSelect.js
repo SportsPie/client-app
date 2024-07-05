@@ -89,14 +89,16 @@ function BoxSelect({
         enableDynamicSizing
         index={0}
         handleComponent={null}
-        bottomInset={isIphoneX ? insets.bottom : 16}
+        bottomInset={isIphoneX() ? insets.bottom : 16}
         style={{
           marginHorizontal: 16,
         }}
         backgroundComponent={null}
         ref={bottomRef}>
         <BottomSheetView style={styles.backgroundContainer}>
-          <ScrollView>{arrayOptions?.map(item => renderItem(item))}</ScrollView>
+          <ScrollView showsVerticalScrollIndicator={false}>
+            {arrayOptions?.map(item => renderItem(item))}
+          </ScrollView>
         </BottomSheetView>
       </BottomSheetModal>
     </View>

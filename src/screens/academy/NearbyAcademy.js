@@ -12,7 +12,10 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 import { apiGetAcademyNearby, apiGetAcdmyFilters } from '../../api/RestAPI';
 import SPIcons from '../../assets/icon';
 import { IS_YN } from '../../common/constants/isYN';
@@ -30,7 +33,7 @@ function NearbyAcademy() {
    * state
    */
   const flatListRef = useRef();
-
+  const insets = useSafeAreaInsets();
   const [orderType, setOrderType] = useState(ORDER_TYPE.RATING_DESC);
   const [address, setAddress] = useState('');
   const [latitude, setLatitude] = useState();
@@ -310,6 +313,7 @@ function NearbyAcademy() {
               </TouchableOpacity>
             </View>
             <TouchableOpacity
+              hitSlop={8}
               onPress={() => {
                 openFileterModal();
               }}>
@@ -374,7 +378,7 @@ function NearbyAcademy() {
                       />
                     )}
                   </View>
-                  <View>
+                  <View style={{ flexShrink: 1 }}>
                     <View style={styles.contentsTop}>
                       <Text style={styles.contentsTopText}>
                         {item.academyName}
@@ -390,14 +394,14 @@ function NearbyAcademy() {
                         {item.addrCity} · {item.addrGu}
                       </Text>
                       <View style={styles.verticalLine} />
-                      <View style={styles.contentsBottomSub}>
-                        <Image source={SPIcons.icStar} />
-                        <Text style={styles.contentsBottomText}>
-                          {item.rating === null
-                            ? parseFloat(3).toFixed(1)
-                            : item.rating}
-                        </Text>
-                      </View>
+                      {item.rating !== null && (
+                        <View style={styles.contentsBottomSub}>
+                          <Image source={SPIcons.icStar} />
+                          <Text style={styles.contentsBottomText}>
+                            {parseFloat(item.rating).toFixed(1)}
+                          </Text>
+                        </View>
+                      )}
                     </View>
                   </View>
                 </TouchableOpacity>
@@ -432,7 +436,12 @@ function NearbyAcademy() {
           animationType="slide"
           visible={showModal}
           onRequestClose={modalHide}>
-          <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }}>
+          <View
+            style={{
+              flex: 1,
+              backgroundColor: COLORS.background,
+              paddingTop: insets.top,
+            }}>
             <View style={{ flex: 1 }}>
               <TouchableOpacity
                 onPress={modalHide}
@@ -603,7 +612,7 @@ function NearbyAcademy() {
                 <Text style={styles.subResultText}>결과보기</Text>
               </TouchableOpacity>
             </View>
-          </SafeAreaView>
+          </View>
         </Modal>
       </View>
     </SafeAreaView>

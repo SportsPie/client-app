@@ -349,7 +349,7 @@ function CommunityEdit({ route }) {
         <SPKeyboardAvoidingView
           behavior="padding"
           isResize
-          keyboardVerticalOffset={60}
+          keyboardVerticalOffset={0}
           style={{
             flex: 1,
           }}>
@@ -368,12 +368,15 @@ function CommunityEdit({ route }) {
               onPressRightText={editCommunity}
             />
 
-            <ScrollView style={{ flex: 1 }}>
-              <View style={styles.contentBox}>
-                <View style={styles.textInputBox}>
+            <View style={styles.contentBox}>
+              <View style={styles.textInputBox}>
+                <ScrollView
+                  style={{ flex: 1 }}
+                  showsVerticalScrollIndicator={false}>
                   <TextInput
                     value={contents}
                     onChange={e => {
+                      if (e.nativeEvent.text?.length > 2000) return;
                       setContents(e.nativeEvent.text);
                     }}
                     multiline
@@ -384,60 +387,59 @@ function CommunityEdit({ route }) {
                     autoCapitalize="none"
                     style={styles.box}
                     placeholderTextColor="rgba(46, 49, 53, 0.60)"
-                    maxLength={10000}
                   />
-                  <View
-                    style={{
-                      flexDirection: 'row',
-                      justifyContent: 'flex-end',
-                    }}>
-                    <Text style={[styles.lengthCount, { paddingTop: 0 }]}>
-                      {Utils.changeNumberComma(contents.length)} / 10,000
-                    </Text>
-                  </View>
-                </View>
-
-                {/* 이미지 첨부 최대 5개까지 */}
-                <View style={{ overflow: 'hidden', height: 64 }}>
-                  <CarouselSection
-                    prevData={prevPhotoList}
-                    prevRemovePhoto={removePrevPhoto}
-                    data={photoList}
-                    removePhoto={removePhoto}
-                  />
-                </View>
-
-                {/* 태그 최소 1개이상 필수 */}
-                <View style={styles.tagBox}>
-                  <Text style={styles.tabText}>태그</Text>
-                  <View style={styles.buttonBox}>
-                    {tagList &&
-                      tagList.length > 0 &&
-                      tagList.map((filterTag, index) => (
-                        <TouchableOpacity
-                          /* eslint-disable-next-line react/no-array-index-key */
-                          key={index}
-                          style={[
-                            styles.button,
-                            selectedTagList.includes(filterTag.value) &&
-                              styles.activeButton, // ==== 수정된 부분
-                          ]}
-                          onPress={() => toggleButton(filterTag.value)} // ==== 수정된 부분
-                        >
-                          <Text
-                            style={[
-                              styles.buttonText,
-                              selectedTagList.includes(filterTag.value) &&
-                                styles.activeButtonText, // ==== 수정된 부분
-                            ]}>
-                            #{filterTag.label}
-                          </Text>
-                        </TouchableOpacity>
-                      ))}
-                  </View>
+                </ScrollView>
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    justifyContent: 'flex-end',
+                  }}>
+                  <Text style={[styles.lengthCount, { paddingTop: 0 }]}>
+                    {Utils.changeNumberComma(contents.length)} / 2,000
+                  </Text>
                 </View>
               </View>
-            </ScrollView>
+
+              {/* 이미지 첨부 최대 5개까지 */}
+              <View style={{ overflow: 'hidden', height: 64 }}>
+                <CarouselSection
+                  prevData={prevPhotoList}
+                  prevRemovePhoto={removePrevPhoto}
+                  data={photoList}
+                  removePhoto={removePhoto}
+                />
+              </View>
+
+              {/* 태그 최소 1개이상 필수 */}
+              <View style={styles.tagBox}>
+                <Text style={styles.tabText}>태그</Text>
+                <View style={styles.buttonBox}>
+                  {tagList &&
+                    tagList.length > 0 &&
+                    tagList.map((filterTag, index) => (
+                      <TouchableOpacity
+                        /* eslint-disable-next-line react/no-array-index-key */
+                        key={index}
+                        style={[
+                          styles.button,
+                          selectedTagList.includes(filterTag.value) &&
+                            styles.activeButton, // ==== 수정된 부분
+                        ]}
+                        onPress={() => toggleButton(filterTag.value)} // ==== 수정된 부분
+                      >
+                        <Text
+                          style={[
+                            styles.buttonText,
+                            selectedTagList.includes(filterTag.value) &&
+                              styles.activeButtonText, // ==== 수정된 부분
+                          ]}>
+                          #{filterTag.label}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                </View>
+              </View>
+            </View>
 
             {/* 갤러리 */}
             <View style={styles.bottomBox}>
@@ -516,15 +518,18 @@ const styles = {
     backgroundColor: '#FFF',
   },
   contentBox: {
+    flex: 1,
     flexDirection: 'column',
     gap: 16,
     padding: 16,
   },
   textInputBox: {
+    flex: 1,
     flexDirection: 'column',
     gap: 8,
   },
   box: {
+    flex: 1,
     minHeight: 456,
     fontSize: 14,
     fontWeight: '400',

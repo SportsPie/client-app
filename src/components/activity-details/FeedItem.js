@@ -256,6 +256,7 @@ function FeedItem({ item }) {
               style={styles.textInput}
               value={editCommentInput}
               onChangeText={text => {
+                if (text?.length > 1000) return;
                 setEditCommentInput(text);
               }}
               multiline={true}
@@ -263,7 +264,6 @@ function FeedItem({ item }) {
               placeholderTextColor="#1A1C1E"
               autoCorrect={false}
               autoCapitalize="none"
-              maxLength={1000}
               textAlignVertical="top"
               retrunKeyType="next"
             />

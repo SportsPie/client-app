@@ -15,6 +15,7 @@ function CommunityTab() {
   const [currentPage, setCurrentPage] = useState(1);
   const [isLast, setIsLast] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [deleteEvent, setDeleteEvent] = useState(false);
   const pageSize = 5;
   const flatListRef = useRef();
 
@@ -67,10 +68,15 @@ function CommunityTab() {
 
   useEffect(() => {
     getFeeds();
-  }, [currentPage]);
+  }, [currentPage, deleteEvent]);
 
   const renderCommunityItem = ({ item }) => {
-    return <FeedItemCommunity item={item} />;
+    return (
+      <FeedItemCommunity
+        item={item}
+        onDelete={() => setDeleteEvent(prev => !prev)}
+      />
+    );
   };
 
   const renderListEmpty = useCallback(() => {

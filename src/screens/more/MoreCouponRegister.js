@@ -29,9 +29,8 @@ function MoreCouponRegister() {
     try {
       if (trlRef.current.disabled) return;
       trlRef.current.disabled = true;
-      console.log(data);
+
       const response = await apiPostCoupon(data);
-      console.log('쿠폰 등록 성공:', response.data.data);
 
       NavigationService.navigate(navName.moreCouponComplete, {
         couponValue: response.data.data,
@@ -47,7 +46,9 @@ function MoreCouponRegister() {
     <SafeAreaView style={{ flex: 1 }}>
       <Header title="쿠폰 등록" />
 
-      <ScrollView contentContainerStyle={styles.container}>
+      <ScrollView
+        contentContainerStyle={styles.container}
+        showsVerticalScrollIndicator={false}>
         <View style={styles.inputWrapper}>
           <SPInput
             title="쿠폰번호"

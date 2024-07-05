@@ -300,6 +300,7 @@ export function ChallengeDetail({ route }) {
 
       {/* 바디 */}
       <ScrollView
+        showsVerticalScrollIndicator={false}
         ref={scrollRef}
         onScroll={handleScroll}
         scrollEnabled={isScrollable}
@@ -308,7 +309,7 @@ export function ChallengeDetail({ route }) {
         {videoDetail.videoPath && (
           <SPSingleVideo
             source={videoDetail.videoPath}
-            thumbnailPath={!isVideoLoading && videoDetail.thumbPath}
+            thumbnailPath={videoDetail.thumbPath ?? ''}
             repeat={true}
             isPaused={true}
             disablePlayPause={true}
@@ -326,7 +327,7 @@ export function ChallengeDetail({ route }) {
           <ChallengeVideoDescription
             videoIdx={videoDetail.videoIdx}
             parentVideoIdx={videoDetail.parentVideoIdx}
-            memberName={videoDetail.memberName}
+            nickName={videoDetail.memberNickName}
             profilePath={videoDetail.profilePath}
             title={videoDetail.title}
             description={videoDetail.contents}

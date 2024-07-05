@@ -39,6 +39,7 @@ function VideoTestByCase() {
       )}
 
       <ScrollView
+        showsVerticalScrollIndicator={false}
         style={styles.container}
         {...(top && { stickyHeaderIndices: [0] })} // 스크롤 시 헤더 고정
       >

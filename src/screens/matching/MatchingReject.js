@@ -9,12 +9,15 @@ import { SPToast } from '../../components/SPToast';
 import SPModal from '../../components/SPModal';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Header from '../../components/header';
+import DismissKeyboard from '../../components/DismissKeyboard';
+import SPKeyboardAvoidingView from '../../components/SPKeyboardAvoidingView';
 
 function MatchingReject({ route }) {
   // --------------------------------------------------
   // [ State ]
   // --------------------------------------------------
   const matchIdx = route?.params?.matchIdx;
+  // eslint-disable-next-line no-shadow
   const [memo, setMemo] = useState('');
   const [confirmModalVisible, setConfirmModalVisible] = useState(false);
 
@@ -53,48 +56,58 @@ function MatchingReject({ route }) {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <Header closeIcon />
+    <DismissKeyboard>
+      <SPKeyboardAvoidingView
+        behavior="padding"
+        isResize
+        keyboardVerticalOffset={0}
+        style={{
+          flex: 1,
+        }}>
+        <SafeAreaView style={styles.container}>
+          <Header closeIcon />
 
-      <View style={{ flex: 1, gap: 4, padding: 16 }}>
-        <Text style={styles.subTitle}>이의신청</Text>
-        <TextInput
-          value={memo}
-          onChange={e => {
-            setMemo(e.nativeEvent.text);
-          }}
-          multiline
-          textAlignVertical="top"
-          numberOfLines={3}
-          placeholder="경기결과에 대한 의견을 입력하세요"
-          autoCorrect={false}
-          autoCapitalize="none"
-          style={styles.box}
-          maxLength={50}
-        />
-        <View style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>
-          <Text style={[styles.lengthCount, { paddingTop: 0 }]}>
-            {memo.length} / 50
-          </Text>
-        </View>
-      </View>
-      <TouchableOpacity
-        style={styles.mainBtn}
-        onPress={() => setConfirmModalVisible(true)}>
-        <Text style={styles.mainBtnText}>이의신청</Text>
-      </TouchableOpacity>
-      <SPModal
-        title="이의신청"
-        contents="경기결과에 이의신청 하시겠어요?"
-        visible={confirmModalVisible}
-        twoButton
-        onConfirm={() => {
-          rejectMatch();
-        }}
-        onCancel={closeConfirmModal}
-        onClose={closeConfirmModal}
-      />
-    </SafeAreaView>
+          <View style={{ flex: 1, gap: 4, padding: 16 }}>
+            <Text style={styles.subTitle}>이의신청</Text>
+            <TextInput
+              value={memo}
+              onChange={e => {
+                if (e.nativeEvent.text?.length > 50) return;
+                setMemo(e.nativeEvent.text);
+              }}
+              multiline
+              textAlignVertical="top"
+              numberOfLines={3}
+              placeholder="경기결과에 대한 의견을 입력하세요"
+              autoCorrect={false}
+              autoCapitalize="none"
+              style={styles.box}
+            />
+            <View style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>
+              <Text style={[styles.lengthCount, { paddingTop: 0 }]}>
+                {memo.length} / 50
+              </Text>
+            </View>
+          </View>
+          <TouchableOpacity
+            style={styles.mainBtn}
+            onPress={() => setConfirmModalVisible(true)}>
+            <Text style={styles.mainBtnText}>이의신청</Text>
+          </TouchableOpacity>
+          <SPModal
+            title="이의신청"
+            contents="경기결과에 이의신청 하시겠어요?"
+            visible={confirmModalVisible}
+            twoButton
+            onConfirm={() => {
+              rejectMatch();
+            }}
+            onCancel={closeConfirmModal}
+            onClose={closeConfirmModal}
+          />
+        </SafeAreaView>
+      </SPKeyboardAvoidingView>
+    </DismissKeyboard>
   );
 }
 

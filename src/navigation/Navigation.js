@@ -159,6 +159,8 @@ import WalletSendClear from '../screens/wallet/wallet/WalletSendClear';
 import WalletSending from '../screens/wallet/wallet/WalletSending';
 import WalletSetting from '../screens/wallet/wallet/WalletSetting';
 import { COLORS } from '../styles/colors';
+import Unsubscribe from '../screens/Unsubscribe';
+import { useSelector } from 'react-redux';
 
 function MatchingChatRoomListScreenComponent() {
   return <AuthLayout component={MatchingChatRoomListScreen} />;
@@ -185,6 +187,7 @@ function ChatCreateRoomScreenComponent() {
 }
 
 export default function Navigation() {
+  const isLogin = useSelector(selector => selector.auth)?.isLogin;
   /* nav */
   return (
     <Stack.Navigator
@@ -200,8 +203,17 @@ export default function Navigation() {
         statusBarStyle: 'dark',
         statusBarColor: COLORS.white,
       }}>
-      <Stack.Screen name={navName.login} component={Login} />
-      <Stack.Screen name={navName.home} component={BottomTab} />
+      {isLogin ? (
+        <>
+          <Stack.Screen name={navName.home} component={BottomTab} />
+          <Stack.Screen name={navName.login} component={Login} />
+        </>
+      ) : (
+        <>
+          <Stack.Screen name={navName.login} component={Login} />
+          <Stack.Screen name={navName.home} component={BottomTab} />
+        </>
+      )}
       <Stack.Screen name={navName.moreMyInfo} component={MoreMyInfo} />
       <Stack.Screen
         name={navName.moreAccountManage}
@@ -590,6 +602,7 @@ export default function Navigation() {
         name={navName.chatCreateRoom}
         component={ChatCreateRoomScreenComponent}
       />
+      <Stack.Screen name={navName.unsubscribe} component={Unsubscribe} />
     </Stack.Navigator>
   );
 }

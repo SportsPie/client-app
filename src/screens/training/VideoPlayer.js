@@ -1,10 +1,6 @@
-import React, { memo } from 'react';
-import { Platform, Pressable, StyleSheet, Text } from 'react-native';
-import {
-  SafeAreaView,
-  useSafeAreaFrame,
-  useSafeAreaInsets,
-} from 'react-native-safe-area-context';
+import React, { memo, useState } from 'react';
+import { Pressable, StyleSheet, Text } from 'react-native';
+import { SafeAreaView, useSafeAreaFrame } from 'react-native-safe-area-context';
 import Video from 'react-native-video-controls';
 import { navName } from '../../common/constants/navName';
 import Header from '../../components/header';
@@ -24,7 +20,21 @@ function VideoPlayer({ route }) {
 
   // [ hook ]
   const { width: windowWidth, height: windowHeight } = useSafeAreaFrame();
-  const insets = useSafeAreaInsets();
+  // const insets = useSafeAreaInsets();
+
+  // [ state ]
+  const [position, setPosition] = useState('relative');
+
+  // [ util ] 동영상 로드 완료
+  const onVideoLoad = e => {
+    // 동영상 높이 조정
+    const { orientation } = e.naturalSize;
+
+    // 가로영상
+    if (orientation === 'landscape') {
+      setPosition('absolute');
+    }
+  };
 
   // [ return ]
   return (
@@ -55,15 +65,21 @@ function VideoPlayer({ route }) {
           uri: videoURL,
         }}
         style={{
-          position: 'absolute',
+          position: position,
           width: windowWidth,
-          height:
-            Platform.OS === 'ios'
-              ? windowHeight - (insets.top + insets.bottom)
-              : windowHeight,
+          height: windowHeight,
+          // height:
+          //   Platform.OS === 'ios'
+          //     ? windowHeight - (insets.top + insets.bottom)
+          //     : windowHeight,
         }}
+        onLoad={onVideoLoad}
         repeat
         disablePlayPause={false}
+        disableVolume
+        disableTimer
+        disableBack
+        disableFullscreen
       />
     </SafeAreaView>
   );
@@ -77,7 +93,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.black,
   },
   headerButtonText: {
-    ...fontStyles.fontSize14_Semibold,
+    ...fontStyles.fontSize16_Semibold,
     color: COLORS.white,
   },
 });

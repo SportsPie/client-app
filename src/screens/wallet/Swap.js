@@ -95,6 +95,13 @@ function Swap() {
     try {
       if (trlRef.current.disabled) return;
       trlRef.current.disabled = true;
+      if (Number(swapValue) <= 0) {
+        Utils.openModal({
+          title: '알림',
+          body: '스왑할 수량을 0보다 높에 입력해주세요.',
+        });
+        return;
+      }
       const walletAddr = await WalletUtils.getWalletAddress();
       const params = {
         walletAddr,
@@ -104,8 +111,9 @@ function Swap() {
       NavigationService.replace(navName.swapTranfer);
     } catch (error) {
       handleError(error);
+    } finally {
+      trlRef.current.disabled = false;
     }
-    trlRef.current.disabled = false;
   };
 
   /**
@@ -226,9 +234,9 @@ function Swap() {
                 textAlign="right"
                 value={swapValue}
                 onChangeText={text => {
+                  if (text?.length > 10) return;
                   setSwapValue(Utils.changeIntegerForInput(text));
                 }}
-                maxLength={10}
               />
             </View>
 
@@ -244,7 +252,9 @@ function Swap() {
           <PrimaryButton
             text="스왑"
             buttonStyle={styles.submit}
-            disabled={!swapValue || errorMessage?.length > 0}
+            disabled={
+              !swapValue || Number(swapValue) <= 0 || errorMessage?.length > 0
+            }
             onPress={() => {
               confirmModalRef?.current?.show();
             }}

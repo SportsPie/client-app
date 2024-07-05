@@ -43,10 +43,6 @@ const SPPinCodeInput = forwardRef(({ length = 6, onComplete }, ref) => {
     setPin('');
   };
 
-  const vibrate = () => {
-    Vibration.vibrate(70);
-  };
-
   // 외부에서 사용할 수 있는 메서드를 노출
   useImperativeHandle(ref, () => ({
     clear,
@@ -101,7 +97,6 @@ const SPPinCodeInput = forwardRef(({ length = 6, onComplete }, ref) => {
                       activeOpacity={ACTIVE_OPACITY}
                       key={text}
                       onPress={() => {
-                        vibrate();
                         handleTextChange(pin + text);
                       }}
                       style={styles.button}>
@@ -118,7 +113,6 @@ const SPPinCodeInput = forwardRef(({ length = 6, onComplete }, ref) => {
                       activeOpacity={ACTIVE_OPACITY}
                       key={text}
                       onPress={() => {
-                        vibrate();
                         handleTextChange(`${pin}0`);
                       }}
                       style={styles.button}>
@@ -133,7 +127,6 @@ const SPPinCodeInput = forwardRef(({ length = 6, onComplete }, ref) => {
                       key={text}
                       onPress={() => {
                         const str = pin.substring(0, pin.length - 1);
-                        vibrate();
                         handleTextChange(str);
                       }}
                       style={styles.button}>

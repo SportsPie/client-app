@@ -133,7 +133,6 @@ function MoreNotification() {
         await updateMarketingDate();
       }
     } catch (error) {
-      // console.error('Error toggling notification state:', error);
       handleError(error);
     }
   };
@@ -152,7 +151,9 @@ function MoreNotification() {
     <SafeAreaView style={{ flex: 1 }}>
       <Header title="앱 알림 설정" />
 
-      <ScrollView contentContainerStyle={styles.container}>
+      <ScrollView
+        contentContainerStyle={styles.container}
+        showsVerticalScrollIndicator={false}>
         <ButtonSwitch
           title="서비스 알림"
           subTitle="앱 점검 또는 업데이트에 대한 알림 수신"
