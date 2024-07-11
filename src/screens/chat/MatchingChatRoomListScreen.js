@@ -274,7 +274,7 @@ function MatchingChatRoomListScreen({ route }) {
                           style={styles.nameText}
                           numberOfLines={1}
                           ellipsizeMode="tail">
-                          {item.userName}
+                          {item.userNickName}
                         </Text>
                         <Text
                           style={styles.academyNameText}
@@ -302,7 +302,11 @@ function MatchingChatRoomListScreen({ route }) {
                       </View>
                     </View>
                   </View>
-                  {item.notReadChatCnt > 0 && <View style={styles.chatCount} />}
+                  {item.notReadChatCnt > 0 ? (
+                    <View style={styles.chatCount} />
+                  ) : (
+                    <View style={{ height: 10, width: 10 }} />
+                  )}
                 </View>
               </TouchableOpacity>
             );
@@ -358,6 +362,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+    flexShrink: 1,
   },
   imageBox: {
     position: 'relative',

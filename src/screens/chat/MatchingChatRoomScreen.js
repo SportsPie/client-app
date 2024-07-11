@@ -326,9 +326,9 @@ function MatchingChatRoomScreen({ navigation }) {
     <SafeAreaView style={{ flex: 1 }}>
       <Header
         title={
-          targetUserDetail.userName &&
+          targetUserDetail.userNickName &&
           targetAcademyDetail.academyName &&
-          `${targetUserDetail.userName}(${targetAcademyDetail.academyName})`
+          `${targetUserDetail.userNickName}(${targetAcademyDetail.academyName})`
         }
       />
       <SPKeyboardAvoidingView

@@ -1,5 +1,5 @@
 import moment from 'moment';
-import React, { memo } from 'react';
+import React, { memo, useCallback, useState } from 'react';
 import {
   Image,
   ScrollView,
@@ -12,9 +12,13 @@ import fontStyles from '../../styles/fontStyles';
 import { COLORS } from '../../styles/colors';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Header from '../../components/header';
+import { useFocusEffect } from '@react-navigation/native';
+import { handleError } from '../../utils/HandleError';
+import { apiGetArticleDetail } from '../../api/RestAPI';
 
 function MoreArticleDetail({ route }) {
-  const articleDetail = route?.params?.articleDetail;
+  const boardIdx = route?.params?.boardIdx;
+  const [articleDetail, setArticleDetail] = useState({});
   let imageHeight;
   const { width } = useWindowDimensions();
 
@@ -24,6 +28,22 @@ function MoreArticleDetail({ route }) {
     const aspectRatio = 328 / 219;
     imageHeight = (width - 32) / aspectRatio;
   }
+
+  const getArticleDetail = async () => {
+    try {
+      const { data } = await apiGetArticleDetail(boardIdx);
+      setArticleDetail(data.data);
+    } catch (error) {
+      handleError(error);
+    }
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      getArticleDetail();
+    }, [boardIdx]),
+  );
+
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <Header />
@@ -32,9 +52,7 @@ function MoreArticleDetail({ route }) {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.container}>
         <View style={{ rowGap: 8 }}>
-          <Text style={fontStyles.fontSize24_Bold}>
-            {articleDetail?.data?.title}
-          </Text>
+          <Text style={fontStyles.fontSize24_Bold}>{articleDetail?.title}</Text>
           <Text
             style={[
               fontStyles.fontSize12_Medium,
@@ -42,9 +60,9 @@ function MoreArticleDetail({ route }) {
                 color: COLORS.labelNeutral,
               },
             ]}>
-            {moment(articleDetail?.data?.regDate).format('YYYY-MM-DD')}
+            {moment(articleDetail?.regDate).format('YYYY-MM-DD')}
           </Text>
-          {articleDetail?.data?.files.length > 0 && (
+          {articleDetail?.files?.length > 0 && (
             <Image
               style={[
                 styles.image,
@@ -52,7 +70,7 @@ function MoreArticleDetail({ route }) {
                   height: imageHeight,
                 },
               ]}
-              source={{ uri: articleDetail?.data?.files[0].fileUrl }}
+              source={{ uri: articleDetail.files[0].fileUrl }}
             />
           )}
         </View>
@@ -64,7 +82,7 @@ function MoreArticleDetail({ route }) {
               color: COLORS.labelNormal,
             },
           ]}>
-          {articleDetail?.data?.contents}
+          {articleDetail?.contents}
         </Text>
       </ScrollView>
     </SafeAreaView>

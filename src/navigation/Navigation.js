@@ -51,28 +51,6 @@ import MoreSetting from '../screens/more/MoreSetting';
 import MoreStat from '../screens/more/MoreStat';
 import MoreStatModify from '../screens/more/MoreStatModify';
 import Report from '../screens/report/Report';
-import CalendarTest from '../screens/test/CalendarTest';
-import DeviceTest from '../screens/test/DeviceTest';
-import FaceBookLogin from '../screens/test/FaceBookLogin';
-import GeoLocationTest from '../screens/test/GeoLocationTest';
-import GoogleLogin from '../screens/test/GoogleLogin';
-import MqttTest from '../screens/test/MqttTest';
-import NaverMapTest from '../screens/test/NaverMapTest';
-import {
-  CommonTestPage,
-  CommonTestPage2,
-  NoSignedTestPage,
-  NoSignedTestPage2,
-  PageMoveTest,
-  SignedTestPage,
-  SignedTestPage2,
-} from '../screens/test/PageMoveTest';
-import Test from '../screens/test/Test';
-import VideoTest from '../screens/test/VideoTest';
-import VideoTestByCase from '../screens/test/VideoTestByCase';
-import VideoTestForCompression from '../screens/test/VideoTestForCompression';
-import YoutubeTest from '../screens/test/YoutubeTest';
-import ChatTest from '../screens/test/chat/ChatTest';
 import ChallengeDetail from '../screens/training/ChallengeDetail';
 import TrainingDetail from '../screens/training/TrainingDetail';
 import TraningClear from '../screens/training/TraningClear';
@@ -130,10 +108,6 @@ import MoreNotice from '../screens/more/MoreNotice';
 import MoreNoticeDetail from '../screens/more/MoreNoticeDetail';
 import MoreQuestion from '../screens/more/MoreQuestion';
 import MoreTermsService from '../screens/more/MoreTermsService';
-import Authetication from '../screens/test/Authetication';
-import AutheticationMobileMain from '../screens/test/AutheticationMobileMain';
-import AutheticationSuccess from '../screens/test/AutheticationMobileSuccess';
-import SearchAddressTest from '../screens/test/SearchAddressTest';
 import TournamentApplyComplete from '../screens/tournament/TournamentApplyComplete';
 import TournamentDetail from '../screens/tournament/TournamentDetail';
 import AddDetails from '../screens/training/AddDetails';
@@ -168,10 +142,6 @@ function MatchingChatRoomListScreenComponent() {
 
 function MatchingChatRoomScreenComponent() {
   return <AuthLayout component={MatchingChatRoomScreen} />;
-}
-
-function ChatTestCompoent() {
-  return <AuthLayout component={ChatTest} />;
 }
 
 function ChatRoomListScreenComponent() {
@@ -469,10 +439,6 @@ export default function Navigation() {
         component={MoreMobileAuthenticationMyInfo}
       />
       <Stack.Screen
-        name={navName.searchAddressTest}
-        component={SearchAddressTest}
-      />
-      <Stack.Screen
         name={navName.tournamentDetail}
         component={TournamentDetail}
       />
@@ -542,54 +508,6 @@ export default function Navigation() {
       />
       <Stack.Screen name={navName.walletBackup} component={WalletBackup} />
       <Stack.Screen name={navName.walletDetail} component={WalletDetail} />
-      {/* 테스트용 ]] 테스트용입니다. 일반 페이지는 테스트 주석 위에 넣어주세요. */}
-      <Stack.Screen name={navName.test} component={Test} />
-      <Stack.Screen name={navName.pageMoveTest} component={PageMoveTest} />
-      <Stack.Screen name={navName.signedTestPage} component={SignedTestPage} />
-      <Stack.Screen
-        name={navName.signedTestPage2}
-        component={SignedTestPage2}
-      />
-      <Stack.Screen name={navName.commonTestPage} component={CommonTestPage} />
-      <Stack.Screen
-        name={navName.commonTestPage2}
-        component={CommonTestPage2}
-      />
-      <Stack.Screen
-        name={navName.noSignedTestPage}
-        component={NoSignedTestPage}
-      />
-      <Stack.Screen
-        name={navName.noSignedTestPage2}
-        component={NoSignedTestPage2}
-      />
-      <Stack.Screen name={navName.googleLogin} component={GoogleLogin} />
-      <Stack.Screen name={navName.geolocation} component={GeoLocationTest} />
-      <Stack.Screen name={navName.videoTest} component={VideoTest} />
-      <Stack.Screen
-        name={navName.videoTestByCase}
-        component={VideoTestByCase}
-      />
-      <Stack.Screen
-        name={navName.videoTestForCompression}
-        component={VideoTestForCompression}
-      />
-      <Stack.Screen name={navName.fbLogin} component={FaceBookLogin} />
-      <Stack.Screen name={navName.auth} component={Authetication} />
-      <Stack.Screen
-        name={navName.niceMobileMain}
-        component={AutheticationMobileMain}
-      />
-      <Stack.Screen
-        name={navName.niceMobileSuccess}
-        component={AutheticationSuccess}
-      />
-      <Stack.Screen name={navName.mqttTest} component={MqttTest} />
-      <Stack.Screen name={navName.youtubeTest} component={YoutubeTest} />
-      <Stack.Screen name={navName.calendarTest} component={CalendarTest} />
-      <Stack.Screen name={navName.deviceTest} component={DeviceTest} />
-      <Stack.Screen name={navName.naverMapTest} component={NaverMapTest} />
-      <Stack.Screen name={navName.chatTest} component={ChatTestCompoent} />
       <Stack.Screen
         name={navName.chatRoomList}
         component={ChatRoomListScreenComponent}

@@ -330,14 +330,20 @@ function TraningVideoDetail({ route }) {
       {/* 모달 : 시청완료 */}
       <SPModal
         title="시청 완료!"
-        contents={`
-        영상 시청을 완료했나요?
-        해당 동작 마스터 인증을 위한 실제 훈련 영상을 업로드 해주세요!
-        `}
+        contents={`영상 시청을 완료했나요?\n해당 동작 마스터 인증을 위한 실제 훈련 영상을 업로드 해주세요!`}
         visible={showViewCompleteModal}
         onConfirm={() => {
+          // 현재 Step O
+          if (isCurrentStep) {
+            openVideoSelectModal();
+          }
+          // 현재 Step X
+          else {
+            Utils.openModal({
+              body: `이전 단계 훈련을 먼저 완료해주세요.`,
+            });
+          }
           closeViewVideoCompleteModal();
-          openVideoSelectModal();
           setIsScrollable(true);
           fullScreenRef.current.closeFullScreen();
         }}

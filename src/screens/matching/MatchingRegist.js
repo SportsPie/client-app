@@ -53,18 +53,17 @@ function MatchingRegist() {
   const [spinning, setSpinning] = useState(false);
 
   // 경기일
-  const [matchDate, setMatchDate] = useState(null);
-  const [matchTime, setMatchTime] = useState(null);
-  const [matchTempTime, setMatchTempTime] = useState(
-    moment().hour(13).minute(0).second(0).toDate(),
-  );
+  const tenDate = moment();
+  const remainder = 10 - (tenDate.minute() % 10);
+  const closestTen = moment(tenDate).add(remainder, 'minutes').toDate();
+  const [matchDate, setMatchDate] = useState(moment().toDate());
+  const [matchTime, setMatchTime] = useState(closestTen);
+  const [matchTempTime, setMatchTempTime] = useState(closestTen);
 
   // 신청기간
-  const [closeDate, setCloseDate] = useState(null);
-  const [closeTime, setCloseTime] = useState(null);
-  const [closeTempTime, setCloseTempTime] = useState(
-    moment().hour(13).minute(0).second(0).toDate(),
-  );
+  const [closeDate, setCloseDate] = useState(moment().toDate());
+  const [closeTime, setCloseTime] = useState(closestTen);
+  const [closeTempTime, setCloseTempTime] = useState(closestTen);
 
   // 주소
   const [addrCity, setAddrCity] = useState('');
@@ -120,8 +119,8 @@ function MatchingRegist() {
 
       const param = {
         title,
-        matchDate,
-        matchTime: matchTimeStr,
+        matchDate: moment(matchDate).format('YYYY-MM-DD'),
+        matchTime: moment(matchTimeStr).format('HH:mm:ss'),
         closeDate: combineDateTime(closeDate, closeTime),
         addrCity,
         addrGu,
@@ -155,36 +154,53 @@ function MatchingRegist() {
   };
 
   const handleShowTimePicker = type => {
+    if (type === MODAL_TYPE_MATCH_DATE) {
+      setMatchTempTime(matchTime);
+    } else if (type === MODAL_TYPE_CLOSE_DATE) {
+      setCloseTempTime(closeTime);
+    }
     setModalType(type);
     setShowTimePicker(true);
   };
 
   const handleSelectDate = (date, type) => {
-    const selectedDate = moment(date);
-    const formattedMatchDate = moment(matchDate);
-
-    if (
-      type === MODAL_TYPE_CLOSE_DATE &&
-      matchDate &&
-      selectedDate.isAfter(formattedMatchDate)
-    ) {
-      setCloseDate(format(new Date(), 'yyyy-MM-dd'));
-      setShowCalendar(false);
-      setModalType('');
-      Utils.openModal({
-        title: '알림',
-        body: '마감일은 경기일 이전이어야 합니다.',
-      });
-      return;
-    }
-
     switch (type) {
-      case MODAL_TYPE_MATCH_DATE:
+      case MODAL_TYPE_MATCH_DATE: {
+        if (!checkEndIsOverNow(date, matchTime)) {
+          Utils.openModal({
+            title: '알림',
+            body: '경기일은 현재 시간 이후이어야 합니다.',
+          });
+          break;
+        }
+        if (!checkMinDate(date, matchTime, false)) {
+          Utils.openModal({
+            title: '알림',
+            body: '마감일은 경기일 이전이어야 합니다.',
+          });
+          break;
+        }
         setMatchDate(date);
         break;
-      case MODAL_TYPE_CLOSE_DATE:
+      }
+      case MODAL_TYPE_CLOSE_DATE: {
+        if (!checkEndIsOverNow(date, closeTime)) {
+          Utils.openModal({
+            title: '알림',
+            body: '마감일은 현재 시간 이후이어야 합니다.',
+          });
+          break;
+        }
+        if (!checkMinDate(date, closeTime, true)) {
+          Utils.openModal({
+            title: '알림',
+            body: '마감일은 경기일 이전이어야 합니다.',
+          });
+          break;
+        }
         setCloseDate(date);
         break;
+      }
       default:
         break;
     }
@@ -208,12 +224,43 @@ function MatchingRegist() {
 
   const handleSelectTime = type => {
     switch (type) {
-      case MODAL_TYPE_MATCH_DATE:
+      case MODAL_TYPE_MATCH_DATE: {
+        if (!checkEndIsOverNow(matchDate, matchTempTime)) {
+          Utils.openModal({
+            title: '알림',
+            body: '경기일은 현재 시간 이후이어야 합니다.',
+          });
+          break;
+        }
+        if (!checkMinDate(matchDate, matchTempTime, false)) {
+          Utils.openModal({
+            title: '알림',
+            body: '마감일은 경기일 이전이어야 합니다.',
+          });
+          break;
+        }
         setMatchTime(matchTempTime);
         break;
-      case MODAL_TYPE_CLOSE_DATE:
+      }
+
+      case MODAL_TYPE_CLOSE_DATE: {
+        if (!checkEndIsOverNow(closeDate, closeTempTime)) {
+          Utils.openModal({
+            title: '알림',
+            body: '마감일은 현재 시간 이후이어야 합니다.',
+          });
+          break;
+        }
+        if (!checkMinDate(closeDate, closeTempTime, true)) {
+          Utils.openModal({
+            title: '알림',
+            body: '마감일은 경기일 이전이어야 합니다.',
+          });
+          break;
+        }
         setCloseTime(closeTempTime);
         break;
+      }
       default:
         break;
     }
@@ -255,6 +302,7 @@ function MatchingRegist() {
     !selectedGender ||
     !selectedClassType ||
     !description ||
+    (selectedClassType?.includes('ETC') && !classDesc) ||
     description.length < 10;
 
   const onSelectAddress = data => {
@@ -277,6 +325,40 @@ function MatchingRegist() {
       -2,
     )}:${`0${time.getMinutes()}`.slice(-2)}:00`;
     return `${formattedDate} ${formattedTime}`;
+  };
+
+  const checkEndIsOverNow = (date, time) => {
+    const current = `${moment(now).format('YYYY-MM-DD')} ${moment(now).format(
+      'HH:mm:ss',
+    )}`;
+    const end = `${moment(date).format('YYYY-MM-DD')} ${moment(time).format(
+      'HH:mm:ss',
+    )}`;
+    return moment(end).toDate().getTime() >= moment(current).toDate().getTime();
+  };
+
+  const checkMinDate = (date, time, isStart) => {
+    let startDateTime = null;
+    let endDateTime = null;
+    if (isStart) {
+      const startD = moment(date).format('YYYY-MM-DD');
+      const startT = moment(time).format('HH:mm:ss');
+      const endD = moment(matchDate).format('YYYY-MM-DD');
+      const endT = moment(matchTime).format('HH:mm:ss');
+      startDateTime = moment(`${startD} ${startT}`).toDate().getTime();
+      endDateTime = moment(`${endD} ${endT}`).toDate().getTime();
+    } else {
+      const startD = moment(closeDate).format('YYYY-MM-DD');
+      const startT = moment(closeTime).format('HH:mm:ss');
+      const endD = moment(date).format('YYYY-MM-DD');
+      const endT = moment(time).format('HH:mm:ss');
+      startDateTime = moment(`${startD} ${startT}`).toDate().getTime();
+      endDateTime = moment(`${endD} ${endT}`).toDate().getTime();
+    }
+    if (startDateTime <= endDateTime) {
+      return true;
+    }
+    return false;
   };
 
   // --------------------------------------------------
@@ -741,8 +823,10 @@ function MatchingRegist() {
                     }
                     markedDates={{
                       [modalType === MODAL_TYPE_MATCH_DATE
-                        ? matchDate
-                        : closeDate]: { selected: true },
+                        ? moment(matchDate).format('YYYY-MM-DD')
+                        : moment(closeDate).format('YYYY-MM-DD')]: {
+                        selected: true,
+                      },
                     }}
                     theme={{
                       backgroundColor: '#ffffff',

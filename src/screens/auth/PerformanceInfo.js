@@ -92,6 +92,7 @@ function PerformanceInfo() {
       const formData = new FormData();
       const token = await getFcmToken();
       let data;
+      const { deviceType } = await Utils.getDeviceInfo();
       if (loginType === 'EMAIL') {
         data = {
           userName,
@@ -107,7 +108,7 @@ function PerformanceInfo() {
           position,
           osVersion,
           deviceId,
-          deviceType: Platform.OS === 'ios' ? 'IOS' : 'AOS',
+          deviceType,
           deviceModel,
           height: tall,
           shoeSize: footSize,
@@ -150,7 +151,7 @@ function PerformanceInfo() {
           position,
           osVersion,
           deviceId,
-          deviceType: Platform.OS === 'ios' ? 'IOS' : 'AOS',
+          deviceType,
           deviceModel,
           height: tall,
           shoeSize: footSize,
@@ -195,7 +196,7 @@ function PerformanceInfo() {
           position,
           osVersion,
           deviceId,
-          deviceType: Platform.OS === 'ios' ? 'IOS' : 'AOS',
+          deviceType,
           deviceModel,
           height: tall,
           shoeSize: footSize,
@@ -238,6 +239,7 @@ function PerformanceInfo() {
       const formData = new FormData();
       let data;
       const token = await getFcmToken();
+      const { deviceType } = await Utils.getDeviceInfo();
 
       if (loginType === 'EMAIL') {
         data = {
@@ -253,7 +255,7 @@ function PerformanceInfo() {
           userSubRegion,
           osVersion,
           deviceId,
-          deviceType: Platform.OS === 'ios' ? 'IOS' : 'AOS',
+          deviceType,
           deviceModel,
           optionSelected: false,
           marketingAgree: isMarketingAgree,
@@ -289,7 +291,7 @@ function PerformanceInfo() {
           userSubRegion,
           osVersion,
           deviceId,
-          deviceType: Platform.OS === 'ios' ? 'IOS' : 'AOS',
+          deviceType,
           deviceModel,
           optionSelected: false,
           marketingAgree: isMarketingAgree,
@@ -326,7 +328,7 @@ function PerformanceInfo() {
           userSubRegion,
           osVersion,
           deviceId,
-          deviceType: Platform.OS === 'ios' ? 'IOS' : 'AOS',
+          deviceType,
           marketingAgree: isMarketingAgree,
           deviceModel,
           optionSelected: false,

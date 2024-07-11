@@ -143,7 +143,10 @@ export default function MatchingRegistReview({ route }) {
               </View>
               <View style={styles.starContainer}>
                 {[...Array(5)].map((item, index) => (
-                  <TouchableOpacity onPress={() => handleStarPress(index)}>
+                  <TouchableOpacity
+                    /* eslint-disable-next-line react/no-array-index-key */
+                    key={index}
+                    onPress={() => handleStarPress(index)}>
                     <Image
                       source={
                         index < rating
@@ -207,10 +210,7 @@ export default function MatchingRegistReview({ route }) {
                         <Text style={styles.numberText}>{player.backNo}</Text>
                       </View>
                     )}
-                    {/* TODO ::: 나중에 삭제 */}
-                    <Text style={styles.nameText}>
-                      {player.playerName ? player.playerName : '김파이'}
-                    </Text>
+                    <Text style={styles.nameText}>{player.playerName}</Text>
                   </View>
                 </View>
               </View>

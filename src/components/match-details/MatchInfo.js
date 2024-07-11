@@ -46,7 +46,7 @@ function MatchInfo({ matchInfo, soccerPlayer }) {
                     matchInfo?.hostScore > matchInfo?.participantScore
                       ? COLORS.textDefault
                       : COLORS.labelAssistive,
-                    fontFamily: FONTS.RobotoCondensedBold,
+                  fontFamily: FONTS.RobotoCondensedBold,
                 },
               ]}>
               {matchInfo?.hostScore}
@@ -66,7 +66,7 @@ function MatchInfo({ matchInfo, soccerPlayer }) {
                     matchInfo?.hostScore < matchInfo?.participantScore
                       ? COLORS.textDefault
                       : COLORS.labelAssistive,
-                    fontFamily: FONTS.RobotoCondensedBold,
+                  fontFamily: FONTS.RobotoCondensedBold,
                 },
               ]}>
               {matchInfo?.participantScore}
@@ -86,10 +86,16 @@ function MatchInfo({ matchInfo, soccerPlayer }) {
             </Text>
           </View>
         </View>
-        <View style={{ flexDirection: 'row' }}>
-          <View>
-            {soccerPlayer.data.homePlayers
-              .filter(player => player.score !== 0)
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <View
+            style={{
+              flex: 1,
+              alignItems: 'flex-end',
+              flexDirection: 'row',
+              justifyContent: 'flex-end',
+            }}>
+            {soccerPlayer?.homePlayers
+              ?.filter(player => player.score !== 0)
               .map(player => (
                 <View key={player.playerIdx}>
                   <Text>
@@ -97,6 +103,9 @@ function MatchInfo({ matchInfo, soccerPlayer }) {
                   </Text>
                 </View>
               ))}
+            {!soccerPlayer?.homePlayers?.some(player => player.score !== 0) && (
+              <View style={{ width: 50 }} />
+            )}
           </View>
           <View style={{ marginHorizontal: 8, justifyContent: 'center' }}>
             <Image
@@ -104,9 +113,10 @@ function MatchInfo({ matchInfo, soccerPlayer }) {
               style={{ width: 16, height: 16 }}
             />
           </View>
-          <View>
-            {soccerPlayer.data.awayPlayers
-              .filter(player => player.score !== 0)
+          <View
+            style={{ flex: 1, alignItems: 'flex-start', flexDirection: 'row' }}>
+            {soccerPlayer?.awayPlayers
+              ?.filter(player => player.score !== 0)
               .map(player => (
                 <View key={player.playerIdx} style={{ textAlign: 'center' }}>
                   <Text>
@@ -114,6 +124,9 @@ function MatchInfo({ matchInfo, soccerPlayer }) {
                   </Text>
                 </View>
               ))}
+            {!soccerPlayer?.awayPlayers?.some(player => player.score !== 0) && (
+              <View style={{ width: 50 }} />
+            )}
           </View>
         </View>
       </View>

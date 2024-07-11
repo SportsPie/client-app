@@ -16,7 +16,7 @@ function MoreGameSchedule() {
   const [loading, setLoading] = useState(true);
   const [isLast, setIsLast] = useState(false);
   const flatListRef = useRef();
-  const pageSize = 8;
+  const pageSize = 30;
 
   const handleEndReached = () => {
     if (!isLast) {
@@ -30,8 +30,6 @@ function MoreGameSchedule() {
       page: currentPage,
     };
     try {
-      setLoading(true);
-
       const { data } = await apiGetMatches(params);
 
       if (Array.isArray(data.data.list)) {
@@ -49,6 +47,7 @@ function MoreGameSchedule() {
   };
 
   const onRefresh = useCallback(async () => {
+    setIsLast(false);
     setRefreshing(true);
     setCurrentPage(1);
     setMatches([]);

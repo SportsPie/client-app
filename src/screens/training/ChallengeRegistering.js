@@ -78,34 +78,43 @@ function ChallengeRegistering({ route }) {
   const [thumbnailImageName, setThumbnailImageName] = useState(''); // 썸네일 이름
 
   // [ util ] 동영상 압축
-  const compressUploadVideo = videoPath => {
-    VideoUtils.compressVideo(videoPath, setCompressionProgress)
-      .then(compressedPath => {
-        // 압축 완료
-        setCompressionProgress(100);
-        setCompressedVideoPath(compressedPath);
+  const compressUploadVideo = async videoPath => {
+    try {
+      // 비트레이트 계산
+      const { size: orgSize, duration: durationSec } = await getVideoMetaData(
+        videoPath,
+      );
+      const orgBitrate = (orgSize / durationSec) * 8;
+      const compressRate = 0.5;
+      const calBitrate = Math.ceil((orgBitrate * compressRate) / 10) * 10; // 짝수 맞춤
 
-        // 썸네일 추출
-        VideoUtils.getVideoThumbnail(compressedPath).then(info => {
-          setThumbnailImagePath(info.path);
-          setThumbnailImageType(info.mime);
+      const compressedPath = await VideoUtils.compressVideo(
+        videoPath,
+        setCompressionProgress,
+        calBitrate,
+      );
 
-          const fileName = VideoUtils.extractThumbnailFileNameWithExt(
-            info.path,
-            info.mime,
-          );
-          setThumbnailImageName(fileName);
-        });
+      // 압축 완료
+      setCompressionProgress(100);
+      setCompressedVideoPath(compressedPath);
 
-        // 메타데이터 확인
-        getVideoMetaData(compressedPath).then(metaData => {
-          setVideoDurationSec(Math.floor(metaData.duration));
-        });
-      })
-      .catch(e => {
-        handleError(new CustomException('파일을 읽어오는데 실패했습니다.'));
-        NavigationService.goBack();
-      });
+      // 썸네일 추출
+      const { path, mime } = await VideoUtils.getVideoThumbnail(compressedPath);
+      const fileName = VideoUtils.extractThumbnailFileNameWithExt(path, mime);
+      setThumbnailImagePath(path);
+      setThumbnailImageType(mime);
+      setThumbnailImageName(fileName);
+
+      // 메타데이터 확인
+      const { size, duration } = await getVideoMetaData(compressedPath);
+      setVideoDurationSec(Math.floor(duration));
+
+      console.log('Com Size');
+      console.log(size / (1024 * 1024));
+    } catch (error) {
+      handleError(new CustomException('파일을 읽어오는데 실패했습니다.'));
+      NavigationService.goBack();
+    }
   };
 
   // [ api ] 챌린지 영상 등록

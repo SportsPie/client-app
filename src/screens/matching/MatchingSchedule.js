@@ -1001,7 +1001,13 @@ function MatchingSchedule({ route }) {
           </View>
         </TouchableOpacity>
       </Modal>
-      <Modal animationType="slide" transparent={true} visible={isModalVisible}>
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={isModalVisible}
+        onRequestClose={() => {
+          setIsModalVisible(false);
+        }}>
         <TouchableOpacity
           style={{
             flex: 1,
@@ -1022,6 +1028,7 @@ function MatchingSchedule({ route }) {
             {/* 년도 선택 */}
             <View style={styles.modalMonthButtonBox}>
               <TouchableOpacity
+                accessibilityLabel="Go to previous month"
                 onPress={() => handleYearPress(selectedYear - 1)}
                 disabled={selectedYear <= minYear}>
                 <Image
@@ -1035,6 +1042,7 @@ function MatchingSchedule({ route }) {
               </TouchableOpacity>
               <Text style={styles.modalMonthText}>{`${selectedYear}년`}</Text>
               <TouchableOpacity
+                accessibilityLabel="Go to next month"
                 onPress={() => handleYearPress(selectedYear + 1)}
                 disabled={selectedYear >= maxYear}>
                 <Image

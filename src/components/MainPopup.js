@@ -91,7 +91,7 @@ const MainPopup = forwardRef(({ data }, ref) => {
       case 'POPUP_WEBVIEW':
         if (linkUrl) {
           // If linkUrl exists, open WebView
-          Linking.openURL(linkUrl);
+          Utils.openOrMoveUrl(linkUrl);
         }
         break;
       case 'POPUP_MATCH':

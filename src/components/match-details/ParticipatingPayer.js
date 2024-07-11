@@ -41,6 +41,7 @@ const ListPlayer = memo(({ teamName, players }) => {
                   {
                     color: COLORS.labelNormal,
                     letterSpacing: 0.25,
+                    flexShrink: 1,
                   },
                 ]}>
                 {player?.playerName}
@@ -61,11 +62,11 @@ function ParticipatingPayer({ matchInfo, soccerPlayer }) {
       <View style={styles.content}>
         <ListPlayer
           teamName={matchInfo?.academyName}
-          players={soccerPlayer.data.homePlayers}
+          players={soccerPlayer?.homePlayers}
         />
         <ListPlayer
           teamName={matchInfo?.awayAcademyName}
-          players={soccerPlayer.data.awayPlayers}
+          players={soccerPlayer?.awayPlayers}
         />
       </View>
     </View>

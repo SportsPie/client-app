@@ -31,6 +31,7 @@ import { handleError } from './HandleError';
 import { MqttUtils } from './MqttUtils';
 import { USER_TYPE } from './chat/ChatMapper';
 import ChatUtils from './chat/ChatUtils';
+import SqlLite from './SqlLite/SqlLite';
 const emojiRegex = require('emoji-regex');
 const Utils = {
   // 이메일 체크
@@ -371,6 +372,10 @@ const Utils = {
       let osName = os.toUpperCase();
       if (os.toUpperCase() === 'ANDROID') {
         osName = 'AOS';
+      } else if (os.toUpperCase() === 'IOS') {
+        osName = 'IOS';
+      } else {
+        osName = 'ETC';
       }
 
       return {
@@ -464,9 +469,9 @@ const Utils = {
     try {
       const isInstagramInstalled = await Linking.canOpenURL(appProfileUrl); // 앱 URL을 열 수 있는지 확인
       if (isInstagramInstalled) {
-        Linking.openURL(appProfileUrl); // 앱 URL 열기
+        Utils.openOrMoveUrl(appProfileUrl); // 앱 URL 열기
       } else {
-        Linking.openURL(url); // 웹 URL 열기
+        Utils.openOrMoveUrl(url); // 웹 URL 열기
       }
     } catch (error) {
       handleError(error);
@@ -484,6 +489,8 @@ const Utils = {
   },
   login: async (data = {}) => {
     try {
+      await ChatUtils.createChatTable();
+      await SqlLite.createNotification();
       const mqttClientId = new Date().getTime();
       // eslint-disable-next-line no-param-reassign
       data.mqttClientId = mqttClientId;
@@ -736,6 +743,49 @@ const Utils = {
       text = text.replace('  ', ' ');
     }
     return text;
+  },
+  openOrMoveUrl: url => {
+    if (!url) return;
+    if (
+      url?.toLowerCase()?.startsWith('http') ||
+      url?.toLowerCase()?.startsWith('https')
+    ) {
+      Linking.canOpenURL(url).then(isGranted => {
+        if (isGranted) {
+          Linking.openURL(url);
+        }
+      });
+      return;
+    }
+    const [type, idx] = url.split('/');
+
+    if (type?.toLowerCase()?.startsWith('notice')) {
+      NavigationService.navigate(navName.moreNoticeDetail, {
+        boardIdx: idx,
+      });
+    } else if (type?.toLowerCase()?.startsWith('article')) {
+      NavigationService.navigate(navName.moreArticleDetail, {
+        boardIdx: idx,
+      });
+    } else if (type?.toLowerCase()?.startsWith('academy')) {
+      NavigationService.navigate(navName.academyDetail, {
+        academyIdx: idx,
+      });
+    } else if (type?.toLowerCase()?.startsWith('tournament')) {
+      NavigationService.navigate(navName.tournamentDetail, {
+        tournamentIdx: idx,
+      });
+    } else if (type?.toLowerCase()?.startsWith('match')) {
+      NavigationService.navigate(navName.moreMatchDetail, {
+        matchIdx: idx,
+      });
+    } else if (type?.toLowerCase()?.startsWith('training')) {
+      NavigationService.navigate(navName.trainingDetail, { trainingIdx: idx });
+    } else if (type?.toLowerCase()?.startsWith('challenge')) {
+      NavigationService.navigate(navName.challengeDetail, {
+        videoIdx: idx,
+      });
+    }
   },
 };
 

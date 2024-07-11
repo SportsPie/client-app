@@ -161,10 +161,10 @@ function SNSButton({ type, onPress }) {
       const profile = await getProfile();
       onPress(type, profile.id, profile.email);
     } catch (error) {
-      Utils.openModal({
-        title: '에러',
-        body: '확인되지 않은 오류입니다. 잠시 후 다시 시도해주세요.',
-      });
+      // Utils.openModal({
+      //   title: '에러',
+      //   body: '확인되지 않은 오류입니다. 잠시 후 다시 시도해주세요.',
+      // });
       console.info(error);
     }
   };
@@ -182,10 +182,10 @@ function SNSButton({ type, onPress }) {
       const { data } = await apiPostAuthAppleInfo(params);
       onPress(type, data.data.snsKey, data.data.email);
     } catch (error) {
-      Utils.openModal({
-        title: '에러',
-        body: '확인되지 않은 오류입니다. 잠시 후 다시 시도해주세요.',
-      });
+      // Utils.openModal({
+      //   title: '에러',
+      //   body: '확인되지 않은 오류입니다. 잠시 후 다시 시도해주세요.',
+      // });
     }
   };
 
@@ -249,10 +249,10 @@ function SNSButton({ type, onPress }) {
         throw new CustomException('유저 정보를 가져오지 못했습니다.');
       }
     } catch (error) {
-      Utils.openModal({
-        title: '에러',
-        body: '확인되지 않은 오류입니다. 잠시 후 다시 시도해주세요.',
-      });
+      // Utils.openModal({
+      //   title: '에러',
+      //   body: '확인되지 않은 오류입니다. 잠시 후 다시 시도해주세요.',
+      // });
     }
   };
 

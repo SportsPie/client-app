@@ -10,6 +10,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import axios from 'axios';
 import VersionCheck from 'react-native-version-check';
 import { IS_ANDROID } from '../common/constants/constants';
+import Utils from '../utils/Utils';
 
 function ForceUpdateModal() {
   const insets = useSafeAreaInsets();
@@ -49,11 +50,7 @@ function ForceUpdateModal() {
 
   const handleUpdate = useCallback(() => {
     if (storeURL) {
-      Linking.canOpenURL(storeURL).then(isGranted => {
-        if (isGranted) {
-          Linking.openURL(storeURL);
-        }
-      });
+      Utils.openOrMoveUrl(storeURL);
     }
   }, [storeURL]);
 

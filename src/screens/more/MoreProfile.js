@@ -1,26 +1,8 @@
 /* eslint-disable no-unsafe-optional-chaining */
 import { SCREEN_WIDTH } from '@gorhom/bottom-sheet';
-import React, {
-  memo,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
-import {
-  FlatList,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
-import {
-  apiGetAcademyConfigMngPlayerTournamentHistory,
-  apiGetProfile,
-  apiGetTournaments,
-} from '../../api/RestAPI';
+import React, { memo, useCallback, useMemo, useRef, useState } from 'react';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { apiGetMatches, apiGetProfile } from '../../api/RestAPI';
 import { SPSvgs } from '../../assets/svg';
 import { GENDER } from '../../common/constants/gender';
 import { MAIN_FOOT } from '../../common/constants/mainFoot';
@@ -30,8 +12,6 @@ import MenuTile from '../../components/more-profile/MenuTile';
 import { COLORS } from '../../styles/colors';
 import fontStyles from '../../styles/fontStyles';
 import { handleError } from '../../utils/HandleError';
-import Utils from '../../utils/Utils';
-import { CALLBACK_TYPE } from 'react-native-gesture-handler/lib/typescript/handlers/gestures/gesture';
 import { CAREER_TYPE } from '../../common/constants/careerType';
 import { useFocusEffect } from '@react-navigation/native';
 import moment from 'moment/moment';
@@ -56,17 +36,23 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 // ];
 
 function MoreProfile() {
+  /**
+   * state
+   */
   const insets = useSafeAreaInsets();
   const [member, setMember] = useState({});
   const [player, setPlayer] = useState({});
   const [stats, setStats] = useState({});
   const [userIdx, setUserIdx] = useState({});
-  const [champ, setChamp] = useState({});
-  const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 8;
+  const [matchHistory, setMatchHistory] = useState({});
+  const [page, setPage] = useState(1);
+  const pageSize = 30;
   const flatListRef = useRef();
   const [isLast, setIsLast] = useState(false);
 
+  /**
+   * api
+   */
   // MenuTile에 표시될 value 설정
   const value = `${age}세`;
   const getProfile = async () => {
@@ -88,19 +74,19 @@ function MoreProfile() {
   const today = moment();
   const age = today.diff(birthday, 'years');
 
-  const getChampionship = async () => {
+  const getUserMatchHistory = async () => {
     const params = {
       size: pageSize,
-      page: currentPage,
+      page,
       academyIdx: member.academyIdx,
     };
     try {
-      const { data } = await apiGetTournaments(params);
+      const { data } = await apiGetMatches(params);
       if (Array.isArray(data.data.list)) {
         const newList = data.data.list;
         setIsLast(data.data.isLast); // 현재 페이지가 마지막 페이지임을 설정
-        setChamp(prevArticles =>
-          currentPage === 1 ? newList : [...prevArticles, ...newList],
+        setMatchHistory(prevArticles =>
+          page === 1 ? newList : [...prevArticles, ...newList],
         );
       }
     } catch (error) {
@@ -108,14 +94,42 @@ function MoreProfile() {
     }
   };
 
-  useEffect(() => {
-    getProfile();
-  }, []);
+  /**
+   * function
+   */
+  const handleScroll = event => {
+    const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent;
+    const paddingToBottom = 20;
+    const isScrolledToBottom =
+      layoutMeasurement.height + contentOffset.y >=
+      contentSize.height - paddingToBottom;
+
+    if (isScrolledToBottom) {
+      loadMoreProjects();
+    }
+  };
+
+  const loadMoreProjects = () => {
+    setTimeout(() => {
+      if (!isLast) {
+        setPage(prevPage => prevPage + 1);
+      }
+    }, 0);
+  };
+
+  /**
+   * useEffect
+   */
+  useFocusEffect(
+    useCallback(() => {
+      getProfile();
+    }, []),
+  );
 
   useFocusEffect(
     useCallback(() => {
-      getChampionship();
-    }, [currentPage, userIdx]),
+      getUserMatchHistory();
+    }, [page, userIdx]),
   );
 
   const renderUserSection = useMemo(() => {
@@ -303,46 +317,6 @@ function MoreProfile() {
     );
   }, [player]);
 
-  const renderHistoryListItem = useCallback(({ item }) => {
-    return (
-      <View style={styles.historyItemWrapper}>
-        <Text
-          style={[
-            fontStyles.fontSize16_Medium,
-            {
-              color: COLORS.black,
-              letterSpacing: 0.1,
-            },
-          ]}>
-          {item?.trnNm}
-        </Text>
-        <Text
-          style={[
-            fontStyles.fontSize12_Medium,
-            { color: COLORS.labelAlternative, letterSpacing: 0.3 },
-          ]}>
-          {item?.regDate}
-        </Text>
-      </View>
-    );
-  }, []);
-
-  const renderHistoryList = useMemo(() => {
-    return (
-      <FlatList
-        ref={flatListRef}
-        data={champ}
-        keyExtractor={item => item?.trnIdx}
-        renderItem={renderHistoryListItem}
-        contentContainerStyle={{
-          rowGap: 16,
-          paddingVertical: 16,
-        }}
-        scrollEnabled={false}
-      />
-    );
-  }, [champ]);
-
   return (
     <View style={styles.container}>
       <Header
@@ -359,7 +333,10 @@ function MoreProfile() {
         // rightContent={renderHeaderRightButtons}
       />
 
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
+        showsVerticalScrollIndicator={false}>
         {renderUserSection}
 
         <View style={styles.content}>
@@ -370,7 +347,26 @@ function MoreProfile() {
           {renderGameParticipantHistory}
 
           {/* List history */}
-          {renderHistoryList}
+          <View
+            style={{
+              rowGap: 16,
+              paddingVertical: 16,
+              flexDirection: 'column',
+            }}>
+            {matchHistory &&
+              matchHistory.length > 0 &&
+              matchHistory.map((item, index) => {
+                return (
+                  // eslint-disable-next-line react/no-array-index-key
+                  <View key={index} style={styles.historyItemWrapper}>
+                    <Text style={styles.subTitle}>{item.title}</Text>
+                    <Text style={styles.subText}>
+                      {moment(item.matchDate).format('YYYY-MM-DD')}
+                    </Text>
+                  </View>
+                );
+              })}
+          </View>
         </View>
       </ScrollView>
     </View>
@@ -456,6 +452,20 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 8,
     borderColor: COLORS.lineBorder,
-    rowGap: 8,
+  },
+  subTitle: {
+    fontSize: 16,
+    fontWeight: 500,
+    color: '#000',
+    lineHeight: 24,
+    letterSpacing: 0.091,
+    marginBottom: 8,
+  },
+  subText: {
+    fontSize: 12,
+    fontWeight: 500,
+    color: 'rgba(46, 49, 53, 0.60)',
+    lineHeight: 16,
+    letterSpacing: 0.302,
   },
 });

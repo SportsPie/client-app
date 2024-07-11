@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import {
   Dimensions,
   Modal,
+  Platform,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -9,11 +10,13 @@ import {
 } from 'react-native';
 import ImagePicker from 'react-native-image-crop-picker';
 import { RESULTS } from 'react-native-permissions';
+// import { getVideoMetaData } from 'react-native-compressor';
 import fontStyles from '../styles/fontStyles';
 import { COLORS } from '../styles/colors';
 import { handleError } from '../utils/HandleError';
 import { checkPermissions } from '../utils/PermissionUtils';
 import { SP_PERMISSIONS } from '../common/constants/permissions';
+import { CustomException } from '../common/exceptions';
 import SPModal from './SPModal';
 import {
   ALBUM_PERMISSION_TEXT,
@@ -79,15 +82,25 @@ function SPSelectVideoModal({
     if (!hasPermission) return;
 
     const options = {
-      // useFrontCamera: true,
       mediaType: 'video',
-      // multiple: false,
-      // cropping: false,
+      compressVideoPreset: 'Passthrough',
+      multiple: false,
     };
 
     try {
+      // 파일 선택
       const image = await ImagePicker.openCamera(options);
-      const { mime, path, modificationDate } = image;
+      const { mime, path, size } = image;
+
+      console.log('Ori Size');
+      console.log(size / (1024 * 1024));
+
+      // 원본 파일 용량 확인
+      if (size / (1024 * 1024) > 1024) {
+        throw new CustomException('영상 최대 용량은 1GB 입니다.');
+      }
+
+      // 파일 정보 반환
       const uriPath = path.split('//').pop();
       const videoName = path.split('/').pop();
       const videoType = mime;
@@ -107,13 +120,25 @@ function SPSelectVideoModal({
 
     const options = {
       mediaType: 'video',
+      compressVideoPreset: 'Passthrough',
       multiple: false,
-      cropping: false,
     };
 
     try {
+      // 파일 선택
       const image = await ImagePicker.openPicker(options);
-      const { mime, path, modificationDate } = image;
+      const { mime, path, size } = image;
+
+      console.log('Ori Size');
+      console.log(image);
+      console.log(size / (1024 * 1024));
+
+      // 원본 파일 용량 확인
+      if (size / (1024 * 1024) > 1024) {
+        throw new CustomException('영상 최대 용량은 1GB 입니다.');
+      }
+
+      // 파일 정보 반환
       const uriPath = path.split('//').pop();
       const videoName = path.split('/').pop();
       const videoType = mime;
@@ -127,9 +152,9 @@ function SPSelectVideoModal({
     }
   };
 
-  const onDefault = async () => {
-    if (onComplete) await onComplete({});
-  };
+  // const onDefault = async () => {
+  //   if (onComplete) await onComplete({});
+  // };
 
   const handleOnRequestCloseEvent = e => {
     setShowModal(false);

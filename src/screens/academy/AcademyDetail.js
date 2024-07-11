@@ -400,7 +400,7 @@ function AcademyDetail({
                 <TouchableOpacity
                   onPress={() => {
                     if (academyDetail.homepageUrl) {
-                      Linking.openURL(academyDetail.homepageUrl);
+                      Utils.openOrMoveUrl(academyDetail.homepageUrl);
                     }
                   }}>
                   <Image source={SPIcons.icExplore} />

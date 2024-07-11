@@ -16,9 +16,12 @@ const MAX_SIZE_MB = 20; // max mb
 
 // 동영상 압축 옵션
 const compressOptions = {
-  compressionMethod: 'auto', // or 'manual'
+  compressionMethod: 'auto', // 'auto' or 'manual'
   progressDivider: 1,
-  // bitrate: 64000,
+  // bitrate: DEFAULT_BITRATE,
+  // maxSize
+  // compressionMethod
+  // minimumFileSizeForCompress
   // getCancellationId: cancellationId => (cancellationVideoId = cancellationId),
 };
 
@@ -99,15 +102,28 @@ const VideoUtils = {
    *
    * @returns {string} compressedPath - 압축 동영상 파일 경로
    */
-  compressVideo: async (filePath = '', progressSetter = () => null) => {
+  compressVideo: async (
+    filePath = '',
+    progressSetter = () => null,
+    bitrate,
+  ) => {
     try {
-      return await Video.compress(
-        filePath,
-        { ...compressOptions },
-        progress => {
-          progressSetter(Math.floor(progress * 100));
-        },
-      );
+      let options = { ...compressOptions };
+
+      if (bitrate) {
+        options = {
+          ...options,
+          compressionMethod: 'manual',
+          bitrate,
+        };
+      }
+
+      console.log('options');
+      console.log(options);
+
+      return await Video.compress(filePath, options, progress => {
+        progressSetter(Math.floor(progress * 100));
+      });
     } catch (error) {
       if (error.code === 'EUNSPECIFIED') {
         throw new CustomException('확인되지 않는 파일입니다.');

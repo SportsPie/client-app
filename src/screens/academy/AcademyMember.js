@@ -424,7 +424,7 @@ function Academy({ navigation }) {
                       activeOpacity={1}
                       onPress={() => {
                         if (img.linkUrl) {
-                          Linking.openURL(img.linkUrl);
+                          Utils.openOrMoveUrl(img.linkUrl);
                         }
                       }}
                       // eslint-disable-next-line react/no-array-index-key

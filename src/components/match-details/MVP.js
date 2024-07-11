@@ -69,7 +69,7 @@ function MVP({ matchInfo, soccerPlayer }) {
         </View>
 
         {renderScorers(
-          soccerPlayer?.data.homePlayers.filter(
+          soccerPlayer?.homePlayers?.filter(
             item =>
               item?.acdmyIdx === matchInfo?.homeAcademyIdx &&
               item?.mvpYn === 'Y',
@@ -84,7 +84,7 @@ function MVP({ matchInfo, soccerPlayer }) {
         </View>
 
         {renderScorers(
-          soccerPlayer?.data.awayPlayers.filter(
+          soccerPlayer?.awayPlayers?.filter(
             item =>
               item?.acdmyIdx === matchInfo?.awayAcademyIdx &&
               item?.mvpYn === 'Y',

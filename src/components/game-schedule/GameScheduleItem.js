@@ -71,14 +71,8 @@ function GameScheduleItem({ item }) {
       //   });
       //   return;
       // }
-      const response = await apiGetMatchesDetail(item.matchIdx);
-      const matchDetail = response.data;
-
-      const playersResponse = await apiGetMngPlayers(item.matchIdx);
-      const soccerPlayer = playersResponse.data;
       NavigationService.navigate(navName.moreMatchDetail, {
-        matchDetail,
-        soccerPlayer,
+        matchIdx: item.matchIdx,
       });
     } catch (error) {
       handleError(error);

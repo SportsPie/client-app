@@ -116,7 +116,12 @@ const MatchingFilterModal = forwardRef((props, ref) => {
   useImperativeHandle(ref, () => ({ show, hide, reset }), [show, hide]);
 
   return (
-    <Modal visible={isVisible} animationType="slide">
+    <Modal
+      visible={isVisible}
+      animationType="slide"
+      onRequestClose={() => {
+        hide();
+      }}>
       <View
         style={[
           styles.container,

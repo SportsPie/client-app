@@ -25,10 +25,8 @@ function ArticleItem({ item, containerStyle }) {
   }
   const detailPage = async () => {
     try {
-      const response = await apiGetArticleDetail(item.boardIdx);
-      const articleDetail = response.data;
       NavigationService.navigate(navName.moreArticleDetail, {
-        articleDetail,
+        boardIdx: item.boardIdx,
       });
     } catch (error) {
       handleError(error);

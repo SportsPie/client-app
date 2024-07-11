@@ -153,7 +153,7 @@ function PlaygroundDetail({ route }) {
             )}
             {playgroundInfo.homepageUrl && (
               <Pressable
-                onPress={() => Linking.openURL(playgroundInfo.homepageUrl)}>
+                onPress={() => Utils.openOrMoveUrl(playgroundInfo.homepageUrl)}>
                 <SPSvgs.Website />
               </Pressable>
             )}

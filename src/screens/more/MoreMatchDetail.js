@@ -1,5 +1,5 @@
-import { useRoute } from '@react-navigation/native';
-import React, { memo, useMemo } from 'react';
+import { useFocusEffect, useRoute } from '@react-navigation/native';
+import React, { memo, useCallback, useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import MVP from '../../components/match-details/MVP';
 import MatchInfo from '../../components/match-details/MatchInfo';
@@ -7,25 +7,44 @@ import ParticipatingPayer from '../../components/match-details/ParticipatingPaye
 import { COLORS } from '../../styles/colors';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Header from '../../components/header';
+import { handleError } from '../../utils/HandleError';
+import { apiGetMatchesDetail, apiGetMngPlayers } from '../../api/RestAPI';
 
 function MoreMatchDetail() {
   const route = useRoute();
-  const { matchDetail, soccerPlayer } = route.params;
-  const matchInfo = matchDetail?.data?.matchInfo;
+  const [matchDetail, setMatchDetail] = useState({});
+  const [matchInfo, setMatchInfo] = useState({});
+  const matchIdx = route.params?.matchIdx;
+
+  const getMatchDetail = async () => {
+    try {
+      const matchResponse = await apiGetMatchesDetail(matchIdx);
+      setMatchDetail(matchResponse.data.data);
+      setMatchInfo(matchResponse.data.data?.matchInfo);
+    } catch (error) {
+      handleError(error);
+    }
+  };
 
   const renderMatchInfo = useMemo(() => {
-    return <MatchInfo matchInfo={matchInfo} soccerPlayer={soccerPlayer} />;
+    return <MatchInfo matchInfo={matchInfo} soccerPlayer={matchDetail} />;
   }, [matchInfo]);
 
   const renderMVP = useMemo(() => {
-    return <MVP matchInfo={matchInfo} soccerPlayer={soccerPlayer} />;
+    return <MVP matchInfo={matchInfo} soccerPlayer={matchDetail} />;
   }, [matchInfo]);
 
   const renderParticipatingPayer = useMemo(() => {
     return (
-      <ParticipatingPayer matchInfo={matchInfo} soccerPlayer={soccerPlayer} />
+      <ParticipatingPayer matchInfo={matchInfo} soccerPlayer={matchDetail} />
     );
-  }, [matchInfo, soccerPlayer]);
+  }, [matchInfo, matchDetail]);
+
+  useFocusEffect(
+    useCallback(() => {
+      getMatchDetail();
+    }, []),
+  );
 
   return (
     <SafeAreaView style={{ flex: 1 }}>

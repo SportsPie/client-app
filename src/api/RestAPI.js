@@ -626,9 +626,14 @@ export const apiGetTournamentList = data => {
   return api.get(`${API_TOURNAMENT}/open`, { params: data });
 };
 
-// SPIC_IF_522 :: 대회 상세 조회
+// SPIC_IF_522 :: 대회 상세 조회 (비회원)
 export const apiGetTournamentDetail = tournamentIdx => {
   return api.get(`${API_TOURNAMENT}/open/${tournamentIdx}`);
+};
+
+// SPIC_IF_522 :: 대회 상세 조회 (회원)
+export const apiGetTournamentDetailForMember = tournamentIdx => {
+  return api.get(`${API_TOURNAMENT}/${tournamentIdx}`);
 };
 
 // SPIC_IF_522 :: 대회 신청

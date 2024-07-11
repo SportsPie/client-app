@@ -284,10 +284,8 @@ function Home() {
 
   const articlePage = async article => {
     try {
-      const response = await apiGetArticleDetail(article.boardIdx);
-      const articleDetail = response.data;
       NavigationService.navigate(navName.moreArticleDetail, {
-        articleDetail,
+        boardIdx: article.boardIdx,
       });
     } catch (error) {
       handleError(error);
@@ -312,14 +310,14 @@ function Home() {
   const bannerWebPress = img => {
     if (img.linkUrl) {
       // If linkUrl exists, open WebView
-      Linking.openURL(img.linkUrl);
+      Utils.openOrMoveUrl(img.linkUrl);
     }
   };
 
   const tournamentWebPress = slide => {
     if (slide.linkUrl) {
       // If linkUrl exists, open WebView
-      Linking.openURL(slide.linkUrl);
+      Utils.openOrMoveUrl(slide.linkUrl);
     }
   };
 

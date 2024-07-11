@@ -201,7 +201,10 @@ function AcademyRecruitmentDetail({ route, type }) {
           isAdmin={isAdmin}
           type={MODAL_MORE_TYPE.RECRUIT}
           idx={recruitDetail.recruitIdx}
-          adminButtons={[MODAL_MORE_BUTTONS.EDIT, MODAL_MORE_BUTTONS.SHARE]}
+          adminButtons={[
+            recruitEnd ? null : MODAL_MORE_BUTTONS.EDIT,
+            MODAL_MORE_BUTTONS.SHARE,
+          ]}
           memberButtons={[MODAL_MORE_BUTTONS.SHARE]}
         />
         <ScrollView showsVerticalScrollIndicator={false}>
@@ -302,8 +305,8 @@ function AcademyRecruitmentDetail({ route, type }) {
               <Text style={styles.detailTitle}>모집기간</Text>
               {recruitDetail.endDate ? (
                 <Text style={styles.detailText}>
-                  {moment(recruitDetail.startDate).format('YYYY.MM.DD')} -{' '}
-                  {moment(recruitDetail.endDate).format('YYYY.MM.DD')}
+                  {moment(recruitDetail.startDate).format('YYYY.MM.DD A HH:mm')}{' '}
+                  - {moment(recruitDetail.endDate).format('YYYY.MM.DD A HH:mm')}
                 </Text>
               ) : (
                 <Text style={styles.detailText}>상시모집</Text>

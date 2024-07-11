@@ -22,6 +22,7 @@ import {
   apiApplyTournament,
   apiGetMyInfo,
   apiGetTournamentDetail,
+  apiGetTournamentDetailForMember,
 } from '../../api/RestAPI';
 import { handleError } from '../../utils/HandleError';
 import { TOURNAMENT_STATE } from '../../common/constants/tournamentState';
@@ -42,7 +43,6 @@ function TournamentDetail({ route }) {
   const tournamentIdx = route?.params?.tournamentIdx;
   const [member, setMember] = useState({});
   const [tournamentInfo, setTournamentInfo] = useState({});
-  console.log('🚀 ~ TournamentDetail ~ tournamentInfo:', tournamentInfo);
   const [tournamentStatus, setTournamentStatus] = useState({});
   const [showShareModal, setShowShareModal] = useState(false);
 
@@ -51,13 +51,17 @@ function TournamentDetail({ route }) {
   // --------------------------------------------------
   const getTournamentDetail = async () => {
     try {
-      const { data } = await apiGetTournamentDetail(tournamentIdx);
-      console.log('test3');
+      let data;
+      if (isLogin) {
+        data = await apiGetTournamentDetailForMember(tournamentIdx);
+      } else {
+        data = await apiGetTournamentDetail(tournamentIdx);
+      }
 
       if (data) {
-        setTournamentInfo(data.data);
+        setTournamentInfo(data.data.data);
         setTournamentStatus(
-          getTournamentState(data.data.openDate, data.data.closeDate),
+          getTournamentState(data.data.data.openDate, data.data.data.closeDate),
         );
       }
     } catch (error) {
@@ -85,7 +89,6 @@ function TournamentDetail({ route }) {
 
   const getMyInfo = async () => {
     if (!isLogin) {
-      console.log('test');
       return;
     }
     try {

@@ -980,7 +980,7 @@ const chatUtils = {
         await ChatMapper.insertParticipantList(message.participantList);
 
         // [[academy]] [[
-        if (isChatRoomListPage && roomType === ROOM_TYPE.DIRECT) {
+        if (roomType === ROOM_TYPE.DIRECT) {
           // DB를 통해 데이터 조회
           const you = message.participantList.find(
             v => !(v.userType === myUserType && v.userIdx === myUserIdx),
@@ -1188,11 +1188,7 @@ const chatUtils = {
     const chatState = store.getState().chat;
     const authState = store.getState().auth;
     const pushAuthStatus = await messaging().hasPermission();
-    const me = await ChatMapper.selectParticipantByRoomIdAndUserTypeAndUserIdx({
-      roomId: message.roomId,
-      userType: authState.userType,
-      userIdx: authState.userIdx,
-    });
+    const sender = await ChatMapper.selectMemberByIdx(message.sendUserIdx);
     const isMyMessage =
       `${authState.userType}` === `${message.sendUserType}` &&
       `${authState.userIdx}` === `${message.sendUserIdx}`;
@@ -1214,7 +1210,7 @@ const chatUtils = {
       const notiMessage = {
         data: {
           roomId: message.roomId,
-          title: message.sendUserNm,
+          title: sender?.userNickName || '스포츠파이',
           body: message.msg,
         },
       };
