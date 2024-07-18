@@ -1,7 +1,6 @@
 import api from '../utils/Api';
 // API Prefix
-// const baseURL = process.env.API_SERVER;
-const baseURL = 'http://localhost:29081';
+const baseURL = process.env.API_SERVER;
 const API_VERSION = 'api/v1';
 const API_PREFIX = `${baseURL}/${API_VERSION}`;
 

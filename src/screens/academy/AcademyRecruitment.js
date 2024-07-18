@@ -130,7 +130,6 @@ function AcademyRecruitment({ route }) {
     setTimeout(() => {
       if (!isLast) {
         setPage(prevPage => prevPage + 1);
-        setRefreshing(true);
       }
     }, 0);
   };
@@ -139,6 +138,8 @@ function AcademyRecruitment({ route }) {
     if (flatListRef.current) {
       flatListRef.current.scrollToOffset({ animated: false, offset: 0 });
     }
+    setLoading(true);
+    setAcademyRecruitList([]);
     setPage(1);
     setIsLast(false);
     setRefreshing(true);
@@ -149,6 +150,7 @@ function AcademyRecruitment({ route }) {
    */
   useFocusEffect(
     useCallback(() => {
+      onRefresh();
       return () => {
         setPage(1);
         setRefreshing(true);
@@ -158,7 +160,7 @@ function AcademyRecruitment({ route }) {
 
   useFocusEffect(
     useCallback(() => {
-      if (refreshing) {
+      if (refreshing || (!refreshing && page > 1)) {
         getRecruitList();
       }
     }, [page, refreshing]),

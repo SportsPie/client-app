@@ -95,6 +95,7 @@ function MatchingReview({ route }) {
     }
     setIsFocus(false);
     setLoading(false);
+    setRefreshing(false);
   };
 
   const joinRequest = async () => {
@@ -147,7 +148,6 @@ function MatchingReview({ route }) {
     setTimeout(() => {
       if (!isLast) {
         setPage(prevPage => prevPage + 1);
-        setRefreshing(true);
       }
     }, 0);
   };
@@ -156,10 +156,10 @@ function MatchingReview({ route }) {
     if (flatListRef.current) {
       flatListRef.current.scrollToOffset({ animated: false, offset: 0 });
     }
+    setLoading(true);
     setPage(1);
     setIsLast(false);
     setReviewList([]);
-    setLoading(true);
     setRefreshing(true);
   };
 
@@ -187,8 +187,7 @@ function MatchingReview({ route }) {
     }, [isFocus, refresh]),
   );
   useEffect(() => {
-    if (!isFocus && refreshing) {
-      setRefreshing(false);
+    if ((!isFocus && refreshing) || (!refreshing && page > 1)) {
       getReviewHistory();
     }
   }, [page, isFocus, refreshing]);
@@ -314,7 +313,7 @@ function MatchingReview({ route }) {
                 : null
             }
             refreshControl={
-              <RefreshControl refreshing={false} onRefresh={onRefresh} />
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
             }
             onEndReached={() => {
               loadMoreProjects();

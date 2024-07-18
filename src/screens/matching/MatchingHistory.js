@@ -125,6 +125,7 @@ function MatchingHistory({ route }) {
     }
     setIsFocus(false);
     setLoading(false);
+    setRefreshing(false);
   };
 
   const joinRequest = async () => {
@@ -196,7 +197,6 @@ function MatchingHistory({ route }) {
     setTimeout(() => {
       if (!isLast) {
         setPage(prevPage => prevPage + 1);
-        setRefreshing(true);
       }
     }, 0);
   };
@@ -205,10 +205,10 @@ function MatchingHistory({ route }) {
     if (flatListRef.current) {
       flatListRef.current.scrollToOffset({ animated: false, offset: 0 });
     }
+    setLoading(true);
     setPage(1);
     setIsLast(false);
     setMatchList([]);
-    setLoading(true);
     setRefreshing(true);
   };
 
@@ -248,8 +248,7 @@ function MatchingHistory({ route }) {
   );
 
   useEffect(() => {
-    if (!isFocus && refreshing) {
-      setRefreshing(false);
+    if ((!isFocus && refreshing) || (!refreshing && page > 1)) {
       getMatchingHistory();
     }
   }, [page, isFocus, refreshing]);
@@ -454,7 +453,7 @@ function MatchingHistory({ route }) {
                 : null
             }
             refreshControl={
-              <RefreshControl refreshing={false} onRefresh={onRefresh} />
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
             }
             onEndReached={() => {
               loadMoreProjects();

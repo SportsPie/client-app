@@ -83,7 +83,7 @@ import AcademyRecruitmentEdit from '../screens/academy/AcademyRecruitmentEdit';
 import AcademyRecruitmentForAdmin from '../screens/academy/AcademyRecruitmentForAdmin';
 import AcademyRecruitmentRegist from '../screens/academy/AcademyRecruitmentRegist';
 import AcademyRegist from '../screens/academy/AcademyRegist';
-import AcademyReportDetails from '../screens/academy/AcademyReportDetails';
+import AcademyReportDetails from '../screens/academy/AcademyReport';
 import AcademyReportDetailsView from '../screens/academy/AcademyReportDetailsView';
 import AcademyScheduleEdit from '../screens/academy/AcademyScheduleEdit';
 import NearbyAcademy from '../screens/academy/NearbyAcademy';
@@ -309,7 +309,7 @@ export default function Navigation() {
       />
       <Stack.Screen name={navName.academyCompany} component={AcademyCompany} />
       <Stack.Screen
-        name={navName.academyReportDetails}
+        name={navName.academyReport}
         component={AcademyReportDetails}
       />
       <Stack.Screen

@@ -190,7 +190,7 @@ function AcademyManagement({ route }) {
         <TouchableOpacity
           style={styles.menuItem}
           onPress={() => {
-            NavigationService.navigate(navName.academyReportDetails, {
+            NavigationService.navigate(navName.academyReport, {
               academyIdx,
             });
           }}>

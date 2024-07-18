@@ -32,6 +32,7 @@ function MoreQuestion() {
   const getType = async () => {
     try {
       const response = await apiGetFAQCategoryList();
+
       if (response) {
         const qnaType = response.data.data;
         setCategories(qnaType);
@@ -43,10 +44,6 @@ function MoreQuestion() {
       handleError(error);
     }
   };
-
-  useEffect(() => {
-    getType();
-  }, []);
 
   const getFaqData = async () => {
     const params = {
@@ -65,6 +62,7 @@ function MoreQuestion() {
         );
       }
     } catch (error) {
+      setIsLast(true);
       handleError(error);
     } finally {
       setLoading(false); // 로딩 완료 후 로딩 상태 false로 설정
@@ -80,11 +78,11 @@ function MoreQuestion() {
   };
 
   const onRefresh = useCallback(async () => {
-    setRefreshing(true);
-    setCurrentPage(1);
+    setLoading(true);
     setFaqData([]);
-    await getFaqData();
-    setRefreshing(false);
+    setCurrentPage(1);
+    setIsLast(false);
+    setRefreshing(true);
   }, []);
 
   const selectCategory = codeSub => {
@@ -100,14 +98,20 @@ function MoreQuestion() {
 
   useFocusEffect(
     useCallback(() => {
-      setLoading(true);
-      setCurrentPage(1);
-    }, []),
+      onRefresh();
+    }, [selectedCategory]),
   );
 
   useEffect(() => {
-    getFaqData();
-  }, [selectedCategory, currentPage]);
+    getType();
+  }, []);
+
+  useEffect(() => {
+    if (refreshing || (!refreshing && currentPage > 0)) {
+      setRefreshing(false);
+      getFaqData();
+    }
+  }, [currentPage, refreshing]);
 
   const renderHeaderFilter = useMemo(() => {
     const backgroundStyle = codeSub => {

@@ -13,7 +13,7 @@ import Header from '../../components/header';
 function MoreNotice() {
   const [notices, setNotices] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 7;
+  const pageSize = 10;
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [isLast, setIsLast] = useState(false);
@@ -34,6 +34,7 @@ function MoreNotice() {
         );
       }
     } catch (error) {
+      setIsLast(true);
       handleError(error);
     } finally {
       setLoading(false); // 로딩 완료 후 로딩 상태 false로 설정
@@ -49,11 +50,11 @@ function MoreNotice() {
   };
 
   const onRefresh = useCallback(async () => {
-    setRefreshing(true);
-    setCurrentPage(1);
+    setLoading(true);
     setNotices([]);
-    await getNoticeInfo();
-    setRefreshing(false);
+    setCurrentPage(1);
+    setIsLast(false);
+    setRefreshing(true);
   }, []);
 
   const renderNoticesItem = useCallback(({ item }) => {
@@ -62,15 +63,16 @@ function MoreNotice() {
 
   useFocusEffect(
     useCallback(() => {
-      setLoading(true);
-      setCurrentPage(1);
-      getNoticeInfo();
+      onRefresh();
     }, []),
   );
 
   useEffect(() => {
-    getNoticeInfo();
-  }, [currentPage]);
+    if (refreshing || (!refreshing && currentPage > 0)) {
+      setRefreshing(false);
+      getNoticeInfo();
+    }
+  }, [currentPage, refreshing]);
 
   const renderEmptyList = useCallback(() => {
     return (

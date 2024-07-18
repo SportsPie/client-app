@@ -12,13 +12,12 @@ import { useFocusEffect } from '@react-navigation/native';
 function CommunityTab() {
   const [feeds, setFeeds] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(0);
   const [isLast, setIsLast] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [deleteEvent, setDeleteEvent] = useState(false);
   const pageSize = 5;
   const flatListRef = useRef();
-
   const getFeeds = async () => {
     const params = {
       size: pageSize,
@@ -27,7 +26,6 @@ function CommunityTab() {
 
     try {
       const { data } = await apiGetFeeds(params);
-
       if (data && Array.isArray(data.data.list)) {
         const newList = data.data.list;
         setIsLast(data.data.isLast);
@@ -50,24 +48,25 @@ function CommunityTab() {
   };
 
   const onRefresh = useCallback(async () => {
-    setRefreshing(true);
-    setCurrentPage(1);
+    setLoading(true);
     setFeeds([]);
-    await getFeeds();
-    setRefreshing(false);
+    setCurrentPage(1);
+    setIsLast(false);
+    setRefreshing(true);
   }, []);
 
   useFocusEffect(
     useCallback(() => {
-      setLoading(true);
-      setCurrentPage(1);
-      getFeeds();
-    }, []),
+      onRefresh();
+    }, [deleteEvent]),
   );
 
   useEffect(() => {
-    getFeeds();
-  }, [currentPage, deleteEvent]);
+    if (refreshing || (!refreshing && currentPage > 0)) {
+      setRefreshing(false);
+      getFeeds();
+    }
+  }, [currentPage, refreshing]);
 
   const renderCommunityItem = ({ item }) => {
     return (

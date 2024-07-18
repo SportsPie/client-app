@@ -10,12 +10,14 @@ const notificationUtils = {
       const contents = message.data?.body;
       const type = message?.data?.type;
       const icon = message?.data?.icon;
+      const linkUrl = message?.data?.linkUrl;
       await notificationMapper.insertNotification({
         userIdx,
         title,
         contents,
         icon,
         type,
+        linkUrl,
         isRead: 'N',
       });
     } catch (error) {

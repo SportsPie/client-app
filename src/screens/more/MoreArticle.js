@@ -1,16 +1,7 @@
 import { useFocusEffect } from '@react-navigation/native';
 import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
-import {
-  FlatList,
-  Image,
-  RefreshControl,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { FlatList, RefreshControl, StyleSheet } from 'react-native';
 import { apiGetArticleDetail, apiGetArticleList } from '../../api/RestAPI';
-import { navName } from '../../common/constants/navName';
 import ListEmptyView from '../../components/ListEmptyView';
 import Loading from '../../components/SPLoading';
 import NavigationService from '../../navigation/NavigationService';
@@ -43,6 +34,7 @@ function MoreArticle() {
         );
       }
     } catch (error) {
+      setIsLast(true);
       handleError(error);
     } finally {
       setLoading(false); // 로딩 완료 후 로딩 상태 false로 설정
@@ -58,11 +50,11 @@ function MoreArticle() {
   };
 
   const onRefresh = useCallback(async () => {
-    setRefreshing(true);
-    setCurrentPage(1);
+    setLoading(true);
     setArticles([]);
-    await getArticleInfo();
-    setRefreshing(false);
+    setCurrentPage(1);
+    setIsLast(false);
+    setRefreshing(true);
   }, []);
 
   const renderArticleItem = useCallback(({ item, index }) => {
@@ -78,15 +70,16 @@ function MoreArticle() {
 
   useFocusEffect(
     useCallback(() => {
-      setLoading(true);
-      setCurrentPage(1);
-      getArticleInfo();
+      onRefresh();
     }, []),
   );
 
   useEffect(() => {
-    getArticleInfo();
-  }, [currentPage]);
+    if (refreshing || (!refreshing && currentPage > 0)) {
+      setRefreshing(false);
+      getArticleInfo();
+    }
+  }, [currentPage, refreshing]);
 
   const renderEmptyList = useCallback(() => {
     return <ListEmptyView text="아티클이 존재하지 않습니다." />;

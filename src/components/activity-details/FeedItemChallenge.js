@@ -27,7 +27,7 @@ import { SPToast } from '../SPToast';
 import { handleError } from '../../utils/HandleError';
 import SPHeader from '../SPHeader';
 
-function FeedItem({ item }) {
+function FeedItem({ item, onDelete }) {
   const [modalShow, setModalShow] = useState(false);
   const [deleteGroupModalShow, setDeleteGroupModalShow] = useState(false);
   const [editGroupModalShow, setEditGroupModalShow] = useState(false);
@@ -62,14 +62,15 @@ function FeedItem({ item }) {
         commentIdx: item.commentIdx,
         comment: editCommentInput,
       });
-
       if (data) {
         Keyboard.dismiss();
         closeModifyCommentModal();
-
         trlRef.current.disabled = false;
 
         SPToast.show({ text: '댓글을 수정했어요' });
+        if (onDelete) {
+          onDelete(item.commentIdx, editCommentInput);
+        }
       }
     } catch (error) {
       handleError(error);
@@ -98,6 +99,9 @@ function FeedItem({ item }) {
           title: '성공',
           body: '삭제되었습니다.',
         });
+        if (onDelete) {
+          onDelete(item.commentIdx, editCommentInput);
+        }
       }
       trlRef.current.disabled = false;
     } catch (error) {
@@ -246,7 +250,7 @@ function FeedItem({ item }) {
         transparent={false}
         visible={showCommentModify}
         onRequestClose={closeModifyCommentModal}>
-        <SafeAreaView style={{ flex: 1 }}>
+        <SafeAreaView style={{ flex: 1, paddingBottom: 24 }}>
           <SPHeader
             title="댓글 수정"
             onPressLeftBtn={closeModifyCommentModal}
@@ -262,23 +266,32 @@ function FeedItem({ item }) {
             }}
             onPressRightText={modifyChallengeVideoComment}
           />
+
           <View style={{ flex: 1, padding: 16 }}>
             <TextInput
               style={styles.textInput}
-              value={editCommentInput}
+              defaultValue={editCommentInput}
               onChangeText={text => {
                 if (text?.length > 1000) return;
                 setEditCommentInput(text);
               }}
               multiline={true}
-              placeholder="댓글을 남겨보세요."
+              placeholder="댓글을 남겨보세요(최대 1000자)"
               placeholderTextColor="#1A1C1E"
+              autoFocus={true}
               autoCorrect={false}
               autoCapitalize="none"
               textAlignVertical="top"
               retrunKeyType="next"
             />
           </View>
+          <Text
+            style={{
+              ...fontStyles.fontSize14_Regular,
+              textAlign: 'right',
+            }}>
+            {Utils.changeNumberComma(editCommentInput.length)}/1,000
+          </Text>
         </SafeAreaView>
       </Modal>
     </View>
@@ -339,5 +352,9 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
     alignItems: 'center',
     padding: 16,
+  },
+  textInput: {
+    flexGrow: 1,
+    flexShrink: 1,
   },
 });

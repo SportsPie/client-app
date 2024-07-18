@@ -35,7 +35,7 @@ const authPage = {
   academyAdmin: 'academyAdmin',
   academyCompany: 'academyCompany',
   academyCompanyManagement: 'academyCompanyManagement',
-  academyReportDetails: 'academyReportDetails',
+  academyReport: 'academyReportDetails',
   academyReportDetailsView: 'academyReportDetailsView',
   academyPlayerDetail: 'academyPlayerDetail',
   academyPlayerProfileEdit: 'academyPlayerProfileEdit',

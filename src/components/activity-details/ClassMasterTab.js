@@ -13,8 +13,6 @@ import {
 } from '../../api/RestAPI';
 import { handleError } from '../../utils/HandleError';
 import { COLORS } from '../../styles/colors';
-import Utils from '../../utils/Utils';
-import moment from 'moment';
 import ListEmptyView from '../ListEmptyView';
 import FeedItem from './FeedItem';
 import FeedVideoItem from './FeedVideoItem';
@@ -31,19 +29,17 @@ function ClassMasterTab() {
   const [isLast, setIsLast] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
-
+  const [deleteEvent, setDeleteEvent] = useState(false);
   const getFeeds = async () => {
     const params = {
       size: pageSize,
       page: currentPage,
     };
-
     try {
       const { data } =
         selectedCategory === 'apply'
           ? await apiGetTrainingComments(params)
           : await apiGetTrainingVideos(params);
-
       if (data && Array.isArray(data.data.list)) {
         const newList = data.data.list;
         setIsLast(data.data.isLast);
@@ -52,6 +48,7 @@ function ClassMasterTab() {
         );
       }
     } catch (error) {
+      setIsLast(true);
       handleError(error);
     } finally {
       setLoading(false);
@@ -67,24 +64,25 @@ function ClassMasterTab() {
   };
 
   const onRefresh = useCallback(async () => {
-    setRefreshing(true);
-    setCurrentPage(1);
+    setLoading(true);
     setFeeds([]);
-    await getFeeds();
-    setRefreshing(false);
+    setCurrentPage(1);
+    setIsLast(false);
+    setRefreshing(true);
   }, []);
 
   useFocusEffect(
     useCallback(() => {
-      setLoading(true);
-      setCurrentPage(1);
-      getFeeds();
-    }, [selectedCategory]),
+      onRefresh();
+    }, [selectedCategory, deleteEvent]),
   );
 
   useEffect(() => {
-    getFeeds();
-  }, [selectedCategory, currentPage]);
+    if (refreshing || (!refreshing && currentPage > 0)) {
+      setRefreshing(false);
+      getFeeds();
+    }
+  }, [currentPage, refreshing]);
 
   const renderVideoListEmpty = useCallback(() => {
     return <ListEmptyView text="클래스마스터에 영상이 존재하지 않습니다." />;
@@ -97,7 +95,12 @@ function ClassMasterTab() {
   const renderMasterClassItem = useCallback(
     ({ item }) => {
       if (selectedCategory === 'apply') {
-        return <FeedItem item={item} />;
+        return (
+          <FeedItem
+            item={item}
+            onDelete={() => setDeleteEvent(prev => !prev)}
+          />
+        );
       }
       return <FeedVideoItem item={item} />;
     },

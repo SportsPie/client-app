@@ -20,6 +20,7 @@ import { waitForReduxState } from '../redux/store/store';
 import NavigationService from '../navigation/NavigationService';
 import { navName } from '../common/constants/navName';
 import { navSliceActions } from '../redux/reducers/navSlice';
+import WalletUtils from './WalletUtils';
 
 // 앱 초기화 코드에 로컬 알림 설정
 PushNotification.configure({
@@ -37,9 +38,9 @@ PushNotification.configure({
             roomId: notification?.data?.roomId,
           });
         }
-        if (notification?.data?.pageMoveUrl) {
+        if (notification?.data?.linkUrl) {
           store.dispatch(
-            navSliceActions.changeMoveUrl(notification.data.pageMoveUrl),
+            navSliceActions.changeMoveUrl(notification.data.linkUrl),
           );
         }
       } catch (error) {
@@ -173,8 +174,16 @@ export const registerForegroundHandler = async () => {
         const authState = store.getState().auth;
         const userWant = await pushNotifPermissionCheck(remoteMessage);
         if (userWant && authState.isLogin) {
-          notificationUtils.receivedNotification(remoteMessage);
-          pushNotif(remoteMessage);
+          if (remoteMessage?.data?.walletAddr) {
+            const walletAddr = await WalletUtils.getWalletAddress();
+            if (walletAddr === remoteMessage?.data?.walletAddr) {
+              notificationUtils.receivedNotification(remoteMessage);
+              pushNotif(remoteMessage);
+            }
+          } else {
+            notificationUtils.receivedNotification(remoteMessage);
+            pushNotif(remoteMessage);
+          }
         }
       }
     }
@@ -201,8 +210,16 @@ export const registerBackgroundMessageHandler = async () => {
       const appState = AppState.currentState;
       if (!type || type !== FCM_TYPE.CHAT) {
         if (userWant && authState.isLogin) {
-          notificationUtils.receivedNotification(remoteMessage);
-          pushNotif(remoteMessage);
+          if (remoteMessage?.data?.walletAddr) {
+            const walletAddr = await WalletUtils.getWalletAddress();
+            if (walletAddr === remoteMessage?.data?.walletAddr) {
+              notificationUtils.receivedNotification(remoteMessage);
+              pushNotif(remoteMessage);
+            }
+          } else {
+            notificationUtils.receivedNotification(remoteMessage);
+            pushNotif(remoteMessage);
+          }
         }
       } else if (appState === 'background' || appState === 'inactive') {
         if (userWant && authState.isLogin) {

@@ -25,6 +25,7 @@ const notificationMapper = {
     contents = '',
     icon = '',
     type = '',
+    linkUrl = '',
     isRead = 'N',
   }) => {
     try {
@@ -39,6 +40,7 @@ const notificationMapper = {
           moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
           null,
           `${type}`,
+          `${linkUrl}`,
           `${isRead}`,
         ],
         true,

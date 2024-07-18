@@ -27,6 +27,7 @@ import { FlatList } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import {
+  apiGetMyInfo,
   apiModifyChallengeVideoComment,
   apiRemoveChallengeVideoComment,
   apiSaveChallengeVideoComment,
@@ -46,6 +47,7 @@ import { SPToast } from '../../SPToast';
 import CommentInputSection from './CommentInputSection';
 import CommentSectionItem from './CommentSectionItem';
 import { COLORS } from '../../../styles/colors';
+import { useFocusEffect } from '@react-navigation/native';
 
 const ChallengeCommentSection = forwardRef(
   (
@@ -109,7 +111,24 @@ const ChallengeCommentSection = forwardRef(
       isMine: false,
     });
     const [editCommentInput, setEditCommentInput] = useState('');
+    const [userInfo, setUserInfo] = useState({});
 
+    const getUserInfo = async () => {
+      try {
+        const { data } = await apiGetMyInfo();
+
+        if (data) {
+          setUserInfo(data.data);
+        }
+      } catch (error) {
+        handleError(error);
+      }
+    };
+    useFocusEffect(
+      useCallback(() => {
+        getUserInfo();
+      }, []),
+    );
     // [ util ] 코멘트 '더보기' 모달 Open
     const openCommentModal = ({ idx, isMine, comment, memberIdx }) => {
       setTargetComment({ idx, comment, isMine, memberIdx });
@@ -295,6 +314,7 @@ const ChallengeCommentSection = forwardRef(
             onChangeText={text => setCommentInput(text)}
             onSubmit={saveChallengeVideoComment}
             maxLength={1000}
+            userInfo={userInfo}
           />
         </View>
 
@@ -323,7 +343,7 @@ const ChallengeCommentSection = forwardRef(
           transparent={false}
           visible={showCommentModify}
           onRequestClose={closeModifyCommentModal}>
-          <SafeAreaView style={{ flex: 1 }}>
+          <SafeAreaView style={{ flex: 1, paddingBottom: 24 }}>
             <SPHeader
               title="댓글 수정"
               onPressLeftBtn={closeModifyCommentModal}
@@ -348,7 +368,7 @@ const ChallengeCommentSection = forwardRef(
                   setEditCommentInput(text);
                 }}
                 multiline={true}
-                placeholder="댓글을 남겨보세요."
+                placeholder="댓글을 남겨보세요(최대 1000자)"
                 placeholderTextColor="#1A1C1E"
                 autoFocus={true}
                 autoCorrect={false}
@@ -357,6 +377,13 @@ const ChallengeCommentSection = forwardRef(
                 retrunKeyType="next"
               />
             </View>
+            <Text
+              style={{
+                ...fontStyles.fontSize14_Regular,
+                textAlign: 'right',
+              }}>
+              {Utils.changeNumberComma(editCommentInput.length)}/1,000
+            </Text>
           </SafeAreaView>
         </Modal>
       </BottomSheetModal>

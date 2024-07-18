@@ -66,11 +66,13 @@ function AcademySchedule({ route }) {
   };
 
   const getSchedules = async () => {
+    // api 쪽에 페이징 없음
     try {
       const params = {
         academyIdx,
-        page,
-        size,
+        // page,
+        page: 1,
+        // size,
       };
       const { data } = await apiGetAcademyOpenSchedule(params);
       setTotalCnt(data.data.totalCnt);
@@ -85,6 +87,7 @@ function AcademySchedule({ route }) {
     }
     setIsFocus(false);
     setLoading(false);
+    setRefreshing(false);
   };
 
   /**
@@ -110,7 +113,6 @@ function AcademySchedule({ route }) {
     setTimeout(() => {
       if (!isLast) {
         setPage(prevPage => prevPage + 1);
-        setRefreshing(true);
       }
     }, 0);
   };
@@ -119,16 +121,22 @@ function AcademySchedule({ route }) {
     if (flatListRef.current) {
       flatListRef.current.scrollToOffset({ animated: false, offset: 0 });
     }
+    setLoading(true);
     setPage(1);
     setIsLast(false);
     setScheduleList([]);
-    setLoading(true);
     setRefreshing(true);
   };
 
   /**
    * useEffect
    */
+
+  useFocusEffect(
+    useCallback(() => {
+      getSchedules();
+    }, [refreshing]),
+  );
 
   useFocusEffect(
     useCallback(() => {
@@ -143,12 +151,11 @@ function AcademySchedule({ route }) {
       }
     }, [isFocus]),
   );
-  useEffect(() => {
-    if (!isFocus && refreshing) {
-      setRefreshing(false);
-      getSchedules();
-    }
-  }, [page, isFocus, refreshing]);
+  // useEffect(() => {
+  //   if ((!isFocus && refreshing) || (!refreshing && page > 1)) {
+  //     getSchedules();
+  //   }
+  // }, [page, isFocus, refreshing]);
 
   /**
    * useEffect
@@ -205,7 +212,7 @@ function AcademySchedule({ route }) {
               : null
           }
           refreshControl={
-            <RefreshControl refreshing={false} onRefresh={onRefresh} />
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
           }
           onEndReached={() => {
             loadMoreProjects();

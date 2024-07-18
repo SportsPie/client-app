@@ -57,6 +57,7 @@ function AcademyMachingRegistration({ route }) {
       handleError(error);
     }
     setLoading(false);
+    setRefreshing(false);
   };
 
   /**
@@ -66,7 +67,6 @@ function AcademyMachingRegistration({ route }) {
     setTimeout(() => {
       if (!isLast) {
         setPage(prevPage => prevPage + 1);
-        setRefreshing(true);
       }
     }, 0);
   };
@@ -75,10 +75,10 @@ function AcademyMachingRegistration({ route }) {
     if (flatListRef.current) {
       flatListRef.current.scrollToOffset({ animated: false, offset: 0 });
     }
+    setLoading(true);
     setPage(1);
     setIsLast(false);
     setCompetitionRegistrationList([]);
-    setLoading(true);
     setRefreshing(true);
   };
 
@@ -124,8 +124,7 @@ function AcademyMachingRegistration({ route }) {
   );
 
   useEffect(() => {
-    if (refreshing) {
-      setRefreshing(false);
+    if (refreshing || (!refreshing && page > 1)) {
       getCompetionRegistrationList();
     }
   }, [page, refreshing]);

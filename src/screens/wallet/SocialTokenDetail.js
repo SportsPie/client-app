@@ -87,7 +87,6 @@ function SocialTokenDetail() {
     setTimeout(() => {
       if (!isLast) {
         setPage(prevPage => prevPage + 1);
-        setRefreshing(true);
       }
     }, 0);
   };
@@ -122,7 +121,7 @@ function SocialTokenDetail() {
   );
 
   useEffect(() => {
-    if (!isFocus && refreshing) {
+    if ((!isFocus && refreshing) || (!refreshing && page > 1)) {
       getPointHistoryList();
     }
   }, [page, isFocus, refreshing]);

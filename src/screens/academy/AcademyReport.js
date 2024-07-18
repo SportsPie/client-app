@@ -51,7 +51,7 @@ function TabButton({ tab, activeTab, setActiveTab }) {
   );
 }
 
-function AcademyReportDetails({ route }) {
+function AcademyReport({ route }) {
   /**
    * state
    */
@@ -102,6 +102,7 @@ function AcademyReportDetails({ route }) {
     }
     setIsFocus(false);
     setLoading(false);
+    setRefreshing(false);
   };
 
   /**
@@ -112,7 +113,6 @@ function AcademyReportDetails({ route }) {
     setTimeout(() => {
       if (!isLast) {
         setPage(prevPage => prevPage + 1);
-        setRefreshing(true);
       }
     }, 0);
   };
@@ -121,10 +121,10 @@ function AcademyReportDetails({ route }) {
     if (flatListRef.current) {
       flatListRef.current.scrollToOffset({ animated: false, offset: 0 });
     }
+    setLoading(true);
     setPage(1);
     setIsLast(false);
     setReportList([]);
-    setLoading(true);
     setRefreshing(true);
   };
 
@@ -170,8 +170,7 @@ function AcademyReportDetails({ route }) {
   );
 
   useEffect(() => {
-    if (!isFocus && refreshing) {
-      setRefreshing(false);
+    if ((!isFocus && refreshing) || (!refreshing && page > 1)) {
       getReport();
     }
   }, [page, isFocus, refreshing]);
@@ -261,7 +260,6 @@ function AcademyReportDetails({ route }) {
             <View style={styles.buttonBox}>
               {buttons.map((item, index) => (
                 <Pressable
-                  /* eslint-disable-next-line react/no-array-index-key */
                   hitSlop={{
                     top: 13,
                     bottom: 13,
@@ -305,7 +303,10 @@ function AcademyReportDetails({ route }) {
                     : null
                 }
                 refreshControl={
-                  <RefreshControl refreshing={false} onRefresh={onRefresh} />
+                  <RefreshControl
+                    refreshing={refreshing}
+                    onRefresh={onRefresh}
+                  />
                 }
                 onEndReached={() => {
                   loadMoreProjects();
@@ -370,7 +371,10 @@ function AcademyReportDetails({ route }) {
                     : null
                 }
                 refreshControl={
-                  <RefreshControl refreshing={false} onRefresh={onRefresh} />
+                  <RefreshControl
+                    refreshing={refreshing}
+                    onRefresh={onRefresh}
+                  />
                 }
                 onEndReached={() => {
                   loadMoreProjects();
@@ -396,7 +400,7 @@ function AcademyReportDetails({ route }) {
   );
 }
 
-export default memo(AcademyReportDetails);
+export default memo(AcademyReport);
 
 const styles = StyleSheet.create({
   container: {

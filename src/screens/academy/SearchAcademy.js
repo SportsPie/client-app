@@ -102,7 +102,6 @@ function SearchAcademy() {
     setTimeout(() => {
       if (!isLast) {
         setPage(prevPage => prevPage + 1);
-        setRefreshing(true);
       }
     }, 0);
   };
@@ -163,8 +162,7 @@ function SearchAcademy() {
   );
 
   useEffect(() => {
-    if (!isFocus && refreshing) {
-      setRefreshing(false);
+    if ((!isFocus && refreshing) || (!refreshing && page > 1)) {
       getAcademyList();
     }
   }, [page, isFocus, refreshing]);

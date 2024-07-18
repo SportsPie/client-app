@@ -123,7 +123,7 @@ function AcademyRecruitmentForAdmin({ route }) {
       setTotalCnt(data.data.totalCnt);
       setIsLast(data.data.isLast);
       if (page === 1) {
-        setAcademyRecruitList(data.data.list);
+        setAcademyRecruitList([...data.data.list]);
       } else {
         setAcademyRecruitList(prev => [...prev, ...data.data.list]);
       }
@@ -190,7 +190,6 @@ function AcademyRecruitmentForAdmin({ route }) {
     setTimeout(() => {
       if (!isLast) {
         setPage(prevPage => prevPage + 1);
-        setRefreshing(true);
       }
     }, 0);
   };
@@ -199,6 +198,8 @@ function AcademyRecruitmentForAdmin({ route }) {
     if (flatListRef.current) {
       flatListRef.current.scrollToOffset({ animated: false, offset: 0 });
     }
+    setLoading(true);
+    setAcademyRecruitList([]);
     setPage(1);
     setIsLast(false);
     setRefreshing(true);
@@ -209,6 +210,7 @@ function AcademyRecruitmentForAdmin({ route }) {
    */
   useFocusEffect(
     useCallback(() => {
+      onRefresh();
       return () => {
         setPage(1);
         setRefreshing(true);
@@ -225,7 +227,7 @@ function AcademyRecruitmentForAdmin({ route }) {
 
   useFocusEffect(
     useCallback(() => {
-      if (refreshing) {
+      if (refreshing || (!refreshing && page > 1)) {
         getRecruitList();
       }
     }, [page, refreshing]),

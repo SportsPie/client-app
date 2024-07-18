@@ -164,7 +164,7 @@ const COLUMNS = {
     key: 'userIdx',
   },
   notification: {
-    columns: `userIdx, title, contents, icon, regDate, updDate, type, isRead`,
+    columns: `userIdx, title, contents, icon, regDate, updDate, type, linkUrl, isRead`,
     column: {
       notiIdx: 'notiIdx',
       userIdx: 'userIdx',
@@ -174,6 +174,7 @@ const COLUMNS = {
       regDate: 'regDate',
       updDate: 'updDate',
       type: 'type',
+      linkUrl: 'linkUrl',
       isRead: 'isRead',
     },
     key: 'notiIdx',
@@ -326,6 +327,7 @@ const SQL = {
                                                                ${COLUMNS.notification.column.regDate} TEXT,
                                                                ${COLUMNS.notification.column.updDate} TEXT,
                                                                ${COLUMNS.notification.column.type} TEXT,
+                                                               ${COLUMNS.notification.column.linkUrl} TEXT,
                                                                ${COLUMNS.notification.column.isRead} TEXT
              )`,
   },

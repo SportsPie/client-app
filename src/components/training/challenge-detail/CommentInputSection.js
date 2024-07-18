@@ -1,35 +1,84 @@
-import {
-  BottomSheetTextInput,
-  BottomSheetView as View,
-} from '@gorhom/bottom-sheet';
-import React, { memo, useRef } from 'react';
-import { StyleSheet } from 'react-native';
-import { IS_IOS } from '../../../common/constants/constants';
+import React, { memo, useCallback, useRef, useState } from 'react';
+import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { BottomSheetTextInput } from '@gorhom/bottom-sheet';
 import { COLORS } from '../../../styles/colors';
 import fontStyles from '../../../styles/fontStyles';
 import Avatar from '../../Avatar';
+import SPIcons from '../../../assets/icon';
+import Utils from '../../../utils/Utils';
+import { IS_IOS } from '../../../common/constants/constants';
+import SPKeyboardAvoidingView from '../../SPKeyboardAvoidingView';
+import DismissKeyboard from '../../DismissKeyboard';
 
-function CommentInputSection({ onChangeText, onSubmit }) {
+function CommentInputSection({ onChangeText, onSubmit, userInfo }) {
   const inputRef = useRef();
+  const [comment, setComment] = useState('');
+
+  const handleTextChange = useCallback(
+    text => {
+      if (text.length <= 1000) {
+        setComment(text);
+        onChangeText(text); // 상위 컴포넌트로 텍스트 전달
+      }
+    },
+    [onChangeText],
+  );
+
+  const handleSubmit = useCallback(() => {
+    if (comment.trim().length > 0) {
+      onSubmit(comment.trim()); // 댓글 제출 함수 호출
+      setComment(''); // 입력 초기화
+      inputRef.current.clear(); // TextInput 초기화
+    }
+  }, [comment, onSubmit]);
 
   return (
-    <View style={styles.container}>
-      <Avatar disableEditMode imageSize={24} />
-
+    <View style={styles.inputBox}>
+      <Avatar
+        disableEditMode
+        imageURL={userInfo?.userProfilePath}
+        imageSize={24}
+      />
       <BottomSheetTextInput
         ref={inputRef}
-        placeholder="댓글을 남겨보세요."
-        placeholderTextColor={COLORS.labelAlternative}
-        style={styles.input}
-        onChangeText={text => {
-          if (text?.length > 1000) return;
-          onChangeText(text);
-        }}
-        onSubmitEditing={() => {
-          onSubmit();
-          inputRef.current.clear();
-        }}
+        style={styles.textInput}
+        value={comment}
+        onChangeText={handleTextChange}
+        multiline
+        placeholder="댓글을 남겨보세요.(최대 1000자)"
+        placeholderTextColor="rgba(46, 49, 53, 0.60)"
+        autoCorrect={false}
+        autoCapitalize="none"
+        // numberOfLines={comment?.split('\n').length || 1}
+        textAlignVertical="top"
+        retrunKeyType="next"
       />
+
+      <View
+        style={{
+          flexDirection: 'column',
+          alignItems: 'flex-start',
+        }}>
+        <View style={{ justifyContent: 'center', alignItems: 'center' }}>
+          <TouchableOpacity
+            disabled={!comment.trim()}
+            onPress={handleSubmit}
+            style={{ justifyContent: 'center', alignItems: 'center' }}>
+            <Image source={SPIcons.icSend} style={{ width: 40, height: 28 }} />
+          </TouchableOpacity>
+
+          <Text
+            style={{
+              ...fontStyles.fontSize11_Regular,
+              width: 57.1,
+              textAlign: 'center',
+              height: 14,
+              marginTop: 5,
+            }}>
+            {Utils.changeNumberComma(comment.length)}/1,000
+          </Text>
+        </View>
+      </View>
     </View>
   );
 }
@@ -37,18 +86,27 @@ function CommentInputSection({ onChangeText, onSubmit }) {
 export default memo(CommentInputSection);
 
 const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    borderTopWidth: 1,
-    paddingHorizontal: 16,
-    paddingTop: IS_IOS ? 16 : 0,
-    borderTopColor: COLORS.lineBorder,
-    columnGap: 8,
-    alignItems: 'center',
-  },
-  input: {
+  textInput: {
+    maxHeight: 20 * 3,
     flex: 1,
-    ...fontStyles.fontSize14_Regular,
-    height: '100%',
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#1A1C1E',
+    lineHeight: 20,
+    letterSpacing: 0.203,
+    top: 4,
+    margin: 0,
+    padding: 0,
+    // height: 'auto',
+    // maxHeight: 20 * 3,
+    paddingTop: 0,
+  },
+  inputBox: {
+    flexDirection: 'row',
+    gap: 8,
+    padding: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#D9D9D9',
+    alignItems: 'center',
   },
 });

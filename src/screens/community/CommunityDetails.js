@@ -59,6 +59,7 @@ import { COLORS } from '../../styles/colors';
 import fontStyles from '../../styles/fontStyles';
 import { handleError } from '../../utils/HandleError';
 import Utils from '../../utils/Utils';
+import SPKeyboardAvoidingView from '../../components/SPKeyboardAvoidingView';
 
 function CommunityDetails({
   route,
@@ -190,6 +191,7 @@ function CommunityDetails({
     }
     setIsFocus(false);
     setLoading(false);
+    setRefreshing(false);
   };
 
   const changeLike = async () => {
@@ -295,16 +297,15 @@ function CommunityDetails({
     setTimeout(() => {
       if (!isLast) {
         setPage(prevPage => prevPage + 1);
-        setRefreshing(true);
       }
     }, 0);
   };
 
   const onRefresh = async () => {
+    setLoading(true);
     setPage(1);
     setIsLast(false);
     setCommentList([]);
-    setLoading(true);
     setRefreshing(true);
   };
 
@@ -344,8 +345,7 @@ function CommunityDetails({
   );
 
   useEffect(() => {
-    if (!isFocus && refreshing) {
-      setRefreshing(false);
+    if ((!isFocus && refreshing) || (!refreshing && page > 1)) {
       getCommentList();
     }
   }, [page, isFocus, refreshing]);
@@ -528,6 +528,7 @@ function CommunityDetails({
   }, [commentList, loading]);
 
   const renderCommentInputSection = useMemo(() => {
+    // 댓글창 부분
     return (
       <View>
         <Divider />
@@ -538,7 +539,7 @@ function CommunityDetails({
             imageSize={24}
           />
           <TextInput
-            placeholder="댓글을 남겨보세요"
+            placeholder="댓글을 남겨보세요(최대 1000자)"
             style={styles.input}
             value={comment}
             onChangeText={e => {
@@ -552,14 +553,30 @@ function CommunityDetails({
             textAlignVertical="top"
             retrunKeyType="next"
           />
-          {comment && (
-            <TouchableOpacity
-              disabled={!comment}
-              onPress={() => registComment()}
-              style={styles.submitCommentButton}>
-              <SPSvgs.Send />
-            </TouchableOpacity>
-          )}
+          <View
+            style={{
+              flexDirection: 'column',
+              alignItems: 'flex-start',
+            }}>
+            <View style={{ justifyContent: 'center', alignItems: 'center' }}>
+              <TouchableOpacity disabled={!comment} onPress={registComment}>
+                <Image
+                  source={SPIcons.icSend}
+                  style={{ width: 40, height: 28 }}
+                />
+              </TouchableOpacity>
+              <Text
+                style={{
+                  ...fontStyles.fontSize11_Regular,
+                  height: 14,
+                  marginTop: 5,
+                  width: 57.1,
+                  textAlign: 'center',
+                }}>
+                {Utils.changeNumberComma(comment.length)}/1,000
+              </Text>
+            </View>
+          </View>
         </View>
       </View>
     );
@@ -568,8 +585,9 @@ function CommunityDetails({
   return (
     <DismissKeyboard>
       <SafeAreaView style={styles.container}>
-        <KeyboardAvoidingView
+        <SPKeyboardAvoidingView
           behavior="padding"
+          isResize
           keyboardVerticalOffset={0}
           style={styles.container}>
           {renderHeader}
@@ -583,7 +601,7 @@ function CommunityDetails({
             {renderComments}
           </ScrollView>
           {renderCommentInputSection}
-        </KeyboardAvoidingView>
+        </SPKeyboardAvoidingView>
       </SafeAreaView>
       {/* 더보기 모달 :: 게시글 */}
       <SPMoreModal
@@ -697,6 +715,8 @@ function CommunityDetails({
               }
             }}
           />
+          {/* 댓글창부분 */}
+
           <View style={{ flex: 1, padding: 16 }}>
             <TextInput
               style={styles.textInput}
@@ -706,14 +726,22 @@ function CommunityDetails({
                 setModifyComment(e);
               }}
               multiline={true}
-              placeholder="댓글을 남겨보세요."
+              placeholder="댓글을 남겨보세요.(최대 1000자)"
               placeholderTextColor="#1A1C1E"
+              autoFocus={true}
               autoCorrect={false}
               autoCapitalize="none"
               textAlignVertical="top"
               retrunKeyType="next"
             />
           </View>
+          <Text
+            style={{
+              ...fontStyles.fontSize14_Regular,
+              textAlign: 'right',
+            }}>
+            {Utils.changeNumberComma(modifyComment.length)}/1,000
+          </Text>
         </SafeAreaView>
       </Modal>
     </DismissKeyboard>
@@ -805,8 +833,8 @@ const styles = StyleSheet.create({
     flex: 1,
     letterSpacing: 0.2,
     color: COLORS.labelNormal,
-    top: -2,
-    maxHeight: 20 * 3,
+    top: 4,
+    maxHeight: 20 * 4,
   },
   submitCommentButton: {
     backgroundColor: COLORS.orange,

@@ -80,6 +80,7 @@ import LargeLogoWithText from './LargeLogoWithText';
 import ReportFeed from './ReportFeed';
 import ReportUser from './ReportUser';
 import ChevronRight from './ChevronRight';
+import PieTraining from './PieTraining';
 
 export class SPSvgs {
   static SportPieLogo = SportPieLogo;
@@ -152,6 +153,7 @@ export class SPSvgs {
   static ReportFeed = ReportFeed;
   static ReportUser = ReportUser;
   static ChevronRight = ChevronRight;
+  static PieTraining = PieTraining;
 
   //Bottom tab
   static BottomTabHomeOutline = BottomTabHomeOutline;

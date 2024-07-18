@@ -84,8 +84,10 @@ function MatchingSelectAcademy({ route }) {
     <SafeAreaView style={styles.radioContainer}>
       <Header title="아카데미 선택" />
 
-      {matchApplies.map(item => (
+      {matchApplies.map((item, index) => (
         <TouchableOpacity
+          /* eslint-disable-next-line react/no-array-index-key */
+          key={index}
           style={styles.radioWrapper}
           onPress={() => handleSelect(item.academyIdx)}>
           <Image

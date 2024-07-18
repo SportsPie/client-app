@@ -141,6 +141,7 @@ function Community({ route }) {
     }
     setIsFocus(false);
     setLoading(false);
+    setRefreshing(false);
   };
 
   // --------------------------------------------------
@@ -163,9 +164,9 @@ function Community({ route }) {
     if (flatListRef.current) {
       flatListRef.current.scrollToOffset({ animated: false, offset: 0 });
     }
+    setLoading(true);
     setPage(1);
     setFeedList([]);
-    setLoading(true);
     setIsLast(false);
     setRefreshing(true);
   };
@@ -241,7 +242,7 @@ function Community({ route }) {
   }, [filterList]);
 
   useEffect(() => {
-    if (!isInit && refreshing) {
+    if ((!isInit && refreshing) || (!refreshing && page > 1)) {
       setRefreshing(false);
       setSearchedKeyword('');
       getFeedList();
@@ -366,7 +367,7 @@ function Community({ route }) {
             renderItem={renderFeedItem}
             ItemSeparatorComponent={<Divider />}
             refreshControl={
-              <RefreshControl refreshing={false} onRefresh={onRefresh} />
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
             }
             onEndReached={() => {
               loadMoreProjects();

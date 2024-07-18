@@ -5,6 +5,8 @@ import { COLORS } from '../../styles/colors';
 import fontStyles from '../../styles/fontStyles';
 import { NOTI_TYPE } from '../../screens/auth/AlarmPage';
 import { SPSvgs } from '../../assets/svg';
+import { store } from '../../redux/store';
+import { navSliceActions } from '../../redux/reducers/navSlice';
 
 function AlertItem({ item }) {
   const renderIcon = useMemo(() => {
@@ -20,6 +22,7 @@ function AlertItem({ item }) {
       case NOTI_TYPE.MATCH:
         return <SPSvgs.SoccerField width={24} height={24} />;
       case NOTI_TYPE.TRAINING:
+        return <SPSvgs.PieTraining width={24} height={24} />;
       case NOTI_TYPE.POINT:
         return <SPSvgs.SocialToken width={24} height={24} />;
       case NOTI_TYPE.WALLET:
@@ -43,7 +46,12 @@ function AlertItem({ item }) {
         item?.isRead !== 'Y' && {
           backgroundColor: COLORS.peach,
         },
-      ]}>
+      ]}
+      onPress={() => {
+        if (item?.linkUrl) {
+          store.dispatch(navSliceActions.changeMoveUrl(item.linkUrl));
+        }
+      }}>
       {renderIcon}
       <View style={styles.content}>
         <View style={styles.labeledWrapper}>

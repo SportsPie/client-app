@@ -242,6 +242,7 @@ function AcademyCommunityDetail({
     }
     setIsFocus(false);
     setLoading(false);
+    setRefreshing(false);
   };
 
   const changeLike = async () => {
@@ -378,16 +379,15 @@ function AcademyCommunityDetail({
     setTimeout(() => {
       if (!isLast) {
         setPage(prevPage => prevPage + 1);
-        setRefreshing(true);
       }
     }, 0);
   };
 
   const onRefresh = async () => {
+    setLoading(true);
     setPage(1);
     setIsLast(false);
     setCommentList([]);
-    setLoading(true);
     setRefreshing(true);
   };
 
@@ -427,8 +427,7 @@ function AcademyCommunityDetail({
   );
 
   useEffect(() => {
-    if (!isFocus && refreshing) {
-      setRefreshing(false);
+    if ((!isFocus && refreshing) || (!refreshing && page > 1)) {
       getCommentList();
     }
   }, [page, isFocus, refreshing]);
@@ -632,6 +631,7 @@ function AcademyCommunityDetail({
               </View>
             </ScrollView>
 
+            {/* 댓글창부분 */}
             {showInputBox && (
               <View style={styles.inputBox}>
                 <Avatar
@@ -641,13 +641,13 @@ function AcademyCommunityDetail({
                 />
                 <TextInput
                   style={styles.textInput}
-                  defaultValue={comment}
+                  value={comment}
                   onChangeText={e => {
                     if (e?.length > 1000) return;
                     setComment(e);
                   }}
                   multiline={true}
-                  placeholder="댓글을 남겨보세요."
+                  placeholder="댓글을 남겨보세요.(최대 1000자)"
                   placeholderTextColor="rgba(46, 49, 53, 0.60)"
                   autoCorrect={false}
                   autoCapitalize="none"
@@ -655,12 +655,33 @@ function AcademyCommunityDetail({
                   textAlignVertical="center"
                   retrunKeyType="next"
                 />
-                <TouchableOpacity disabled={!comment} onPress={registComment}>
-                  <Image
-                    source={SPIcons.icSend}
-                    style={{ width: 40, height: 28 }}
-                  />
-                </TouchableOpacity>
+                <View
+                  style={{
+                    flexDirection: 'column',
+                    alignItems: 'flex-start',
+                  }}>
+                  <View
+                    style={{ justifyContent: 'center', alignItems: 'center' }}>
+                    <TouchableOpacity
+                      disabled={!comment}
+                      onPress={registComment}>
+                      <Image
+                        source={SPIcons.icSend}
+                        style={{ width: 40, height: 28 }}
+                      />
+                    </TouchableOpacity>
+                    <Text
+                      style={{
+                        ...fontStyles.fontSize11_Regular,
+                        width: 57.1,
+                        textAlign: 'center',
+                        height: 14,
+                        marginTop: 5,
+                      }}>
+                      {Utils.changeNumberComma(comment.length)}/1,000
+                    </Text>
+                  </View>
+                </View>
               </View>
             )}
 
@@ -814,14 +835,22 @@ function AcademyCommunityDetail({
                     setModifyComment(e);
                   }}
                   multiline={true}
-                  placeholder="댓글을 남겨보세요."
+                  placeholder="댓글을 남겨보세요.(최대 1000자)"
                   placeholderTextColor="#1A1C1E"
+                  autoFocus={true}
                   autoCorrect={false}
                   autoCapitalize="none"
                   textAlignVertical="top"
                   retrunKeyType="next"
                 />
               </View>
+              <Text
+                style={{
+                  ...fontStyles.fontSize14_Regular,
+                  textAlign: 'right',
+                }}>
+                {Utils.changeNumberComma(modifyComment.length)}/1,000
+              </Text>
             </SafeAreaView>
           </Modal>
         </SafeAreaView>
@@ -971,12 +1000,14 @@ const styles = {
     alignItems: 'center',
   },
   textInput: {
+    maxHeight: 20 * 3,
     flex: 1,
     fontSize: 14,
     fontWeight: '500',
     color: '#1A1C1E',
     lineHeight: 20,
     letterSpacing: 0.203,
+    top: 4,
     margin: 0,
     padding: 0,
     // height: 'auto',
@@ -1011,7 +1042,6 @@ const styles = {
     letterSpacing: 0.2,
     color: COLORS.labelNormal,
     top: -2,
-    maxHeight: 20 * 3,
   },
   submitCommentButton: {
     backgroundColor: COLORS.orange,

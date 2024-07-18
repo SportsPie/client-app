@@ -31,7 +31,8 @@ function ChallengeTab() {
   const [isLast, setIsLast] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
-
+  const [comment, setComment] = useState(true);
+  const [deleteEvent, setDeleteEvent] = useState(false);
   const getFeeds = async () => {
     const params = {
       size: pageSize,
@@ -47,12 +48,13 @@ function ChallengeTab() {
       if (data && Array.isArray(data.data.list)) {
         const newList = data.data.list;
         setIsLast(data.data.isLast);
-
+        setComment(data.data.list);
         setFeeds(prevFeeds =>
           currentPage === 1 ? newList : [...prevFeeds, ...newList],
         );
       }
     } catch (error) {
+      setIsLast(true);
       handleError(error);
     } finally {
       setLoading(false);
@@ -68,24 +70,25 @@ function ChallengeTab() {
   };
 
   const onRefresh = useCallback(async () => {
-    setRefreshing(true);
-    setCurrentPage(1);
+    setLoading(true);
     setFeeds([]);
-    await getFeeds();
-    setRefreshing(false);
+    setCurrentPage(1);
+    setIsLast(false);
+    setRefreshing(true);
   }, []);
 
   useFocusEffect(
     useCallback(() => {
-      setLoading(true);
-      setCurrentPage(1);
-      getFeeds();
-    }, [selectedCategory]),
+      onRefresh();
+    }, [selectedCategory, deleteEvent]),
   );
 
   useEffect(() => {
-    getFeeds();
-  }, [selectedCategory, currentPage]);
+    if (refreshing || (!refreshing && currentPage > 0)) {
+      setRefreshing(false);
+      getFeeds();
+    }
+  }, [currentPage, refreshing]);
 
   const renderVideoListEmpty = useCallback(() => {
     return <ListEmptyView text="챌린지에 영상이 존재하지 않습니다." />;
@@ -98,7 +101,12 @@ function ChallengeTab() {
   const renderMasterClassItem = useCallback(
     ({ item }) => {
       if (selectedCategory === 'apply') {
-        return <FeedItemChallenge item={item} />;
+        return (
+          <FeedItemChallenge
+            item={item}
+            onDelete={() => setDeleteEvent(prev => !prev)}
+          />
+        );
       }
       return <FeedVideoItemChallenge item={item} hideTitle />;
     },

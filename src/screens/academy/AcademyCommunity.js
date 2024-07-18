@@ -220,6 +220,7 @@ function AcademyCommunity({ route }) {
     }
     setIsFocus(false);
     setLoading(false);
+    setRefreshing(false);
   };
 
   const changeLike = async item => {
@@ -283,9 +284,9 @@ function AcademyCommunity({ route }) {
     if (flatListRef.current) {
       flatListRef.current.scrollToOffset({ animated: false, offset: 0 });
     }
+    setLoading(true);
     setPage(1);
     setFeedList([]);
-    setLoading(true);
     setIsLast(false);
     setRefreshing(true);
   };
@@ -337,8 +338,7 @@ function AcademyCommunity({ route }) {
   }, [filterList]);
 
   useEffect(() => {
-    if (!isInit && refreshing) {
-      setRefreshing(false);
+    if ((!isInit && refreshing) || (!refreshing && page > 1)) {
       getFeedList();
     }
   }, [page, isInit, refreshing]);

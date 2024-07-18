@@ -27,6 +27,7 @@ import { FlatList } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import {
+  apiGetMyInfo,
   apiModifyMasterVideoComment,
   apiRemoveMasterVideoComment,
   apiSaveMasterVideoComment,
@@ -46,6 +47,7 @@ import { SPToast } from '../../SPToast';
 import CommentInputSection from '../challenge-detail/CommentInputSection';
 import CommentSectionItem from '../challenge-detail/CommentSectionItem';
 import { COLORS } from '../../../styles/colors';
+import { useFocusEffect } from '@react-navigation/native';
 
 const MasterCommentSection = forwardRef(
   (
@@ -66,6 +68,25 @@ const MasterCommentSection = forwardRef(
     const insets = useSafeAreaInsets();
     const statusBarHeight = StatusBar.currentHeight;
     const screenWidth = useWindowDimensions()?.width;
+    const [userInfo, setUserInfo] = useState({});
+
+    const getUserInfo = async () => {
+      try {
+        const { data } = await apiGetMyInfo();
+
+        if (data) {
+          setUserInfo(data.data);
+        }
+      } catch (error) {
+        handleError(error);
+      }
+    };
+    useFocusEffect(
+      useCallback(() => {
+        getUserInfo();
+      }, []),
+    );
+
     let imageHeight;
 
     if (screenWidth <= 480) {
@@ -293,6 +314,7 @@ const MasterCommentSection = forwardRef(
             onChangeText={text => setCommentInput(text)}
             onSubmit={saveMasterVideoComment}
             maxLength={1000}
+            userInfo={userInfo} // userInfo를 props로 전달
           />
 
           {/* 모달 > 댓글 더보기 */}
@@ -346,7 +368,7 @@ const MasterCommentSection = forwardRef(
                     setEditCommentInput(text);
                   }}
                   multiline={true}
-                  placeholder="댓글을 남겨보세요."
+                  placeholder="댓글을 남겨보세요(최대 1000자)"
                   placeholderTextColor="#1A1C1E"
                   autoFocus={true}
                   autoCorrect={false}

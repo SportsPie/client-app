@@ -192,7 +192,6 @@ function NearbyAcademy() {
     setTimeout(() => {
       if (!isLast) {
         setPage(prevPage => prevPage + 1);
-        setRefreshing(true);
       }
     }, 0);
   };
@@ -201,10 +200,10 @@ function NearbyAcademy() {
     if (flatListRef.current) {
       flatListRef.current.scrollToOffset({ animated: false, offset: 0 });
     }
+    setLoading(true);
     setPage(1);
     setIsLast(false);
     setAcademyList([]);
-    setLoading(true);
     setRefreshing(true);
   };
 
@@ -241,7 +240,7 @@ function NearbyAcademy() {
   );
 
   useEffect(() => {
-    if (!isFocus && refreshing) {
+    if ((!isFocus && refreshing) || (!refreshing && page > 1)) {
       setRefreshing(false);
       getNearbyAcademy();
     }
@@ -345,7 +344,7 @@ function NearbyAcademy() {
                 : null
             }
             refreshControl={
-              <RefreshControl refreshing={false} onRefresh={onRefresh} />
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
             }
             onEndReached={() => {
               loadMoreProjects();
@@ -470,7 +469,6 @@ function NearbyAcademy() {
                       classTypeList.map((item, index) => {
                         return (
                           <Pressable
-                            // eslint-disable-next-line react/no-array-index-key
                             hitSlop={{
                               top: 10,
                               bottom: 10,
@@ -522,7 +520,6 @@ function NearbyAcademy() {
                       teachingTypeList.map((item, index) => {
                         return (
                           <Pressable
-                            // eslint-disable-next-line react/no-array-index-key
                             hitSlop={{
                               top: 10,
                               bottom: 10,
@@ -576,7 +573,6 @@ function NearbyAcademy() {
                       serviceTypeList.map((item, index) => {
                         return (
                           <Pressable
-                            // eslint-disable-next-line react/no-array-index-key
                             hitSlop={{
                               top: 10,
                               bottom: 10,

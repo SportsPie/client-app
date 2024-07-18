@@ -23,7 +23,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Header from '../../components/header';
 
 function MoreInquiry() {
-  const pageSize = 8;
+  const pageSize = 6;
   const [inquiry, setInquiry] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [refreshing, setRefreshing] = useState(false);
@@ -36,7 +36,6 @@ function MoreInquiry() {
       page: currentPage,
     };
     try {
-      setLoading(true);
       const { data } = await apiGetQna(params);
       if (Array.isArray(data.data.list)) {
         const newList = data.data.list;
@@ -46,9 +45,10 @@ function MoreInquiry() {
         );
       }
     } catch (error) {
+      setIsLast(true);
       handleError(error);
     } finally {
-      setLoading(false); // 로딩 완료 후 로딩 상태 false로 설정
+      setLoading(false);
     }
   };
 
@@ -61,11 +61,16 @@ function MoreInquiry() {
   };
 
   const onRefresh = useCallback(async () => {
-    setRefreshing(true); // 새로 고침을 시작함
-    setCurrentPage(1); // 현재 페이지를 1로 설정
-    setInquiry([]); // 기존의 목록 초기화
-    await getInquiryInfo(); // 기사 정보 다시 가져오기
-    setRefreshing(false); // 새로 고침 완료
+    // setRefreshing(true); // 새로 고침을 시작함
+    // setCurrentPage(1); // 현재 페이지를 1로 설정
+    // setInquiry([]); // 기존의 목록 초기화
+    // await getInquiryInfo(); // 기사 정보 다시 가져오기
+    // setRefreshing(false); // 새로 고침 완료
+    setLoading(true);
+    setInquiry([]);
+    setCurrentPage(1);
+    setIsLast(false);
+    setRefreshing(true);
   }, []);
 
   const detailPage = async inquires => {
@@ -84,13 +89,15 @@ function MoreInquiry() {
 
   useFocusEffect(
     useCallback(() => {
-      setCurrentPage(1);
-      getInquiryInfo();
+      onRefresh();
     }, []),
   );
   useEffect(() => {
-    getInquiryInfo();
-  }, [currentPage]);
+    if (refreshing || (!refreshing && currentPage > 0)) {
+      setRefreshing(false);
+      getInquiryInfo();
+    }
+  }, [currentPage, refreshing]);
 
   const renderHeader = useMemo(() => {
     return (

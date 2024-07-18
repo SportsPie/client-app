@@ -105,7 +105,6 @@ function WalletDetail() {
     setTimeout(() => {
       if (!isLast) {
         setPage(prevPage => prevPage + 1);
-        setRefreshing(true);
       }
     }, 0);
   };
@@ -168,7 +167,7 @@ function WalletDetail() {
   );
 
   useEffect(() => {
-    if (!isFocus && refreshing) {
+    if ((!isFocus && refreshing) || (!refreshing && page > 1)) {
       getTokenHistoryList();
     }
   }, [page, isFocus, refreshing]);

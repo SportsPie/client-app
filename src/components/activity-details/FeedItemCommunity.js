@@ -155,7 +155,6 @@ function FeedItem({ item, onDelete }) {
             idx={selectedItem?.feedIdx}
             targetUserIdx={selectedItem?.userIdx}
             onConfirm={() => {
-              setChangeEvent(prev => !prev);
               onDelete(); // 상태 업데이트
             }}
             memberButtons={
@@ -165,19 +164,35 @@ function FeedItem({ item, onDelete }) {
             }
           />
         </View>
-        <Pressable
-          hitSlop={8}
-          style={[
-            styles.iconWrapper,
-            {
-              marginLeft: 'auto',
-            },
-          ]}
-          onPress={() => {
-            openModal(item);
-          }}>
-          <SPSvgs.EllipsesVertical width={20} height={20} />
-        </Pressable>
+        {item?.userIdx !== userInfo?.data.userIdx ? null : item?.academyName ? (
+          <Pressable
+            hitSlop={8}
+            style={[
+              styles.iconWrapper,
+              {
+                marginLeft: 'auto',
+              },
+            ]}
+            onPress={() => {
+              openModal(item);
+            }}>
+            <SPSvgs.EllipsesVertical width={20} height={20} />
+          </Pressable>
+        ) : (
+          <Pressable
+            hitSlop={8}
+            style={[
+              styles.iconWrapper,
+              {
+                marginLeft: 'auto',
+              },
+            ]}
+            onPress={() => {
+              openModal(item);
+            }}>
+            <SPSvgs.EllipsesVertical width={20} height={20} />
+          </Pressable>
+        )}
       </View>
     </View>
   );
@@ -215,6 +230,5 @@ const styles = StyleSheet.create({
   itemWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
   },
 });
