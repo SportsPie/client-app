@@ -26,7 +26,6 @@ function CommunityTab() {
     };
 
     try {
-      console.log(params);
       const { data } = await apiGetFeeds(params);
 
       if (data && Array.isArray(data.data.list)) {

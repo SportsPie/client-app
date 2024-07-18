@@ -213,6 +213,14 @@ function Academy({ navigation }) {
   const trlRef = useRef({ current: { disabled: false } });
   const [refresh, setRefresh] = useState(false);
 
+  // 'N' 항목들을 먼저 정렬
+  const closeYNItemsN = academyRecruitList.filter(item => item.closeYn === 'N');
+
+  // 'Y' 항목들을 그 다음에 정렬
+  const closeYNItemsY = academyRecruitList.filter(item => item.closeYn === 'Y');
+
+  // 'N' 항목들을 먼저, 그 다음에 'Y' 항목들을 추가하여 순서를 조정
+  const sortedAcademyRecruitList = [...closeYNItemsN, ...closeYNItemsY];
   /**
    * api
    */
@@ -381,7 +389,8 @@ function Academy({ navigation }) {
             <Pressable
               onPress={() => {
                 NavigationService.navigate(navName.searchAcademy);
-              }}>
+              }}
+              style={{ padding: 10 }}>
               <SPSvgs.Search />
             </Pressable>
           }
@@ -472,7 +481,8 @@ function Academy({ navigation }) {
                       <TouchableOpacity
                         onPress={() => {
                           NavigationService.navigate(navName.nearbyAcademy);
-                        }}>
+                        }}
+                        style={styles.moreBtn}>
                         <Text style={styles.topBtn}>모두 보기</Text>
                       </TouchableOpacity>
                     </View>
@@ -814,9 +824,10 @@ function Academy({ navigation }) {
                       activeOpacity={ACTIVE_OPACITY}
                       onPress={() => {
                         NavigationService.navigate(navName.matchingSchedule);
-                      }}>
-                      {/* <Image source={SPIcons.icArrowRightNoraml} /> */}
-                      <Text style={styles.topBtn}>모두 보기</Text>
+                      }}
+                      style={styles.moreArrowBtn}>
+                      <Image source={SPIcons.icArrowRightNoraml} />
+                      {/* <Text style={styles.topBtn}>모두 보기</Text> */}
                     </TouchableOpacity>
                   </View>
                   {matchScheduleList && matchScheduleList.length > 0 ? (
@@ -837,7 +848,11 @@ function Academy({ navigation }) {
                             NavigationService.navigate(navName.matchingSchedule)
                           }
                           style={styles.moreBtnBox}>
-                          <Text style={styles.moreBtnText}>
+                          <Text
+                            style={[
+                              styles.moreBtnText,
+                              { alignSelf: 'center' },
+                            ]}>
                             경기매칭 둘러보기
                           </Text>
                         </TouchableOpacity>
@@ -922,14 +937,15 @@ function Academy({ navigation }) {
                   NavigationService.navigate(navName.academyRecruitment, {
                     pageType: RECRUIT_PAGE_TYPE.ALL,
                   });
-                }}>
-                {/* <Image source={SPIcons.icArrowRightNoraml} /> */}
-                <Text style={styles.topBtn}>모두 보기</Text>
+                }}
+                style={styles.moreArrowBtn}>
+                <Image source={SPIcons.icArrowRightNoraml} />
+                {/* <Text style={styles.topBtn}>모두 보기</Text> */}
               </TouchableOpacity>
             </View>
             {academyRecruitList && academyRecruitList.length > 0 ? (
               <FlatList
-                data={academyRecruitList}
+                data={sortedAcademyRecruitList}
                 scrollEnabled={false}
                 renderItem={({ item, index }) => (
                   <TouchableOpacity
@@ -939,43 +955,45 @@ function Academy({ navigation }) {
                         { recruitIdx: item.recruitIdx },
                       );
                     }}
-                    style={[styles.recruitmentBox]}>
-                    <View
-                      style={{
-                        flexDirection: 'row',
-                        justifyContent: 'space-between',
-                      }}>
-                      <View
-                        style={[
-                          styles.recruitmentGender,
-                          { alignSelf: 'flex-start' },
-                        ]}>
-                        <Text style={styles.recruitmentGenderText}>
-                          {MATCH_GENDER[item?.genderCode]?.desc}
-                        </Text>
-                      </View>
-                      {checkRecruitEndRender(item)}
-                    </View>
-                    <Text style={styles.recruitmentTitle}>{item.title}</Text>
-                    <View style={styles.recruitmentTextBox}>
-                      <View>
-                        <Text style={styles.recruitmentText}>
-                          {item.academyName}
-                        </Text>
-                      </View>
+                    style={styles.recruitmentBox}>
+                    <View>
                       <View
                         style={{
                           flexDirection: 'row',
-                          alignItems: 'center',
-                          gap: 8,
+                          justifyContent: 'space-between',
                         }}>
-                        <Text style={styles.recruitmentText}>{`${
-                          item.addrCity
-                        } ${item.addrGu ? '・' : ''} ${item.addrGu}`}</Text>
-                        <View style={styles.VerticalLine} />
-                        <Text style={styles.recruitmentText}>
-                          {moment(item.startDate).format('YYYY.MM.DD')}
-                        </Text>
+                        <View
+                          style={[
+                            styles.recruitmentGender,
+                            { alignSelf: 'flex-start' },
+                          ]}>
+                          <Text style={styles.recruitmentGenderText}>
+                            {MATCH_GENDER[item?.genderCode]?.desc}
+                          </Text>
+                        </View>
+                        {checkRecruitEndRender(item)}
+                      </View>
+                      <Text style={styles.recruitmentTitle}>{item.title}</Text>
+                      <View style={styles.recruitmentTextBox}>
+                        <View>
+                          <Text style={styles.recruitmentText}>
+                            {item.academyName}
+                          </Text>
+                        </View>
+                        <View
+                          style={{
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            gap: 8,
+                          }}>
+                          <Text style={styles.recruitmentText}>{`${
+                            item.addrCity
+                          } ${item.addrGu ? '・' : ''} ${item.addrGu}`}</Text>
+                          <View style={styles.VerticalLine} />
+                          <Text style={styles.recruitmentText}>
+                            {moment(item.startDate).format('YYYY.MM.DD')}
+                          </Text>
+                        </View>
                       </View>
                     </View>
                   </TouchableOpacity>
@@ -1365,7 +1383,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FF671F',
     borderRadius: 8,
     paddingHorizontal: 20,
-    paddingVertical: 9,
+    paddingVertical: 13,
   },
   reviewBtn: {
     fontSize: 15,
@@ -1542,5 +1560,8 @@ const styles = StyleSheet.create({
   recruitingText: {
     ...fontStyles.fontSize11_Semibold,
     color: '#FF671F',
+  },
+  moreArrowBtn: {
+    padding: 12,
   },
 });

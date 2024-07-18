@@ -19,7 +19,7 @@ import Utils from '../../utils/Utils';
 import { PrimaryButton } from '../PrimaryButton';
 import SPSelectVideoModal from '../SPSelectVideoModal';
 
-function ClassVideoItem({ item, index }) {
+function ClassVideoItem({ item, index, setLoading }) {
   const { width: screenWidth } = useWindowDimensions();
   let imageHeight;
 
@@ -148,6 +148,7 @@ function ClassVideoItem({ item, index }) {
         title="클래스 마스터 동영상 업로드"
         visible={showSelectModal}
         onClose={() => setShowSelectModal(false)}
+        setLoading={setLoading}
         onComplete={({ type, fileUrl, videoName, videoType }) => {
           uploadMyMasterVideo(type, fileUrl, videoName, videoType);
         }}

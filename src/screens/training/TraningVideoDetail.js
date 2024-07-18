@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
+import React, { memo, useCallback, useRef, useState } from 'react';
 import {
   Pressable,
   ScrollView,
@@ -27,6 +27,7 @@ import { APPROVE_STATE } from '../../common/constants/approveState';
 import SPModal from '../../components/SPModal';
 import SPSingleVideo from '../../components/SPSingleVideo';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import SPLoading from '../../components/SPLoading';
 
 // 상수값
 const MAX_CONTENTS_TEXT_LENGTH = 250;
@@ -54,6 +55,7 @@ function TraningVideoDetail({ route }) {
   const fullScreenRef = useRef();
 
   // [ state ]
+  const [loading, setLoading] = useState(false); // 데이터 로딩
   const [videoDetail, setVideoDetail] = useState({
     videoIdx: '',
     videoName: '',
@@ -191,7 +193,9 @@ function TraningVideoDetail({ route }) {
   );
 
   // [ return ]
-  return (
+  return loading ? (
+    <SPLoading />
+  ) : (
     <SafeAreaView style={styles.container}>
       {/* 헤더 */}
       {isScrollable && <Header title={videoDetail.trainingName} />}
@@ -322,6 +326,7 @@ function TraningVideoDetail({ route }) {
         title="클래스 마스터 동영상 업로드"
         visible={showSelectModal}
         onClose={() => setShowSelectModal(false)}
+        setLoading={setLoading}
         onComplete={({ type, fileUrl, videoName, videoType }) => {
           uploadMyMasterVideo(type, fileUrl, videoName, videoType);
         }}

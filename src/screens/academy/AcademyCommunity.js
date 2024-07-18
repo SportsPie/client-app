@@ -191,7 +191,6 @@ function AcademyCommunity({ route }) {
         list.push({ label: etc.codeName, value: etc.codeSub });
       }
       setFilterList(list);
-      setSelectedFilter(list?.[0].value);
     } catch (error) {
       handleError(error);
     }
@@ -307,6 +306,7 @@ function AcademyCommunity({ route }) {
     useCallback(() => {
       onFocus();
       return () => {
+        setLoading(true);
         setIsFocus(true);
         setFeedList([]);
         setIsLast(false);
@@ -329,6 +329,12 @@ function AcademyCommunity({ route }) {
       }
     }, [searched, selectedFilter, isInit, changeEvent]),
   );
+
+  useEffect(() => {
+    if (filterList && filterList.length > 0) {
+      setSelectedFilter(selectedFilter || filterList?.[0].value);
+    }
+  }, [filterList]);
 
   useEffect(() => {
     if (!isInit && refreshing) {
@@ -367,8 +373,13 @@ function AcademyCommunity({ route }) {
             filterList.length > 0 &&
             filterList.map((item, index) => {
               return (
-                <TouchableOpacity
-                  /* eslint-disable-next-line react/no-array-index-key */
+                <Pressable
+                  hitSlop={{
+                    top: 10,
+                    bottom: 10,
+                    left: 10,
+                    right: 10,
+                  }}
                   key={index}
                   style={[
                     styles.button,
@@ -382,7 +393,7 @@ function AcademyCommunity({ route }) {
                     ]}>
                     {item.label}
                   </Text>
-                </TouchableOpacity>
+                </Pressable>
               );
             })}
         </View>
@@ -457,20 +468,32 @@ function AcademyCommunity({ route }) {
                         )}
                         {item.topYn === IS_YN.Y
                           ? isAdmin && (
-                              <TouchableOpacity
+                              <Pressable
+                                hitSlop={{
+                                  top: 12,
+                                  bottom: 12,
+                                  left: 12,
+                                  right: 12,
+                                }}
                                 onPress={() => {
                                   openModal(item);
                                 }}>
                                 <Image source={SPIcons.icOptionsVertical} />
-                              </TouchableOpacity>
+                              </Pressable>
                             )
                           : showOptionButton && (
-                              <TouchableOpacity
+                              <Pressable
+                                hitSlop={{
+                                  top: 12,
+                                  bottom: 12,
+                                  left: 12,
+                                  right: 12,
+                                }}
                                 onPress={() => {
                                   openModal(item);
                                 }}>
                                 <Image source={SPIcons.icOptionsVertical} />
-                              </TouchableOpacity>
+                              </Pressable>
                             )}
                       </View>
                     </View>
@@ -572,6 +595,7 @@ function AcademyCommunity({ route }) {
             isAdmin={isAdmin}
             type={MODAL_MORE_TYPE.FEED}
             idx={selectedItem?.feedIdx}
+            targetUserIdx={selectedItem?.userIdx}
             onConfirm={() => {
               setChangeEvent(prev => !prev);
             }}
@@ -626,7 +650,7 @@ function AcademyCommunity({ route }) {
                 style={{
                   width: '100%',
                   height: 60,
-                  paddingHorizontal: 20,
+                  paddingHorizontal: 16,
                   paddingVertical: 16,
                 }}>
                 <Image
@@ -674,7 +698,8 @@ const styles = {
     backgroundColor: '#FFF4EE',
     gap: 4,
     borderRadius: 10,
-    padding: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 10,
     marginHorizontal: 16,
     marginVertical: 8,
   },
@@ -686,7 +711,8 @@ const styles = {
     letterSpacing: 0.203,
     width: '100%',
     margin: 0,
-    padding: 0,
+    paddingRight: 32,
+    paddingVertical: 0,
   },
   image: {
     width: '100%',
@@ -695,7 +721,8 @@ const styles = {
   },
   buttonBox: {
     flexDirection: 'row',
-    gap: 8,
+    flexWrap: 'wrap',
+    gap: 14,
     paddingHorizontal: 16,
     paddingVertical: 8,
     marginBottom: 24,

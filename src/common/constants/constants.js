@@ -7,6 +7,7 @@ export const CONSTANTS = {
     '458305965390-nk53o1ddukli1ferhmdog3rkp2p7r6n2.apps.googleusercontent.com',
   KEY_FCM_TOKEN: 'FCM_TOKEN',
   KEY_WALLET_PIN_CODE: 'KEY_WALLET_PIN_CODE',
+  DATA_CHECK_MODAL_NEVER_SHOW: 'DATA_CHECK_MODAL_NEVER_SHOW',
 };
 
 export const ACTIVE_OPACITY = 0.9;

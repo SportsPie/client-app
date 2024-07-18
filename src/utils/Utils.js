@@ -450,28 +450,16 @@ const Utils = {
   openInstagram: async url => {
     if (!url) return;
     if (
-      !url.toLowerCase().startsWith('http://') &&
-      !url.toLowerCase().startsWith('https://')
+      !url.toLowerCase().startsWith('http://www.instagram.com') &&
+      !url.toLowerCase().startsWith('https://www.instagram.com')
     ) {
-      return;
-    }
-    let appProfileUrl = '';
-    const regex = /(?:\.com\/)(.*?)(?:\/|\?|$)/;
-    const match = url.match(regex);
-    if (match) {
-      const urlPrefix = 'instagram://user?username=';
-      const userName = match[1];
-      appProfileUrl = `${urlPrefix}${userName}`;
-    } else {
       return;
     }
 
     try {
-      const isInstagramInstalled = await Linking.canOpenURL(appProfileUrl); // 앱 URL을 열 수 있는지 확인
+      const isInstagramInstalled = await Linking.openURL(url); // 앱 URL을 열 수 있는지 확인
       if (isInstagramInstalled) {
-        Utils.openOrMoveUrl(appProfileUrl); // 앱 URL 열기
-      } else {
-        Utils.openOrMoveUrl(url); // 웹 URL 열기
+        Linking.openURL(url);
       }
     } catch (error) {
       handleError(error);
@@ -731,6 +719,16 @@ const Utils = {
       return false;
     }
   },
+  isInstagram: instagram => {
+    try {
+      const urlObj = new URL(instagram);
+      const HttpsInstagram = urlObj.origin === 'https://www.instagram.com';
+      const HttpInstagram = urlObj.origin === 'http://www.instagram.com';
+      return HttpsInstagram || HttpInstagram;
+    } catch (error) {
+      return false; // Invalid URL format
+    }
+  },
   removeSymbolAndBlank: str => {
     let text = str.replace(
       /[`~!@#$%^&*()_|₩+\-=?;:'"’”“‘,.<>\{\}\[\]\\\/]/gi,
@@ -746,6 +744,7 @@ const Utils = {
   },
   openOrMoveUrl: url => {
     if (!url) return;
+
     if (
       url?.toLowerCase()?.startsWith('http') ||
       url?.toLowerCase()?.startsWith('https')

@@ -6,11 +6,14 @@ import {
   TouchableOpacity,
   View,
   TextInput,
+  Pressable,
+  Image,
 } from 'react-native';
 import fontStyles from '../styles/fontStyles';
 import { COLORS } from '../styles/colors';
 import { SPSvgs } from '../assets/svg';
 import { ACTIVE_OPACITY } from '../common/constants/constants';
+import SPIcons from '../assets/icon';
 function SPModal({
   title,
   contents,
@@ -33,6 +36,7 @@ function SPModal({
   maxLength,
   value,
   onChangeText,
+  noticeIcon,
 }) {
   const [showModal, setShowModal] = useState(visible);
   const [inputText, setInputText] = useState('');
@@ -113,7 +117,13 @@ function SPModal({
             }}>
             <View style={[styles.bodyWrap, bodyWrapStyle]} activeOpacity={1}>
               {title && (
-                <View>
+                <View style={{ flexDirection: 'row' }}>
+                  {noticeIcon && (
+                    <Image
+                      source={SPIcons.icWarning}
+                      style={{ width: 24, height: 24 }}
+                    />
+                  )}
                   <Text style={[styles.title, titleStyle]}>
                     {title || '제목'}
                   </Text>
@@ -144,12 +154,13 @@ function SPModal({
 
                     {/* x 표시를 포함한 TouchableOpacity */}
                     {textCancelButton && (
-                      <TouchableOpacity
+                      <Pressable
+                        hitSlop={8}
                         activeOpacity={ACTIVE_OPACITY}
                         onPress={() => onChangeText('')}
                         style={{ position: 'absolute', right: 10 }}>
                         <SPSvgs.InputClose />
-                      </TouchableOpacity>
+                      </Pressable>
                     )}
                   </View>
                 ) : (
@@ -226,7 +237,7 @@ const styles = StyleSheet.create({
     width: '100%',
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 24,
+    paddingHorizontal: 16,
   },
   contents: {
     ...fontStyles.fontSize14_Regular,

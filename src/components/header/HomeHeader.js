@@ -41,12 +41,13 @@ function HomeHeader() {
           <Pressable
             onPress={() => {
               NavigationService.navigate(navName.alarmPage);
-            }}>
+            }}
+            style={{ padding: 10 }}>
             <SPSvgs.Bell />
           </Pressable>
         )}
 
-        <Pressable onPress={menuFunction}>
+        <Pressable onPress={menuFunction} style={{ padding: 10 }}>
           <SPSvgs.Menu />
         </Pressable>
       </View>
@@ -59,13 +60,14 @@ export default memo(HomeHeader);
 const styles = StyleSheet.create({
   container: {
     minHeight: 60,
-    paddingHorizontal: 20,
+    paddingHorizontal: 4,
     flexDirection: 'row',
     alignItems: 'center',
+    marginLeft: 16,
   },
   rightContent: {
     flexDirection: 'row',
-    columnGap: 16,
+    // columnGap: 16,
     marginLeft: 'auto',
   },
 });

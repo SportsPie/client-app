@@ -45,6 +45,14 @@ function AcademyRecruitment({ route }) {
   const [refreshing, setRefreshing] = useState(true);
   const [academyRecruitList, setAcademyRecruitList] = useState([]);
 
+  // 'N' 항목들을 먼저 정렬
+  const closeYNItemsN = academyRecruitList.filter(item => item.closeYn === 'N');
+
+  // 'Y' 항목들을 그 다음에 정렬
+  const closeYNItemsY = academyRecruitList.filter(item => item.closeYn === 'Y');
+
+  // 'N' 항목들을 먼저, 그 다음에 'Y' 항목들을 추가하여 순서를 조정
+  const sortedAcademyRecruitList = [...closeYNItemsN, ...closeYNItemsY];
   // 가입신청 회원 임시
   const openRejectModal = idx => {
     setSelectedJoinIdx(idx);
@@ -165,7 +173,7 @@ function AcademyRecruitment({ route }) {
           {academyRecruitList && academyRecruitList.length > 0 ? (
             <FlatList
               ref={flatListRef}
-              data={academyRecruitList}
+              data={sortedAcademyRecruitList}
               ListFooterComponent={
                 loading ? (
                   <ActivityIndicator
@@ -248,7 +256,7 @@ function AcademyRecruitment({ route }) {
                 alignItems: 'center',
                 justifyContent: 'center',
               }}>
-              <Text>모집 내역이 없습니다.</Text>
+              <Text style={styles.noneText}>모집 내역이 없습니다.</Text>
             </View>
           )}
         </View>
@@ -394,5 +402,13 @@ const styles = {
   recruitingText: {
     ...fontStyles.fontSize11_Semibold,
     color: '#FF671F',
+  },
+  noneText: {
+    fontSize: 13,
+    fontWeight: 500,
+    color: 'rgba(46, 49, 53, 0.60)',
+    lineHeight: 18,
+    letterSpacing: 0.252,
+    textAlign: 'center',
   },
 };

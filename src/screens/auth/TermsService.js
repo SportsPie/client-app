@@ -122,25 +122,38 @@ function TermsService() {
           boldText={true}
           onPress={handleAllCheck}
           selected={isCheckedAll}
+          labelStyle={[styles.customLabelStyle, { paddingVertical: 12 }]}
+          checkBoxStyle={[styles.customCheckBoxStyle, { marginVertical: 12 }]}
         />
+
         <Checkbox
           label="서비스 이용약관 동의(필수)"
           selected={isChecked1}
           viewMore
           onViewMorePress={() => openModal('TERMS_SERVICE')}
           onPress={handleCheck1}
+          labelStyle={styles.customLabelStyle}
+          checkBoxStyle={styles.customCheckBoxStyle}
+          moreBtn={styles.customMoreBtnStyle}
         />
+
         <Checkbox
           label="개인정보 보호정책 동의(필수)"
           selected={isChecked2}
           viewMore
           onViewMorePress={() => openModal('TERMS_PRIVATE')}
           onPress={handleCheck2}
+          labelStyle={styles.customLabelStyle}
+          checkBoxStyle={styles.customCheckBoxStyle}
+          moreBtn={styles.customMoreBtnStyle}
         />
+
         <Checkbox
           selected={isChecked3}
           label="마케팅 안내 수신 동의(선택)"
           onPress={handleCheck3}
+          labelStyle={styles.customLabelStyle}
+          checkBoxStyle={styles.customCheckBoxStyle}
         />
       </ScrollView>
 
@@ -184,12 +197,13 @@ const styles = StyleSheet.create({
   },
   contentStyle: {
     paddingTop: 24,
-    rowGap: 16,
+    // rowGap: 16,
     paddingHorizontal: 16,
   },
   headerText: {
     ...fontStyles.fontSize18_Semibold,
     color: COLORS.labelNormal,
+    marginBottom: 16,
   },
   submitButton: {
     marginVertical: 24,
@@ -207,4 +221,15 @@ const styles = StyleSheet.create({
     color: 'white',
   },
   modal: { flex: 1, fontSize: 40, width: 400, height: 800 },
+  customLabelStyle: {
+    paddingVertical: 14,
+  },
+  customCheckBoxStyle: {
+    marginHorizontal: 12,
+    marginVertical: 14,
+  },
+  customMoreBtnStyle: {
+    paddingHorizontal: 12,
+    paddingVertical: 14,
+  },
 });

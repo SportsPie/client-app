@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   View,
   Platform,
+  Pressable,
 } from 'react-native';
 import Collapsible from 'react-native-collapsible';
 import { useFocusEffect } from '@react-navigation/native';
@@ -195,7 +196,13 @@ function AcademyPlayer({ route }) {
                               {playersGroups[item].length}
                             </Text>
                           </View>
-                          <TouchableOpacity
+                          <Pressable
+                            hitSlop={{
+                              top: 10,
+                              bottom: 10,
+                              left: 10,
+                              right: 10,
+                            }}
                             activeOpacity={ACTIVE_OPACITY}
                             onPress={() => {
                               setIsCollapsed(prev => {
@@ -213,7 +220,7 @@ function AcademyPlayer({ route }) {
                               }
                               style={{ width: 24, height: 24 }}
                             />
-                          </TouchableOpacity>
+                          </Pressable>
                         </View>
                         <Collapsible
                           collapsed={!!isCollapsed[index]}
@@ -295,7 +302,13 @@ function AcademyPlayer({ route }) {
                                     </View>
                                   </View>
                                 </TouchableOpacity>
-                                <TouchableOpacity
+                                <Pressable
+                                  hitSlop={{
+                                    top: 10,
+                                    bottom: 10,
+                                    left: 10,
+                                    right: 10,
+                                  }}
                                   activeOpacity={ACTIVE_OPACITY}
                                   style={{ marginLeft: 'auto' }}
                                   onPress={() => {
@@ -305,7 +318,7 @@ function AcademyPlayer({ route }) {
                                     source={SPIcons.icOptionsVertical}
                                     style={{ width: 20, height: 20 }}
                                   />
-                                </TouchableOpacity>
+                                </Pressable>
                               </View>
                             );
                           })}

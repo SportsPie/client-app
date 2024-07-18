@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState, useRef, memo } from 'react';
-import { Image, Text, View, TouchableOpacity } from 'react-native';
+import { Image, Text, View, TouchableOpacity, Pressable } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import moment from 'moment/moment';
@@ -421,20 +421,32 @@ function AcademyRecruitmentDetail({ route, type }) {
                             </View>
                           </TouchableOpacity>
                           <View style={styles.subBtnBox}>
-                            <TouchableOpacity
+                            <Pressable
+                              hitSlop={{
+                                top: 8,
+                                bottom: 8,
+                                left: 8,
+                                right: 8,
+                              }}
                               style={styles.subRefuseBtn}
                               onPress={() => {
                                 openRejectModal(item.joinIdx);
                               }}>
                               <Text style={styles.subRefuseText}>거절</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity
+                            </Pressable>
+                            <Pressable
+                              hitSlop={{
+                                top: 8,
+                                bottom: 8,
+                                left: 8,
+                                right: 8,
+                              }}
                               style={styles.subApprovalBtn}
                               onPress={() => {
                                 openConfirmModal(item.joinIdx);
                               }}>
                               <Text style={styles.subApprovalText}>승인</Text>
-                            </TouchableOpacity>
+                            </Pressable>
                           </View>
                         </View>
                       );

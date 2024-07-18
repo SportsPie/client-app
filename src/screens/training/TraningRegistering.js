@@ -1,6 +1,7 @@
 import React, { memo, useEffect, useState } from 'react';
 import {
   Image,
+  Platform,
   StyleSheet,
   Text,
   View,
@@ -81,11 +82,13 @@ function TraningRegistering({ route }) {
   const compressUploadVideo = async videoPath => {
     try {
       // 비트레이트 계산
-      const { size: orgSize, duration: durationSec } = await getVideoMetaData(
-        videoPath,
-      );
-      const orgBitrate = (orgSize / durationSec) * 8;
-      const compressRate = 0.5;
+      const { size: orgSize, duration } = await getVideoMetaData(videoPath);
+
+      const orgBitrate =
+        Platform.OS === 'ios'
+          ? (orgSize / duration) * 8 // = ios
+          : ((orgSize * 1024) / duration) * 8; // = android
+      const compressRate = 0.45; // Platform.OS === 'ios' ? 1 : 0.45; // iOS > 프레임 레이트, 해상도, 코덱 등 다른 파라미터 자동 변경 대응
       const calBitrate = Math.ceil((orgBitrate * compressRate) / 10) * 10; // 짝수 맞춤
 
       const compressedPath = await VideoUtils.compressVideo(
@@ -95,6 +98,7 @@ function TraningRegistering({ route }) {
       );
 
       // 압축 완료
+      setVideoDurationSec(Math.floor(duration));
       setCompressionProgress(100);
       setCompressedVideoPath(compressedPath);
 
@@ -104,13 +108,6 @@ function TraningRegistering({ route }) {
       setThumbnailImagePath(path);
       setThumbnailImageType(mime);
       setThumbnailImageName(fileName);
-
-      // 메타데이터 확인
-      const { size, duration } = await getVideoMetaData(compressedPath);
-      setVideoDurationSec(Math.floor(duration));
-
-      console.log('Com Size');
-      console.log(size / (1024 * 1024));
     } catch (error) {
       handleError(new CustomException('파일을 읽어오는데 실패했습니다.'));
       NavigationService.goBack();

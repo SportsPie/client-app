@@ -72,6 +72,7 @@ const authPage = {
   matchingChatRoomListScreen: 'matchingChatRoomListScreen',
   matchingChatRoomScreen: 'matchingChatRoomScreen',
   moreAccountManage: 'moreAccountManage',
+  moreChangePassword: 'moreChangePassword',
   swap: 'swap',
   swapTranfer: 'swapTranfer',
   tournamentApplyComplete: 'tournamentApplyComplete',

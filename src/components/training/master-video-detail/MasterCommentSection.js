@@ -105,13 +105,14 @@ const MasterCommentSection = forwardRef(
     const [targetComment, setTargetComment] = useState({
       commentIdx: '',
       comment: '',
+      memberIdx: '',
       isMine: false,
     });
     const [editCommentInput, setEditCommentInput] = useState('');
 
     // [ util ] 코멘트 '더보기' 모달 Open
-    const openCommentModal = ({ idx, isMine, comment }) => {
-      setTargetComment({ idx, comment, isMine });
+    const openCommentModal = ({ idx, isMine, comment, memberIdx }) => {
+      setTargetComment({ idx, comment, isMine, memberIdx });
       setEditCommentInput(comment);
       setShowCommentMore(true);
     };
@@ -291,6 +292,7 @@ const MasterCommentSection = forwardRef(
           <CommentInputSection
             onChangeText={text => setCommentInput(text)}
             onSubmit={saveMasterVideoComment}
+            maxLength={1000}
           />
 
           {/* 모달 > 댓글 더보기 */}
@@ -301,6 +303,7 @@ const MasterCommentSection = forwardRef(
             onReport={hide}
             type={MODAL_MORE_TYPE.MASTER_VIDEO_COMMENT}
             idx={targetComment.idx}
+            targetUserIdx={targetComment.memberIdx}
             onDelete={removeMasterVideoComment}
             onModify={openModifyCommentModal}
             onConfirm={onSubmit}

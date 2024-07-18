@@ -32,7 +32,7 @@ function IdentifyVerification() {
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
-      <Header title="회원 가입" />
+      <Header title="회원가입" />
 
       <View style={styles.container}>
         <Text style={styles.headerText}>

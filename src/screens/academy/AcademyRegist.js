@@ -7,6 +7,7 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  Pressable,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import DismissKeyboard from '../../components/DismissKeyboard';
@@ -372,10 +373,10 @@ function AcademyRegist() {
       Utils.openModal({ title: '알림', body: '대표이미지를 등록해주세요.' });
       return false;
     }
-    if (instagram?.trim() && !Utils.isValidUrl(instagram?.trim())) {
+    if (instagram?.trim() && !Utils.isInstagram(instagram?.trim())) {
       Utils.openModal({
         title: '알림',
-        body: '인스타그램 주소를 확인해주세요.(http://www.example.com)',
+        body: '인스타그램 주소를 확인해주세요.(http://www.instagram.com)',
       });
       return false;
     }
@@ -718,8 +719,14 @@ function AcademyRegist() {
                       classTypeList.length > 0 &&
                       classTypeList.map((item, index) => {
                         return (
-                          <TouchableOpacity
+                          <Pressable
                             // eslint-disable-next-line react/no-array-index-key
+                            hitSlop={{
+                              top: 10,
+                              bottom: 10,
+                              left: 10,
+                              right: 10,
+                            }}
                             key={index}
                             onPress={() => {
                               setSelectedClassType(prev => {
@@ -751,7 +758,7 @@ function AcademyRegist() {
                               ]}>
                               {item.label}
                             </Text>
-                          </TouchableOpacity>
+                          </Pressable>
                         );
                       })}
                   </View>
@@ -776,8 +783,14 @@ function AcademyRegist() {
                       teachingTypeList.length > 0 &&
                       teachingTypeList.map((item, index) => {
                         return (
-                          <TouchableOpacity
+                          <Pressable
                             // eslint-disable-next-line react/no-array-index-key
+                            hitSlop={{
+                              top: 10,
+                              bottom: 10,
+                              left: 10,
+                              right: 10,
+                            }}
                             key={index}
                             onPress={() => {
                               setSelectedTeachingType(prev => {
@@ -811,7 +824,7 @@ function AcademyRegist() {
                               ]}>
                               {item.label}
                             </Text>
-                          </TouchableOpacity>
+                          </Pressable>
                         );
                       })}
                   </View>
@@ -836,8 +849,14 @@ function AcademyRegist() {
                       serviceTypeList.length > 0 &&
                       serviceTypeList.map((item, index) => {
                         return (
-                          <TouchableOpacity
+                          <Pressable
                             // eslint-disable-next-line react/no-array-index-key
+                            hitSlop={{
+                              top: 10,
+                              bottom: 10,
+                              left: 10,
+                              right: 10,
+                            }}
                             key={index}
                             onPress={() => {
                               setSelectedServiceType(prev => {
@@ -871,7 +890,7 @@ function AcademyRegist() {
                               ]}>
                               {item.label}
                             </Text>
-                          </TouchableOpacity>
+                          </Pressable>
                         );
                       })}
                   </View>

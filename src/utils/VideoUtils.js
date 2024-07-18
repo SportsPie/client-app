@@ -4,6 +4,7 @@ import {
   createVideoThumbnail,
   clearCache,
 } from 'react-native-compressor';
+import { Platform } from 'react-native';
 
 // 예외 Class
 const { CustomException } = require('../common/exceptions');
@@ -16,7 +17,7 @@ const MAX_SIZE_MB = 20; // max mb
 
 // 동영상 압축 옵션
 const compressOptions = {
-  compressionMethod: 'auto', // 'auto' or 'manual'
+  compressionMethod: 'auto', // or 'manual'
   progressDivider: 1,
   // bitrate: DEFAULT_BITRATE,
   // maxSize
@@ -118,12 +119,15 @@ const VideoUtils = {
         };
       }
 
-      console.log('options');
-      console.log(options);
+      const compressedPath = await Video.compress(
+        filePath,
+        options,
+        progress => {
+          progressSetter(Math.floor(progress * 100));
+        },
+      );
 
-      return await Video.compress(filePath, options, progress => {
-        progressSetter(Math.floor(progress * 100));
-      });
+      return compressedPath;
     } catch (error) {
       if (error.code === 'EUNSPECIFIED') {
         throw new CustomException('확인되지 않는 파일입니다.');

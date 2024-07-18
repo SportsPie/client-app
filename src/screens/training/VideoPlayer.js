@@ -94,6 +94,7 @@ const styles = StyleSheet.create({
   },
   headerButtonText: {
     ...fontStyles.fontSize16_Semibold,
+    padding: 10,
     color: COLORS.white,
   },
 });

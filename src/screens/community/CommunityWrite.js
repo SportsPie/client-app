@@ -56,7 +56,7 @@ function CommunityWrite({ route }) {
   const [photoList, setPhotoList] = useState([]);
   const [showPhotoModal, setShowPhotoModal] = useState(false);
   const [showFixCheckModal, setShowFixCheckModal] = useState(false);
-
+  const inputRef = useRef(null);
   /**
    * api
    */
@@ -229,7 +229,7 @@ function CommunityWrite({ route }) {
     return (
       <Header
         rightContent={
-          <Pressable onPress={registCommunity}>
+          <Pressable onPress={registCommunity} style={{ padding: 10 }}>
             <Text style={styles.submitButtonText}>등록</Text>
           </Pressable>
         }
@@ -248,32 +248,36 @@ function CommunityWrite({ route }) {
         }}>
         <SafeAreaView style={styles.container}>
           {renderHeader}
-
-          <View style={styles.inputSection}>
-            <ScrollView
-              style={{ flex: 1 }}
-              showsVerticalScrollIndicator={false}>
-              <TextInput
-                value={contents}
-                onChange={e => {
-                  if (e.nativeEvent.text?.length > 2000) return;
-                  setContents(e.nativeEvent.text);
-                }}
-                multiline
-                scrollEnabled={false}
-                textAlignVertical="top"
-                numberOfLines={3}
-                placeholder="내용을 입력해 주세요."
-                autoCorrect={false}
-                autoCapitalize="none"
-                style={styles.input}
-                placeholderTextColor="rgba(46, 49, 53, 0.60)"
-              />
-            </ScrollView>
-            <Text style={styles.textLengthText}>
-              {Utils.changeNumberComma(contents?.length ?? 0)}/2,000
-            </Text>
-          </View>
+          <TouchableOpacity
+            onPress={() => inputRef.current.focus()}
+            style={styles.inputSection}>
+            <View style={styles.inputSection}>
+              <ScrollView
+                style={{ flex: 1 }}
+                showsVerticalScrollIndicator={false}>
+                <TextInput
+                  ref={inputRef}
+                  value={contents}
+                  onChange={e => {
+                    if (e.nativeEvent.text?.length > 2000) return;
+                    setContents(e.nativeEvent.text);
+                  }}
+                  multiline
+                  scrollEnabled={false}
+                  textAlignVertical="top"
+                  numberOfLines={3}
+                  placeholder="내용을 입력해 주세요."
+                  autoCorrect={false}
+                  autoCapitalize="none"
+                  style={styles.input}
+                  placeholderTextColor="rgba(46, 49, 53, 0.60)"
+                />
+              </ScrollView>
+              <Text style={styles.textLengthText}>
+                {Utils.changeNumberComma(contents?.length ?? 0)}/2,000
+              </Text>
+            </View>
+          </TouchableOpacity>
 
           {photoList && (
             <View>
@@ -314,13 +318,19 @@ function CommunityWrite({ route }) {
             <View>
               <ScrollView
                 contentContainerStyle={styles.hashtagContent}
-                horizontal
+                // horizontal
                 showsVerticalScrollIndicator={false}
                 showsHorizontalScrollIndicator={false}>
                 {tagList?.map((tag, index) => {
                   const isSelected = selectedTagList.includes(tag.value);
                   return (
                     <Pressable
+                      hitSlop={{
+                        top: 8,
+                        bottom: 8,
+                        left: 8,
+                        right: 8,
+                      }}
                       onPress={() => toggleButton(tag.value)}
                       style={[
                         styles.hashtagButtonWrapper,
@@ -445,8 +455,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   hashtagContent: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     paddingHorizontal: 16,
-    columnGap: 8,
+    gap: 16,
   },
   hashtagButtonWrapper: {
     paddingHorizontal: 7,
@@ -459,11 +471,11 @@ const styles = StyleSheet.create({
     color: COLORS.darkBlue,
   },
   pickImageButton: {
-    width: 36,
-    height: 36,
+    width: 48,
+    height: 48,
     borderWidth: 1,
     borderRadius: 8,
-    borderColor: COLORS.lineBorder,
+    borderColor: 'rgba(135, 141, 150, 0.32)',
     justifyContent: 'center',
     alignItems: 'center',
     // marginHorizontal: 16,

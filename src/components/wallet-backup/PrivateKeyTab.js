@@ -28,7 +28,7 @@ export default memo(PrivateKeyTab);
 
 const styles = StyleSheet.create({
   container: {
-    rowGap: 16,
+    rowGap: 20,
   },
   content: {
     backgroundColor: COLORS.fillNormal,

@@ -87,7 +87,8 @@ function Selector({ title, options, onItemPress, multiple, selectedOnItem }) {
             },
           ]}
           onPress={() => handleItemPress(item.value)}
-          key={item.id}>
+          key={item.id}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
           <Text
             style={[
               styles.labelText,

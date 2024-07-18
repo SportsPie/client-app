@@ -9,6 +9,7 @@ import {
   Text,
   TouchableOpacity,
   View,
+  Pressable,
 } from 'react-native';
 import { Calendar } from 'react-native-calendars/src/index';
 import DatePicker from 'react-native-date-picker';
@@ -321,14 +322,18 @@ function AcademyRecruitmentRegist({ route }) {
                   scrollEnabled={false}
                   textAlignVertical="top"
                   numberOfLines={6}
-                  onChangeText={value => {
-                    setDescription(value);
+                  onChange={e => {
+                    if (e.nativeEvent.text?.length > 2000) return;
+                    setDescription(e.nativeEvent.text);
                   }}
                   placeholder="모집에 대한 내용을 10자 이상 입력해주세요."
                   autoCorrect={false}
                   autoCapitalize="none"
                   style={styles.subTextInputBox}
                 />
+                <Text style={[styles.textLengthText, styles.bottomRightText]}>
+                  {Utils.changeNumberComma(description?.length ?? 0)}/2,000
+                </Text>
                 {/* <View style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>
             <Text style={styles.lengthCount}>{description.length} / 1,000</Text>
           </View> */}
@@ -337,9 +342,15 @@ function AcademyRecruitmentRegist({ route }) {
               <View style={{ gap: 4 }}>
                 <Text style={[styles.subTitle, { marginBottom: 4 }]}>성별</Text>
                 <View
-                  style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap' }}>
+                  style={{ flexDirection: 'row', gap: 16, flexWrap: 'wrap' }}>
                   {genderList.map((item, index) => (
-                    <TouchableOpacity
+                    <Pressable
+                      hitSlop={{
+                        top: 10,
+                        bottom: 10,
+                        left: 10,
+                        right: 10,
+                      }}
                       key={index}
                       onPress={() => {
                         setSelectedGenderType(item.value);
@@ -369,7 +380,7 @@ function AcademyRecruitmentRegist({ route }) {
                         ]}>
                         {item.label}
                       </Text>
-                    </TouchableOpacity>
+                    </Pressable>
                   ))}
                 </View>
               </View>
@@ -377,9 +388,15 @@ function AcademyRecruitmentRegist({ route }) {
               <View style={{ gap: 4 }}>
                 <Text style={styles.subTitle}>클래스</Text>
                 <View
-                  style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap' }}>
+                  style={{ flexDirection: 'row', gap: 16, flexWrap: 'wrap' }}>
                   {classTypeList.map((item, index) => (
-                    <TouchableOpacity
+                    <Pressable
+                      hitSlop={{
+                        top: 10,
+                        bottom: 10,
+                        left: 10,
+                        right: 10,
+                      }}
                       key={index}
                       onPress={() => {
                         setSelectedClassType(item.value);
@@ -409,7 +426,7 @@ function AcademyRecruitmentRegist({ route }) {
                         ]}>
                         {item.label}
                       </Text>
-                    </TouchableOpacity>
+                    </Pressable>
                   ))}
                 </View>
                 {checkShowEtcInput(selectedClassType) && (
@@ -427,9 +444,15 @@ function AcademyRecruitmentRegist({ route }) {
 
               <View>
                 <View
-                  style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap' }}>
+                  style={{ flexDirection: 'row', gap: 16, flexWrap: 'wrap' }}>
                   {recruitmentPeriodList.map((item, index) => (
-                    <TouchableOpacity
+                    <Pressable
+                      hitSlop={{
+                        top: 10,
+                        bottom: 10,
+                        left: 10,
+                        right: 10,
+                      }}
                       key={index}
                       onPress={() => {
                         setSelectedPeriodType(item.value);
@@ -459,7 +482,7 @@ function AcademyRecruitmentRegist({ route }) {
                         ]}>
                         {item.label}
                       </Text>
-                    </TouchableOpacity>
+                    </Pressable>
                   ))}
                 </View>
               </View>
@@ -1093,5 +1116,12 @@ const styles = {
     color: '#FFF',
     lineHeight: 22,
     letterSpacing: 0.144,
+  },
+  bottomRightText: {
+    position: 'absolute',
+    bottom: 5, // 필요에 따라 조정
+    right: 5, // 필요에 따라 조정
+    fontSize: 12, // 필요에 따라 조정
+    color: '#888', // 필요에 따라 조정
   },
 };

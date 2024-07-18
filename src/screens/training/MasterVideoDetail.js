@@ -183,7 +183,7 @@ function MasterVideoDetail({ route }) {
             title={videoDetail.trainingName}
             rightContent={
               !videoDetail.isMine && (
-                <Pressable onPress={openVideoModal}>
+                <Pressable style={{ padding: 10 }} onPress={openVideoModal}>
                   <SPSvgs.EllipsesVertical />
                 </Pressable>
               )
@@ -257,6 +257,7 @@ function MasterVideoDetail({ route }) {
             onClose={closeVideoModal}
             type={MODAL_MORE_TYPE.MASTER_VIDEO}
             idx={videoDetail.videoIdx}
+            targetUserIdx={videoDetail.memberIdx}
             memberButtons={[MODAL_MORE_BUTTONS.REPORT]}
           />
         </>

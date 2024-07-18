@@ -158,7 +158,7 @@ function UserInfo() {
   return (
     <DismissKeyboard>
       <SafeAreaView style={{ flex: 1 }}>
-        <Header title="회원 가입" />
+        <Header title="회원가입" />
 
         <ScrollView
           contentContainerStyle={styles.container}

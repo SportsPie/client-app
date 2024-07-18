@@ -153,6 +153,7 @@ function FeedItem({ item, onDelete }) {
             onClose={closeModal}
             type={MODAL_MORE_TYPE.FEED}
             idx={selectedItem?.feedIdx}
+            targetUserIdx={selectedItem?.userIdx}
             onConfirm={() => {
               setChangeEvent(prev => !prev);
               onDelete(); // 상태 업데이트
@@ -165,6 +166,7 @@ function FeedItem({ item, onDelete }) {
           />
         </View>
         <Pressable
+          hitSlop={8}
           style={[
             styles.iconWrapper,
             {

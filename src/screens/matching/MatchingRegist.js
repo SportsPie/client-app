@@ -11,6 +11,7 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  Pressable,
 } from 'react-native';
 import { Calendar } from 'react-native-calendars/src/index';
 import DatePicker from 'react-native-date-picker';
@@ -112,15 +113,10 @@ function MatchingRegist() {
       if (trlRef.current.disabled) return;
       trlRef.current.disabled = true;
 
-      const matchTimeObj = new Date(matchTime);
-      const hours = String(matchTimeObj.getHours()).padStart(2, '0');
-      const minutes = String(matchTimeObj.getMinutes()).padStart(2, '0');
-      const matchTimeStr = `${hours}:${minutes}:00`;
-
       const param = {
         title,
         matchDate: moment(matchDate).format('YYYY-MM-DD'),
-        matchTime: moment(matchTimeStr).format('HH:mm:ss'),
+        matchTime: moment(matchTime).seconds(0).format('HH:mm:ss'),
         closeDate: combineDateTime(closeDate, closeTime),
         addrCity,
         addrGu,
@@ -663,9 +659,20 @@ function MatchingRegist() {
               <View>
                 <Text style={styles.textStyle}>성별</Text>
                 <View
-                  style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap' }}>
+                  style={{
+                    flexDirection: 'row',
+                    gap: 16,
+                    flexWrap: 'wrap',
+                    marginTop: 10,
+                  }}>
                   {Object.values(GENDER).map((gender, index) => (
-                    <TouchableOpacity
+                    <Pressable
+                      hitSlop={{
+                        top: 10,
+                        bottom: 10,
+                        left: 10,
+                        right: 10,
+                      }}
                       style={[
                         styles.classTypeBtn,
                         {
@@ -694,7 +701,7 @@ function MatchingRegist() {
                         ]}>
                         {gender.desc}
                       </Text>
-                    </TouchableOpacity>
+                    </Pressable>
                   ))}
                 </View>
               </View>
@@ -702,12 +709,23 @@ function MatchingRegist() {
               <View>
                 <Text style={styles.textStyle}>클래스</Text>
                 <View
-                  style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap' }}>
+                  style={{
+                    flexDirection: 'row',
+                    gap: 16,
+                    flexWrap: 'wrap',
+                    marginTop: 10,
+                  }}>
                   {classTypeList &&
                     classTypeList.length > 0 &&
                     classTypeList.map(item => {
                       return (
-                        <TouchableOpacity
+                        <Pressable
+                          hitSlop={{
+                            top: 10,
+                            bottom: 10,
+                            left: 10,
+                            right: 10,
+                          }}
                           onPress={() => setSelectedClassType(item.value)}
                           style={[
                             styles.classTypeBtn,
@@ -734,7 +752,7 @@ function MatchingRegist() {
                             ]}>
                             {item?.label}
                           </Text>
-                        </TouchableOpacity>
+                        </Pressable>
                       );
                     })}
                 </View>

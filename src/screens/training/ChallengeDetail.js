@@ -51,7 +51,7 @@ export function ChallengeDetail({ route }) {
     cntComment: 0,
     cntLike: 0,
     cntView: 0,
-    confirmYn: 'N',
+    confirmYn: null,
     isLike: false,
     isMine: false,
     memberIdx: '',
@@ -290,7 +290,7 @@ export function ChallengeDetail({ route }) {
           title={videoDetail.challengeTitle}
           rightContent={
             videoDetail.parentVideoIdx && (
-              <Pressable onPress={openVideoMoreModal}>
+              <Pressable style={{ padding: 10 }} onPress={openVideoMoreModal}>
                 <SPSvgs.EllipsesVertical />
               </Pressable>
             )
@@ -359,6 +359,7 @@ export function ChallengeDetail({ route }) {
         title="챌린지 동영상 업로드"
         visible={showSelectModal}
         onClose={() => setShowSelectModal(false)}
+        setLoading={setLoading}
         onComplete={({ type, fileUrl, videoName, videoType }) => {
           uploadMyMasterVideo(type, fileUrl, videoName, videoType);
         }}
@@ -373,6 +374,7 @@ export function ChallengeDetail({ route }) {
         onModify={moveToModifyChallengeVideo}
         type={MODAL_MORE_TYPE.CHALLENGE_VIDEO}
         idx={videoDetail.videoIdx}
+        targetUserIdx={videoDetail.memberIdx}
         memberButtons={
           videoDetail.isMine
             ? [MODAL_MORE_BUTTONS.EDIT, MODAL_MORE_BUTTONS.REMOVE]

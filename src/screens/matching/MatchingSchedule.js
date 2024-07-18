@@ -129,6 +129,7 @@ function MatchingSchedule({ route }) {
   // --------------------------------------------------
   // [ State ]
   // --------------------------------------------------
+  const paramReset = route.params?.paramReset;
   const [fstCall, setFstCall] = useState(false);
   // 리스트 관련 State
   const [size] = useState(9999);
@@ -137,7 +138,7 @@ function MatchingSchedule({ route }) {
   const [init, setInit] = useState(false);
   const [page, setPage] = useState(1);
   const [member, setMember] = useState({});
-  const [totalCnt, setTotalCnt] = useState(0);
+  const [totalCnt, setTotalCnt] = useState();
   const [isLast, setIsLast] = useState(false);
   const [refreshing, setRefreshing] = useState(true);
   const [activeTab, setActiveTab] = useState('매칭'); // 매칭 , 대회 , 구장
@@ -222,7 +223,8 @@ function MatchingSchedule({ route }) {
   };
 
   const handleActiveTab = tab => {
-    setActiveTab(tab);
+    // setActiveTab(tab);
+    NavigationService.navigate(navName.matchingSchedule, { activeTab: tab });
     onRefresh();
   };
 
@@ -282,13 +284,35 @@ function MatchingSchedule({ route }) {
   // };
 
   const onRefresh = async () => {
-    setPage(1);
     setIsLast(false);
+    setTotalCnt();
+    setPage(1);
     setRefreshing(true);
   };
 
   const onInit = async () => {
-    setInit(true);
+    if (paramReset) {
+      setTimeout(() => {
+        setRefreshing(false);
+        setInit(false);
+      }, 500);
+      setSelectedCity('');
+      setSelectedGu('');
+      setSelectedDate(format(new Date(), 'yyyy-MM-dd'));
+      setSelectedMonth(new Date().getMonth() + 1);
+      setSelectedYear(new Date().getFullYear());
+      setSelectedGender(null);
+      setSelectedMethod(null);
+      matchingFilterRef?.current?.reset();
+      setFstCall(false);
+      NavigationService.navigate(navName.matchingSchedule, {
+        activeTab: route?.params.activeTab || '매칭',
+      });
+    } else {
+      setTimeout(() => {
+        setInit(true);
+      }, 500);
+    }
   };
 
   const getUserAddr = async () => {
@@ -543,22 +567,13 @@ function MatchingSchedule({ route }) {
     useCallback(() => {
       checkNotReadChat();
       getMyInfo();
-      onInit();
-      return () => {
-        setActiveTab('매칭');
-        setInit(false);
-        setSelectedCity('');
-        setSelectedGu('');
-        setSelectedDate(format(new Date(), 'yyyy-MM-dd'));
-        setSelectedMonth(new Date().getMonth() + 1);
-        setSelectedYear(new Date().getFullYear());
-        setSelectedGender(null);
-        setSelectedMethod(null);
-        setIsGetAddr(false);
-        matchingFilterRef?.current?.reset();
-        setFstCall(false);
-      };
     }, []),
+  );
+
+  useFocusEffect(
+    useCallback(() => {
+      onInit();
+    }, [paramReset]),
   );
 
   useFocusEffect(
@@ -585,6 +600,7 @@ function MatchingSchedule({ route }) {
     refreshing,
     isGetAddr,
     init,
+    matchList,
   ]);
 
   useEffect(() => {
@@ -629,7 +645,13 @@ function MatchingSchedule({ route }) {
       <View>
         <View style={styles.tabCommon}>
           <View style={styles.tabTopBox}>
-            <TouchableOpacity
+            <Pressable
+              hitSlop={{
+                top: 12,
+                bottom: 12,
+                left: 12,
+                right: 12,
+              }}
               activeOpacity={ACTIVE_OPACITY}
               style={styles.monthButtonTopBox}
               onPress={() => setIsModalVisible(true)}>
@@ -638,7 +660,7 @@ function MatchingSchedule({ route }) {
                 'yyyy년 M월',
               )}`}</Text>
               <Image source={SPIcons.icArrowDownBlack} />
-            </TouchableOpacity>
+            </Pressable>
             <View style={styles.switch}>
               {/* 주 버튼 */}
               <TouchableOpacity
@@ -709,7 +731,11 @@ function MatchingSchedule({ route }) {
         <View style={{ flexDirection: 'column' }}>
           <View>
             <View style={styles.dropdownBtn}>
-              <TouchableOpacity
+              <Pressable
+                hitSlop={{
+                  top: 16,
+                  bottom: 16,
+                }}
                 style={styles.button}
                 onPress={() => {
                   setItemsToDisplay(cityList);
@@ -722,9 +748,13 @@ function MatchingSchedule({ route }) {
                   source={SPIcons.icArrowDown}
                   style={styles.dropdownIcon}
                 />
-              </TouchableOpacity>
+              </Pressable>
               {selectedCity !== SEJONG && selectedCity && (
-                <TouchableOpacity
+                <Pressable
+                  hitSlop={{
+                    top: 16,
+                    bottom: 16,
+                  }}
                   style={styles.button}
                   onPress={() => {
                     setItemsToDisplay(guList);
@@ -737,7 +767,7 @@ function MatchingSchedule({ route }) {
                     source={SPIcons.icArrowDown}
                     style={styles.dropdownIcon}
                   />
-                </TouchableOpacity>
+                </Pressable>
               )}
 
               <Pressable
@@ -745,7 +775,7 @@ function MatchingSchedule({ route }) {
                   matchingFilterRef?.current?.show();
                 }}
                 style={{ marginLeft: 'auto' }}
-                hitSlop={24}>
+                hitSlop={12}>
                 <SPSvgs.Filter />
               </Pressable>
             </View>
@@ -763,6 +793,7 @@ function MatchingSchedule({ route }) {
         hideLeftIcon
         rightContent={
           <Pressable
+            style={{ padding: 10 }}
             onPress={() =>
               NavigationService.navigate(navName.matchingChatRoomListScreen)
             }>
@@ -834,7 +865,13 @@ function MatchingSchedule({ route }) {
             <View style={{ flex: 1 }}>
               <View style={styles.tabTopBox}>
                 <View style={styles.monthButton}>
-                  <TouchableOpacity
+                  <Pressable
+                    hitSlop={{
+                      top: 12,
+                      bottom: 12,
+                      left: 12,
+                      right: 12,
+                    }}
                     style={styles.monthButtonTopBox}
                     onPress={() => setIsModalVisible(true)}>
                     <Text
@@ -843,7 +880,7 @@ function MatchingSchedule({ route }) {
                         { fontWeight: 600 },
                       ]}>{`${format(selectedDate, 'yyyy년 M월')}`}</Text>
                     <Image source={SPIcons.icArrowDownBlack} />
-                  </TouchableOpacity>
+                  </Pressable>
                 </View>
               </View>
               <View style={styles.matching}>
@@ -874,7 +911,13 @@ function MatchingSchedule({ route }) {
               <View style={{ flexDirection: 'column' }}>
                 <View>
                   <View style={styles.dropdownBtn}>
-                    <TouchableOpacity
+                    <Pressable
+                      hitSlop={{
+                        top: 16,
+                        bottom: 16,
+                        left: 2,
+                        right: 2,
+                      }}
                       style={styles.button}
                       onPress={() => {
                         setItemsToDisplay(cityList);
@@ -887,9 +930,15 @@ function MatchingSchedule({ route }) {
                         source={SPIcons.icArrowDown}
                         style={styles.dropdownIcon}
                       />
-                    </TouchableOpacity>
+                    </Pressable>
                     {selectedCity !== SEJONG && selectedCity && (
-                      <TouchableOpacity
+                      <Pressable
+                        hitSlop={{
+                          top: 16,
+                          bottom: 16,
+                          left: 2,
+                          right: 2,
+                        }}
                         style={styles.button}
                         onPress={() => {
                           setItemsToDisplay(guList);
@@ -902,7 +951,7 @@ function MatchingSchedule({ route }) {
                           source={SPIcons.icArrowDown}
                           style={styles.dropdownIcon}
                         />
-                      </TouchableOpacity>
+                      </Pressable>
                     )}
                   </View>
                 </View>
@@ -1027,7 +1076,8 @@ function MatchingSchedule({ route }) {
             }}>
             {/* 년도 선택 */}
             <View style={styles.modalMonthButtonBox}>
-              <TouchableOpacity
+              <Pressable
+                hitSlop={12}
                 accessibilityLabel="Go to previous month"
                 onPress={() => handleYearPress(selectedYear - 1)}
                 disabled={selectedYear <= minYear}>
@@ -1039,9 +1089,10 @@ function MatchingSchedule({ route }) {
                     opacity: selectedYear <= minYear ? 0.1 : 1,
                   }}
                 />
-              </TouchableOpacity>
+              </Pressable>
               <Text style={styles.modalMonthText}>{`${selectedYear}년`}</Text>
-              <TouchableOpacity
+              <Pressable
+                hitSlop={12}
                 accessibilityLabel="Go to next month"
                 onPress={() => handleYearPress(selectedYear + 1)}
                 disabled={selectedYear >= maxYear}>
@@ -1053,7 +1104,7 @@ function MatchingSchedule({ route }) {
                     opacity: selectedYear >= maxYear ? 0.1 : 1,
                   }}
                 />
-              </TouchableOpacity>
+              </Pressable>
             </View>
             {/* 월 */}
             <View style={styles.monthList}>
@@ -1449,13 +1500,14 @@ const styles = StyleSheet.create({
   },
   tabButtonBox: {
     flexDirection: 'row',
-    gap: 16,
+    gap: 8,
     paddingHorizontal: 16,
     paddingBottom: 48,
     backgroundColor: '#313779',
   },
   tabButton: {
-    paddingVertical: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 14,
   },
   tabText: {
     fontSize: 14,

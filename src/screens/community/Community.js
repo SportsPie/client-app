@@ -40,10 +40,11 @@ import { COLORS } from '../../styles/colors';
 import fontStyles from '../../styles/fontStyles';
 import { handleError } from '../../utils/HandleError';
 
-function Community() {
+function Community({ route }) {
   const insets = useSafeAreaInsets();
   const flatListRef = useRef();
   const isLogin = useSelector(selector => selector.auth)?.isLogin;
+  const paramReset = route?.params?.paramReset;
 
   // --------------------------------------------------
   // [ State ]
@@ -113,7 +114,6 @@ function Community() {
         list.push({ label: etc.codeName, value: etc.codeSub });
       }
       setFilterList(list);
-      setSelectedFilter(list?.[0].value);
     } catch (error) {
       handleError(error);
     }
@@ -172,8 +172,16 @@ function Community() {
 
   const onFocus = async () => {
     try {
-      await getFilterList();
-      setIsFocus(false);
+      if (paramReset) {
+        setSelectedFilter();
+        setSearched();
+        setSearchedKeyword();
+        setKeyword();
+        NavigationService.navigate(navName.community);
+      } else {
+        await getFilterList();
+        setIsFocus(false);
+      }
     } catch (error) {
       handleError(error);
     }
@@ -194,14 +202,20 @@ function Community() {
   // --------------------------------------------------
   useFocusEffect(
     useCallback(() => {
-      onFocus();
       return () => {
         setIsFocus(true);
         setFeedList([]);
         setIsLast(false);
         setIsInit(true);
+        setKeyword('');
       };
     }, []),
+  );
+
+  useFocusEffect(
+    useCallback(() => {
+      onFocus();
+    }, [paramReset]),
   );
 
   useFocusEffect(
@@ -221,8 +235,15 @@ function Community() {
   );
 
   useEffect(() => {
+    if (filterList && filterList.length > 0) {
+      setSelectedFilter(selectedFilter || filterList?.[0].value);
+    }
+  }, [filterList]);
+
+  useEffect(() => {
     if (!isInit && refreshing) {
       setRefreshing(false);
+      setSearchedKeyword('');
       getFeedList();
     }
   }, [page, isInit, refreshing]);
@@ -248,14 +269,15 @@ function Community() {
       <View style={styles.filterContainer}>
         <ScrollView
           contentContainerStyle={styles.filterWrapper}
-          horizontal
+          // horizontal
           showsVerticalScrollIndicator={false}
           showsHorizontalScrollIndicator={false}>
           {filterList &&
             filterList.length > 0 &&
             filterList.map((item, index) => {
               return (
-                <TouchableOpacity
+                <Pressable
+                  hitSlop={20}
                   activeOpacity={ACTIVE_OPACITY}
                   /* eslint-disable-next-line react/no-array-index-key */
                   key={index}
@@ -285,7 +307,7 @@ function Community() {
                     ]}>
                     {item.label}
                   </Text>
-                </TouchableOpacity>
+                </Pressable>
               );
             })}
         </ScrollView>
@@ -321,7 +343,7 @@ function Community() {
           />
           {keyword && (
             <Pressable
-              hitSlop={8}
+              hitSlop={14}
               onPress={clearKeyword}
               style={styles.clearButton}>
               <SPSvgs.CloseCircleFill width={20} height={20} />
@@ -401,8 +423,12 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.darkBlue,
   },
   filterWrapper: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     paddingHorizontal: 16,
-    columnGap: 8,
+    paddingVertical: 16,
+    // columnGap: 8,
+    gap: 8,
   },
   communityContainer: {
     flex: 1,
@@ -412,7 +438,7 @@ const styles = StyleSheet.create({
     paddingTop: 16,
   },
   filterContainer: {
-    paddingVertical: 16,
+    // paddingVertical: 16,
   },
   filterButton: {
     borderWidth: 1,
@@ -450,7 +476,7 @@ const styles = StyleSheet.create({
     columnGap: 4,
     padding: 8,
     borderRadius: 10,
-    height: 36,
+    height: 48,
   },
   searchInput: {
     ...fontStyles.fontSize14_Medium,
@@ -470,6 +496,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flex: 1,
     position: 'relative',
+    paddingRight: 30,
   },
   clearButton: {
     position: 'absolute',

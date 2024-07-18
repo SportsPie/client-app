@@ -1,5 +1,12 @@
 import React, { memo, useCallback, useRef, useState } from 'react';
-import { Image, Modal, Text, TouchableOpacity, View } from 'react-native';
+import {
+  Image,
+  Modal,
+  Text,
+  TouchableOpacity,
+  View,
+  Pressable,
+} from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import SPHeader from '../../components/SPHeader';
 import SPIcons from '../../assets/icon';
@@ -167,12 +174,18 @@ function AcademyAdmin({ route }) {
                   {item.creator ? '관리자' : '운영자'}
                 </Text>
                 {!item.creator && (
-                  <TouchableOpacity
+                  <Pressable
+                    hitSlop={{
+                      top: 14,
+                      bottom: 14,
+                      left: 14,
+                      right: 14,
+                    }}
                     onPress={() => {
                       openModal(item.userIdx);
                     }}>
                     <Image source={SPIcons.icOptionsVertical} />
-                  </TouchableOpacity>
+                  </Pressable>
                 )}
               </View>
             </View>
@@ -322,7 +335,7 @@ function AdminSearch({
               style={{
                 width: '100%',
                 height: 60,
-                paddingHorizontal: 20,
+                paddingHorizontal: 16,
                 paddingVertical: 16,
               }}>
               <Image
@@ -423,12 +436,18 @@ function AdminSearch({
                             </Text>
                           </View>
                         ) : (
-                          <TouchableOpacity
+                          <Pressable
+                            hitSlop={{
+                              top: 14,
+                              bottom: 14,
+                              left: 14,
+                              right: 14,
+                            }}
                             onPress={() => {
                               openModal(item.userIdx);
                             }}>
                             <Image source={SPIcons.icOptionsVertical} />
-                          </TouchableOpacity>
+                          </Pressable>
                         )}
                       </View>
                     </View>
@@ -545,11 +564,12 @@ const styles = {
   },
   searchBox: {
     flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: '#FFF4EE',
     gap: 4,
     borderRadius: 10,
-    padding: 8,
-    alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 10,
   },
   textInput: {
     fontSize: 14,

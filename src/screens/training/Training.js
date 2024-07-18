@@ -1,20 +1,22 @@
 /* eslint-disable react/no-array-index-key */
 /* eslint-disable react/no-unstable-nested-components */
 import { useFocusEffect } from '@react-navigation/native';
-import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
+import React, { memo, useCallback, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Dimensions,
   Image,
   ImageBackground,
   Linking,
+  Modal,
+  Platform,
+  Pressable,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
-  View,
   useWindowDimensions,
-  Platform,
+  View,
 } from 'react-native';
 import { FlatList, RefreshControl } from 'react-native-gesture-handler';
 import LinearGradient from 'react-native-linear-gradient';
@@ -28,7 +30,7 @@ import {
 } from '../../api/RestAPI';
 import SPIcons from '../../assets/icon';
 import SPImages from '../../assets/images';
-import { ACTIVE_OPACITY } from '../../common/constants/constants';
+import { ACTIVE_OPACITY, CONSTANTS } from '../../common/constants/constants';
 import { navName } from '../../common/constants/navName';
 import SPLoading from '../../components/SPLoading';
 import Header from '../../components/header';
@@ -36,6 +38,11 @@ import NavigationService from '../../navigation/NavigationService';
 import { COLORS } from '../../styles/colors';
 import { handleError } from '../../utils/HandleError';
 import Utils from '../../utils/Utils';
+import { SPSvgs } from '../../assets/svg';
+import fontStyles from '../../styles/fontStyles';
+import FontStyles from '../../styles/fontStyles';
+import { getStorage, setStorage } from '../../utils/AsyncStorageUtils';
+import { useSelector } from 'react-redux';
 
 // 기초튼튼 훈련 Carousel 슬라이드 컴포넌트
 function BasicCarousel({ listData = [] }) {
@@ -230,26 +237,15 @@ function Training({ route }) {
   const [loading, setLoading] = useState(false); // 트레이닝 로딩
   const [bannerList, setBannerList] = useState([]); // 슬라이드 배너 리스트
   const [trainingObject, setTrainingObject] = useState([]); // 기초튼튼 훈련 카테고리별 리스트
-  const [activeTab, setActiveTab] = useState('기초튼튼 훈련'); // 기초튼튼 훈련, 챌린지
+  const activeTab = route.params?.activeTab || '기초튼튼 훈련';
+  const paramReset = route.params?.paramReset;
   const [challengeLoading, setChallengeLoading] = useState(false); // 챌린지 로딩
   const [challengeList, setChallengeList] = useState([]); // 챌린지 리스트
   const [challengePage, setChallengePage] = useState({
-    page: '', // 챌린지 페이지
-    key: null, // 챌린지 페이지 Key
+    page: 1, // 챌린지 페이지
+    key: Math.floor(Math.random() * 10000), // 챌린지 페이지 Key
     isLast: false, // 챌린지 페이지 마지막
   });
-
-  useFocusEffect(
-    useCallback(() => {
-      if (route.params?.activeTab) {
-        console.log(
-          '🚀 ~ useCallback ~ route.params?.activeTab:',
-          route.params?.activeTab,
-        );
-        setActiveTab(route.params?.activeTab);
-      }
-    }, [route.params?.activeTab]),
-  );
 
   const paddingTop = Platform.OS === 'ios' ? insets.top : 14;
 
@@ -322,7 +318,7 @@ function Training({ route }) {
         if (+challengePage.page === 1) {
           setChallengeList([...data.data.list]);
         } else {
-          setChallengeList([...challengeList, ...data.data.list]);
+          setChallengeList(prev => [...prev, ...data.data.list]);
         }
       }
 
@@ -338,33 +334,47 @@ function Training({ route }) {
     await apiPatchBannerViewCnt(idx);
   };
 
-  useFocusEffect(
-    useCallback(() => {
-      return () => {
-        setActiveTab('기초튼튼 훈련');
-      };
-    }, []),
-  );
+  const handleTabChange = tab => {
+    NavigationService.navigate(navName.training, {
+      activeTab: tab,
+    });
+  };
 
   // [ useFocusEffect ] 트레이닝 리스트 & 챌린지 리스트
   useFocusEffect(
     useCallback(() => {
       getTrainingList();
-
-      setChallengePage(prev => {
-        return {
-          ...prev,
-          key: Math.floor(Math.random() * 10000), // 최초 페이징 Key
-          page: 1,
-        };
-      });
+      return () => {
+        setChallengeList([]);
+        setChallengePage(prev => {
+          return {
+            ...prev,
+            isLast: false,
+            page: typeof prev.page === 'string' ? 1 : '1',
+          };
+        });
+      };
     }, []),
+  );
+
+  useFocusEffect(
+    useCallback(() => {
+      if (paramReset) {
+        NavigationService.navigate(navName.training, {
+          activeTab,
+        });
+        setChallengeList([]);
+        onRefreshChallenge();
+      }
+    }, [paramReset]),
   );
 
   // [ useEffect ] 챌린지 페이징
   useFocusEffect(
     useCallback(() => {
-      if (challengePage.page) getChallengeList();
+      if (challengePage.page) {
+        getChallengeList();
+      }
     }, [challengePage.page]),
   );
 
@@ -395,12 +405,12 @@ function Training({ route }) {
             <TabButton
               title="기초튼튼 훈련"
               activeTab={activeTab}
-              setActiveTab={setActiveTab}
+              setActiveTab={handleTabChange}
             />
             <TabButton
               title="챌린지"
               activeTab={activeTab}
-              setActiveTab={setActiveTab}
+              setActiveTab={handleTabChange}
             />
           </View>
           <View>
@@ -568,7 +578,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     paddingHorizontal: 8,
-    paddingVertical: 6,
+    paddingVertical: 8,
   },
   tabText: {
     fontSize: 14,

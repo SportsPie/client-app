@@ -268,6 +268,12 @@ function SearchAcademy() {
           />
 
           <Pressable
+            hitSlop={{
+              top: 8,
+              bottom: 8,
+              left: 7,
+              right: 7,
+            }}
             onPress={() => {
               academyFilterRef?.current?.show();
             }}
@@ -350,12 +356,16 @@ const styles = StyleSheet.create({
   filterWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 16,
+    // padding: 16,
+    paddingLeft: 16,
+    paddingRight: 8,
+    paddingVertical: 4,
     justifyContent: 'space-between',
   },
   filterButton: {
     maxWidth: 300,
     flexGrow: 0,
+    paddingVertical: 8,
   },
   rightFilterButton: {
     width: 32,
@@ -365,6 +375,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 6,
+    marginHorizontal: 7,
+    marginVertical: 8,
   },
   changeModeButton: {
     position: 'absolute',

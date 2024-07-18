@@ -86,11 +86,19 @@ function BottomTab() {
         <View style={styles.tabContainer}>
           {state.routes.map((route, index) => {
             const isFocused = state.index === index;
+            let navParams = {};
+            if (route?.name === navName.matchingSchedule) {
+              navParams = { activeTab: '매칭', paramReset: true };
+            } else if (route?.name === navName.training) {
+              navParams = { activeTab: '기초튼튼 훈련', paramReset: true };
+            } else if (route?.name === navName.community) {
+              navParams = { paramReset: true };
+            }
 
             return (
               <Pressable
                 onPress={() => {
-                  navigation.navigate(route?.name);
+                  navigation.navigate(route?.name, navParams);
                 }}
                 style={styles.tabWrapper}
                 key={route?.key}>

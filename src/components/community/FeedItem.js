@@ -30,6 +30,7 @@ import SPMoreModal, {
   MODAL_MORE_TYPE,
 } from '../SPMoreModal';
 import { MODAL_CLOSE_EVENT } from '../../common/constants/modalCloseEvent';
+import Swiper from 'react-native-swiper';
 
 function FeedItem({ item, onDelete, isLogin }) {
   const [isLike, setIsLike] = useState(item.isLike);
@@ -42,8 +43,10 @@ function FeedItem({ item, onDelete, isLogin }) {
   const [modalVisible, setModalVisible] = useState(false);
   const [isMyFeed, setIsMyFeed] = useState(false);
   const [selectedItem, setSelectedItem] = useState({});
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
-  const openImageModal = () => {
+  const openImageModal = index => {
+    setSelectedImageIndex(index);
     setImageModalShow(true);
   };
 
@@ -119,6 +122,7 @@ function FeedItem({ item, onDelete, isLogin }) {
           </Text>
         </View>
         <Pressable
+          hitSlop={12}
           onPress={() => {
             openModal(item);
           }}>
@@ -135,12 +139,14 @@ function FeedItem({ item, onDelete, isLogin }) {
     const calculatedHeight = screenWidth / aspectRatio; // 디바이스 크기에 비례하는 높이
     const dynamicHeight = Math.max(minHeight, calculatedHeight);
 
-    const renderItem = ({ item: imageItem }) => {
+    const renderItem = ({ item: imageItem, index }) => {
       return (
         <Pressable
           onPress={() => {
-            setSelectedImage(imageItem?.fileUrl);
-            openImageModal();
+            setSelectedImageIndex(index);
+            openImageModal(index);
+            // setSelectedImage(imageItem?.fileUrl);
+            // openImageModal();
           }}>
           <Image
             source={{ uri: imageItem?.fileUrl }}
@@ -151,11 +157,12 @@ function FeedItem({ item, onDelete, isLogin }) {
                 marginLeft: 8,
               },
             ]}
+            resizeMethod="resize"
+            resizeMode="cover"
           />
         </Pressable>
       );
     };
-
     return (
       <Carousel
         sliderWidth={SCREEN_WIDTH}
@@ -165,8 +172,10 @@ function FeedItem({ item, onDelete, isLogin }) {
         activeSlideAlignment="start"
         inactiveSlideScale={1}
         inactiveSlideOpacity={0.7}
-        slideStyle={{ paddingLeft: 8 }}
+        slideStyle={{ paddingHorizontal: 8 }}
         vertical={false}
+        enableMomentum={true}
+        decelerationRate="fast"
       />
     );
   }, []);
@@ -273,16 +282,23 @@ function FeedItem({ item, onDelete, isLogin }) {
               justifyContent: 'center',
               alignItems: 'center',
             }}>
-            {selectedImage && (
-              <Image
-                source={{ uri: selectedImage }}
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  resizeMode: 'contain',
-                }}
-              />
-            )}
+            <Swiper
+              loop={false}
+              index={selectedImageIndex}
+              showsPagination={false}>
+              {item.files.map((imageItem, index) => (
+                <View key={imageItem.fileUrl} style={{ flex: 1 }}>
+                  <Image
+                    source={{ uri: imageItem.fileUrl }}
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      resizeMode: 'contain',
+                    }}
+                  />
+                </View>
+              ))}
+            </Swiper>
           </View>
         </SafeAreaView>
       </Modal>
@@ -292,6 +308,7 @@ function FeedItem({ item, onDelete, isLogin }) {
         isAdmin={false}
         type={MODAL_MORE_TYPE.FEED}
         idx={selectedItem?.feedIdx}
+        targetUserIdx={selectedItem.userIdx}
         onConfirm={deleteFeed}
         memberButtons={
           isMyFeed
@@ -315,6 +332,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     columnGap: 8,
     paddingHorizontal: 16,
+    paddingVertical: 4,
   },
   userNameWrapper: {
     rowGap: 2,

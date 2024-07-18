@@ -5,6 +5,7 @@ import { store } from '../redux/store';
 import Utils from '../utils/Utils';
 import { MODAL_CLOSE_EVENT } from '../common/constants/modalCloseEvent';
 import GeoLocationUtils from '../utils/GeoLocationUtils';
+import { wifiSliceActions } from '../redux/reducers/wifiSlice';
 
 let navigationRef;
 export const Stack = createNativeStackNavigator();
@@ -18,6 +19,28 @@ const loginCheck = (routeName, params) => {
       data: { from: routeName, ...params },
     });
     return false;
+  }
+  return true;
+};
+
+const wifiCheckNavList = [
+  navName.trainingDetail,
+  navName.challengeDetail,
+  navName.challengeContentPlayer,
+  navName.masterVideoDetail,
+  navName.traningVideoDetail,
+  navName.masterVideoDetailPlayer,
+]; // 해당페이지로 이동하려고 할때 wifi 확인
+
+const checkWifi = (routeName, params) => {
+  if (wifiCheckNavList.includes(routeName)) {
+    const canMove = store.getState()?.wifi?.canMove;
+    if (!canMove) {
+      store.dispatch(wifiSliceActions.changeMovePageName(routeName));
+      store.dispatch(wifiSliceActions.changeMovePageParam(params));
+      store.dispatch(wifiSliceActions.changeNetModalShow(true));
+    }
+    return canMove;
   }
   return true;
 };
@@ -50,7 +73,8 @@ function getNavigationRef() {
 
 function navigate(routeName, params) {
   const canMove = loginCheck(routeName, params);
-  if (canMove) {
+  const wifiCheck = checkWifi(routeName, params);
+  if (canMove && wifiCheck) {
     permissionCheck(routeName).then(res => {
       if (res) {
         navigationRef.dispatch(
@@ -66,7 +90,8 @@ function navigate(routeName, params) {
 
 function replace(routeName, params) {
   const canMove = loginCheck(routeName, params);
-  if (canMove) {
+  const wifiCheck = checkWifi(routeName, params);
+  if (canMove && wifiCheck) {
     permissionCheck(routeName).then(res => {
       if (res) {
         navigationRef.dispatch(StackActions.replace(routeName, params));
@@ -77,7 +102,8 @@ function replace(routeName, params) {
 
 function push(routeName, params) {
   const canMove = loginCheck(routeName, params);
-  if (canMove) {
+  const wifiCheck = checkWifi(routeName, params);
+  if (canMove && wifiCheck) {
     permissionCheck(routeName).then(res => {
       if (res) {
         navigationRef.dispatch(StackActions.push(routeName, params));
@@ -88,7 +114,8 @@ function push(routeName, params) {
 
 function reset(routeName, params) {
   const canMove = loginCheck(routeName, params);
-  if (canMove) {
+  const wifiCheck = checkWifi(routeName, params);
+  if (canMove && wifiCheck) {
     permissionCheck(routeName).then(res => {
       if (res) {
         navigationRef.dispatch(

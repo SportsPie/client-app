@@ -27,6 +27,7 @@ import { handleError } from '../utils/HandleError';
 import Utils from '../utils/Utils';
 import SPModal from './SPModal';
 import { ACTIVE_OPACITY } from '../common/constants/constants';
+import { SPSvgs } from '../assets/svg';
 
 export const MODAL_MORE_TYPE = {
   // 아카데미
@@ -60,6 +61,7 @@ function SPMoreModal({
   isAdmin,
   type,
   idx,
+  targetUserIdx,
   adminButtons = [],
   memberButtons = [],
   onReport,
@@ -201,12 +203,14 @@ function SPMoreModal({
     }
   };
   // 신고
-  const report = () => {
+  const report = isReportUser => {
     if (onReport) onReport();
     if (onClose) onClose();
     NavigationService.navigate(navName.report, {
       reportType: type,
       reportIdx: idx,
+      targetUserIdx,
+      isReportUser,
     });
   };
 
@@ -434,7 +438,8 @@ function SPMoreModal({
                     </TouchableOpacity>
                   )}
                 {isLogin &&
-                  memberButtons.includes(MODAL_MORE_BUTTONS.REPORT) && (
+                  memberButtons.includes(MODAL_MORE_BUTTONS.REPORT) &&
+                  type === MODAL_MORE_TYPE.ACADEMY && (
                     <TouchableOpacity
                       activeOpacity={ACTIVE_OPACITY}
                       style={styles.button}
@@ -445,6 +450,40 @@ function SPMoreModal({
                       <View style={styles.modalBox}>
                         <Image source={SPIcons.icWarning} />
                         <Text style={styles.modalText}>신고하기</Text>
+                      </View>
+                    </TouchableOpacity>
+                  )}
+                {isLogin &&
+                  memberButtons.includes(MODAL_MORE_BUTTONS.REPORT) &&
+                  type !== MODAL_MORE_TYPE.ACADEMY && (
+                    <TouchableOpacity
+                      activeOpacity={ACTIVE_OPACITY}
+                      style={styles.button}
+                      onPress={() => {
+                        report(true);
+                        onClose();
+                      }}>
+                      <View style={styles.modalBox}>
+                        {/* <Image source={SPIcons.icWarning} /> */}
+                        <SPSvgs.ReportUser />
+                        <Text style={styles.modalText}>사용자 신고하기</Text>
+                      </View>
+                    </TouchableOpacity>
+                  )}
+                {isLogin &&
+                  memberButtons.includes(MODAL_MORE_BUTTONS.REPORT) &&
+                  type !== MODAL_MORE_TYPE.ACADEMY && (
+                    <TouchableOpacity
+                      activeOpacity={ACTIVE_OPACITY}
+                      style={styles.button}
+                      onPress={() => {
+                        report();
+                        onClose();
+                      }}>
+                      <View style={styles.modalBox}>
+                        {/* <Image source={SPIcons.icWarning} /> */}
+                        <SPSvgs.ReportFeed />
+                        <Text style={styles.modalText}>게시글 신고하기</Text>
                       </View>
                     </TouchableOpacity>
                   )}

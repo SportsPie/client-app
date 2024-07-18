@@ -292,6 +292,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 8,
     marginBottom: 8,
+    paddingVertical: 12,
   },
   star: {
     width: 24,

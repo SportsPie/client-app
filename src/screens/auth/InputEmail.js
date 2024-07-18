@@ -98,7 +98,7 @@ function InputEmail() {
   return (
     <DismissKeyboard>
       <SafeAreaView style={{ flex: 1 }}>
-        <SPHeader title="회원 가입" onPressLeftBtn={handleLeftButtonPress} />
+        <SPHeader title="회원가입" onPressLeftBtn={handleLeftButtonPress} />
 
         <View style={styles.container}>
           <Text style={fontStyles.fontSize18_Semibold}>

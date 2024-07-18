@@ -21,7 +21,10 @@ function CommentInputSection({ onChangeText, onSubmit }) {
         placeholder="댓글을 남겨보세요."
         placeholderTextColor={COLORS.labelAlternative}
         style={styles.input}
-        onChangeText={onChangeText}
+        onChangeText={text => {
+          if (text?.length > 1000) return;
+          onChangeText(text);
+        }}
         onSubmitEditing={() => {
           onSubmit();
           inputRef.current.clear();

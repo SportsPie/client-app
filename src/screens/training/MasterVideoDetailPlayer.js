@@ -346,6 +346,7 @@ function MasterVideoDetailPlayer({ route }) {
         onClose={closeVideoModal}
         type={MODAL_MORE_TYPE.MASTER_VIDEO}
         idx={targetVideo.videoIdx}
+        targetUserIdx={targetVideo.memberIdx}
         memberButtons={[MODAL_MORE_BUTTONS.REPORT]}
       />
     </>

@@ -512,4 +512,11 @@ const styles = StyleSheet.create({
     marginVertical: 24,
     marginHorizontal: 16,
   },
+  rightHeaderText: {
+    fontSize: 16,
+    fontWeight: 600,
+    color: '#313779',
+    lineHeight: 24,
+    padding: 10,
+  },
 });

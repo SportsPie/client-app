@@ -19,6 +19,7 @@ function DefaultHeader({
     <View style={[styles.container, headerContainerStyle]}>
       {!hideLeftIcon && (
         <Pressable
+          style={styles.headerIcon}
           onPress={() => {
             if (onLeftIconPress) {
               onLeftIconPress();
@@ -48,15 +49,19 @@ export default memo(DefaultHeader);
 const styles = StyleSheet.create({
   container: {
     minHeight: 60,
-    paddingHorizontal: 20,
+    paddingHorizontal: 4,
     flexDirection: 'row',
     alignItems: 'center',
-    columnGap: 16,
+    // columnGap: 16,
     zIndex: 999,
+  },
+  headerIcon: {
+    padding: 10,
   },
   headerText: {
     ...fontStyles.fontSize24_Bold,
     flexShrink: 1,
+    paddingLeft: 8,
   },
   rightContent: {
     marginLeft: 'auto',

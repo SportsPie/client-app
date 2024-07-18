@@ -56,7 +56,7 @@ const introductionData = [
     title: '대회',
     text: '스포츠파이의 대회를\n만나보세요',
     navName: navName.matchingSchedule,
-    navParams: { activeTab: '대회' },
+    navParams: { activeTab: '대회', paramReset: true },
   },
   {
     key: '2',
@@ -64,7 +64,7 @@ const introductionData = [
     title: '경기매칭',
     text: '나와 맞는 상대를 찾아\n즐겨운 경기를 즐겨보세요',
     navName: navName.matchingSchedule,
-    navParams: { activeTab: '매칭' },
+    navParams: { activeTab: '매칭', paramReset: true },
   },
   {
     key: '3',
@@ -72,7 +72,7 @@ const introductionData = [
     title: 'PIE 트레이닝',
     text: '전문적인 코칭과 함께\n실력을 향상시켜 보세요',
     navName: navName.training,
-    navParams: { activeTab: '기초튼튼 훈련' },
+    navParams: { activeTab: '기초튼튼 훈련', paramReset: true },
   },
 ];
 
@@ -170,6 +170,7 @@ function Home() {
   const moreChallenge = () => {
     NavigationService.navigate(navName.training, {
       activeTab: '챌린지',
+      paramReset: true,
     });
   };
 
@@ -440,7 +441,8 @@ function Home() {
                   activeOpacity={ACTIVE_OPACITY}
                   onPress={() => {
                     NavigationService.navigate(navName.academyMember);
-                  }}>
+                  }}
+                  style={styles.moreBtn}>
                   <Text style={styles.topBtn}>모두 보기</Text>
                 </TouchableOpacity>
               </View>
@@ -593,7 +595,8 @@ function Home() {
                   <Text style={styles.topTitle}>{`#${category}`}</Text>
                   <TouchableOpacity
                     onPress={moreChallenge}
-                    activeOpacity={ACTIVE_OPACITY}>
+                    activeOpacity={ACTIVE_OPACITY}
+                    style={styles.moreBtn}>
                     <Text style={styles.topBtn}>모두 보기</Text>
                   </TouchableOpacity>
                 </View>
@@ -611,7 +614,8 @@ function Home() {
                 activeOpacity={ACTIVE_OPACITY}
                 onPress={() => {
                   NavigationService.navigate(navName.moreArticle);
-                }}>
+                }}
+                style={styles.moreBtn}>
                 <Text style={styles.topBtn}>모두 보기</Text>
               </TouchableOpacity>
             </View>
@@ -625,21 +629,23 @@ function Home() {
                 scrollEnabled={false}
                 renderItem={({ item, index }) => (
                   <View style={[styles.contentsBox, homeTownMargin(index)]}>
-                    <Pressable onPress={() => articlePage(item)}>
+                    {item.isEmpty ? (
                       <View
-                        style={[
-                          styles.contentsImage,
-                          { height: magazineHeight },
-                          // { height: width <= 400 ? 114 : initialImageHeight },
-                        ]}>
-                        <ImageBackground
-                          source={{ uri: item.filePath }}
+                        style={{
+                          height: magazineHeight,
+                          backgroundColor: 'transparent',
+                        }}
+                      />
+                    ) : (
+                      <Pressable onPress={() => articlePage(item)}>
+                        <View
                           style={[
-                            styles.image,
-                            styles.magazineImageBox,
-                            item.isEmpty && { backgroundColor: 'transparent' },
+                            styles.contentsImage,
+                            { height: magazineHeight },
                           ]}>
-                          {!item.isEmpty && (
+                          <ImageBackground
+                            source={{ uri: item.filePath }}
+                            style={[styles.image, styles.magazineImageBox]}>
                             <LinearGradient
                               colors={['transparent', 'rgba(0,0,0,0.35)']}
                               style={styles.gradient}>
@@ -652,16 +658,16 @@ function Home() {
                                 </Text>
                               </View>
                             </LinearGradient>
-                          )}
-                        </ImageBackground>
-                      </View>
-                      <Text
-                        style={styles.magazineText}
-                        numberOfLines={2}
-                        ellipsizeMode="tail">
-                        {item.contents}
-                      </Text>
-                    </Pressable>
+                          </ImageBackground>
+                        </View>
+                        <Text
+                          style={styles.magazineText}
+                          numberOfLines={2}
+                          ellipsizeMode="tail">
+                          {item.contents}
+                        </Text>
+                      </Pressable>
+                    )}
                   </View>
                 )}
                 keyExtractor={item => item.boardIdx}
@@ -669,6 +675,7 @@ function Home() {
               />
             </View>
           </View>
+
           {/* 최신소식 */}
           <View style={styles.common}>
             <View style={[styles.topBox, { marginBottom: 8 }]}>
@@ -676,7 +683,8 @@ function Home() {
               <Pressable
                 onPress={() => {
                   NavigationService.navigate(navName.moreNotice);
-                }}>
+                }}
+                style={styles.moreBtn}>
                 <Text style={styles.topBtn}>모두 보기</Text>
               </Pressable>
             </View>
@@ -993,7 +1001,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     gap: 16,
-    paddingVertical: 10,
+    paddingVertical: 14,
     borderBottomWidth: 1,
     borderColor: 'rgba(112, 115, 124, 0.08)',
   },
@@ -1028,7 +1036,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FF671F',
     borderRadius: 8,
     paddingHorizontal: 20,
-    paddingVertical: 9,
+    paddingVertical: 13,
   },
   searchBtnText: {
     fontSize: 15,
@@ -1036,5 +1044,8 @@ const styles = StyleSheet.create({
     color: '#FFF',
     lineHeight: 22,
     letterSpacing: 0.144,
+  },
+  moreBtn: {
+    paddingVertical: 10,
   },
 });

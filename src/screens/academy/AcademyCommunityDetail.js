@@ -9,13 +9,11 @@ import {
   ScrollView,
   Text,
   TextInput,
+  SafeAreaView,
   TouchableOpacity,
   View,
 } from 'react-native';
-import {
-  SafeAreaView,
-  useSafeAreaInsets,
-} from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Carousel from 'react-native-snap-carousel';
 import { useSelector } from 'react-redux';
 import {
@@ -448,7 +446,8 @@ function AcademyCommunityDetail({
           {showHeader && (
             <SPHeader
               noLeftLogo
-              {...(showOptionButton
+              {...(showOptionButton &&
+              (!(feedDetail.topYn !== IS_YN.N && !isAdmin) || isMyFeed)
                 ? {
                     rightBasicButton: SPIcons.icOptionsVertical,
                     onPressRightIcon: openModal,
@@ -679,6 +678,7 @@ function AcademyCommunityDetail({
               isAdmin={isAdmin}
               type={MODAL_MORE_TYPE.FEED}
               idx={contentsIdx}
+              targetUserIdx={feedDetail?.userIdx}
               onConfirm={() => {
                 NavigationService.goBack();
               }}
@@ -691,13 +691,15 @@ function AcademyCommunityDetail({
                         ? feedDetail?.topYn === IS_YN.Y
                           ? MODAL_MORE_BUTTONS.UNFIX
                           : MODAL_MORE_BUTTONS.FIX
-                        : null,
+                        : 'NOTHING',
                     ]
                   : [MODAL_MORE_BUTTONS.REMOVE]
               }
               memberButtons={
                 isMyFeed
                   ? [MODAL_MORE_BUTTONS.EDIT, MODAL_MORE_BUTTONS.REMOVE]
+                  : feedDetail?.topYn === IS_YN.Y
+                  ? 'NOTHING'
                   : [MODAL_MORE_BUTTONS.REPORT]
               }
             />
@@ -709,6 +711,7 @@ function AcademyCommunityDetail({
               isAdmin={isAdmin}
               type={MODAL_MORE_TYPE.FEED_COMMENT}
               idx={selectedComment?.commentIdx}
+              targetUserIdx={selectedComment?.userIdx}
               onModify={openModifyCommentModal}
               onConfirm={() => {
                 setChangeEvent(prev => !prev);
@@ -977,7 +980,7 @@ const styles = {
     margin: 0,
     padding: 0,
     // height: 'auto',
-    maxHeight: 20 * 3,
+    // maxHeight: 20 * 3,
     paddingTop: 0,
   },
   applyBtn: {

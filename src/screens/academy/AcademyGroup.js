@@ -1,5 +1,12 @@
 import React, { memo, useCallback, useState, useRef } from 'react';
-import { Image, Modal, Text, TouchableOpacity, View } from 'react-native';
+import {
+  Image,
+  Modal,
+  Text,
+  TouchableOpacity,
+  View,
+  Pressable,
+} from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import SPHeader from '../../components/SPHeader';
 import SPIcons from '../../assets/icon';
@@ -126,7 +133,13 @@ function AcademyGroup({ route }) {
               // eslint-disable-next-line react/no-array-index-key
               <View key={index} style={styles.contentsBox}>
                 <Text style={styles.contentsTitle}>{item.groupName}</Text>
-                <TouchableOpacity
+                <Pressable
+                  hitSlop={{
+                    top: 14,
+                    bottom: 14,
+                    left: 14,
+                    right: 14,
+                  }}
                   activeOpacity={ACTIVE_OPACITY}
                   onPress={() => {
                     openModal(item.groupIdx);
@@ -135,7 +148,7 @@ function AcademyGroup({ route }) {
                     source={SPIcons.icOptionsVertical}
                     style={{ width: 20, height: 20 }}
                   />
-                </TouchableOpacity>
+                </Pressable>
               </View>
             );
           })

@@ -7,6 +7,7 @@ import {
   Text,
   TouchableOpacity,
   View,
+  Pressable,
 } from 'react-native';
 import moment from 'moment';
 import { navName } from '../../common/constants/navName';
@@ -358,7 +359,7 @@ function AcademyRecruitmentForAdmin({ route }) {
                   alignItems: 'center',
                   justifyContent: 'center',
                 }}>
-                <Text>모집 내역이 없습니다.</Text>
+                <Text style={styles.noneText}>모집 내역이 없습니다.</Text>
               </View>
             )}
           </View>
@@ -435,20 +436,32 @@ function AcademyRecruitmentForAdmin({ route }) {
                           </View>
                         </TouchableOpacity>
                         <View style={styles.subBtnBox}>
-                          <TouchableOpacity
+                          <Pressable
+                            hitSlop={{
+                              top: 8,
+                              bottom: 8,
+                              left: 8,
+                              right: 8,
+                            }}
                             style={styles.subRefuseBtn}
                             onPress={() => {
                               openRejectModal(item.joinIdx);
                             }}>
                             <Text style={styles.subRefuseText}>거절</Text>
-                          </TouchableOpacity>
-                          <TouchableOpacity
+                          </Pressable>
+                          <Pressable
+                            hitSlop={{
+                              top: 8,
+                              bottom: 8,
+                              left: 8,
+                              right: 8,
+                            }}
                             style={styles.subApprovalBtn}
                             onPress={() => {
                               openConfirmModal(item.joinIdx);
                             }}>
                             <Text style={styles.subApprovalText}>승인</Text>
-                          </TouchableOpacity>
+                          </Pressable>
                         </View>
                       </View>
                     );
@@ -562,7 +575,9 @@ const styles = {
   },
   tabButton: {
     flex: 1,
-    paddingVertical: 8,
+    // paddingVertical: 8,
+    paddingTop: 18,
+    paddingBottom: 8,
   },
   tabText: {
     fontSize: 14,

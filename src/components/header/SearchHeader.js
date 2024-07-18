@@ -9,6 +9,7 @@ function SearchHeader({ value, onChangeText, placeholder, onSubmitEditing }) {
   return (
     <View style={styles.container}>
       <Pressable
+        style={{ padding: 10 }}
         onPress={() => {
           NavigationService.goBack();
         }}>
@@ -37,10 +38,10 @@ export default memo(SearchHeader);
 const styles = StyleSheet.create({
   container: {
     minHeight: 60,
-    paddingHorizontal: 20,
+    paddingHorizontal: 4,
     flexDirection: 'row',
     alignItems: 'center',
-    columnGap: 16,
+    columnGap: 4,
   },
   searchSection: {
     flexDirection: 'row',

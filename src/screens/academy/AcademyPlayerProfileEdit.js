@@ -1,6 +1,12 @@
 import { useFocusEffect } from '@react-navigation/native';
 import React, { memo, useCallback, useRef, useState } from 'react';
-import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import {
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+  Pressable,
+} from 'react-native';
 import { TextInput } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
@@ -133,11 +139,17 @@ function AcademyPlayerProfileEdit({ route }) {
                   포지션
                 </Text>
                 <View
-                  style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap' }}>
+                  style={{ flexDirection: 'row', gap: 16, flexWrap: 'wrap' }}>
                   {positionTypeList.map((item, index) => (
-                    <TouchableOpacity
+                    <Pressable
                       activeOpacity={ACTIVE_OPACITY}
                       /* eslint-disable-next-line react/no-array-index-key */
+                      hitSlop={{
+                        top: 10,
+                        bottom: 10,
+                        left: 10,
+                        right: 10,
+                      }}
                       key={index}
                       onPress={() => {
                         setSelectedPositionType(item.value);
@@ -167,7 +179,7 @@ function AcademyPlayerProfileEdit({ route }) {
                         ]}>
                         {item.label}
                       </Text>
-                    </TouchableOpacity>
+                    </Pressable>
                   ))}
                 </View>
               </View>
@@ -230,10 +242,16 @@ function AcademyPlayerProfileEdit({ route }) {
                   주 사용발
                 </Text>
                 <View
-                  style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap' }}>
+                  style={{ flexDirection: 'row', gap: 16, flexWrap: 'wrap' }}>
                   {footTypeList.map((item, index) => (
-                    <TouchableOpacity
+                    <Pressable
                       /* eslint-disable-next-line react/no-array-index-key */
+                      hitSlop={{
+                        top: 10,
+                        bottom: 10,
+                        left: 10,
+                        right: 10,
+                      }}
                       key={index}
                       onPress={() => {
                         setSelectedFootType(item.value);
@@ -263,7 +281,7 @@ function AcademyPlayerProfileEdit({ route }) {
                         ]}>
                         {item.label}
                       </Text>
-                    </TouchableOpacity>
+                    </Pressable>
                   ))}
                 </View>
               </View>

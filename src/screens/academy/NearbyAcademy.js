@@ -11,6 +11,7 @@ import {
   Text,
   TouchableOpacity,
   View,
+  Pressable,
 } from 'react-native';
 import {
   SafeAreaView,
@@ -257,7 +258,7 @@ function NearbyAcademy() {
         }
       />
       <View style={styles.contentsContainer}>
-        <View style={styles.topBox}>
+        <View style={[styles.topBox, { paddingVertical: 15 }]}>
           <Text style={styles.topText}>현재 지도 중심</Text>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
             <Image
@@ -272,8 +273,9 @@ function NearbyAcademy() {
         <View>
           <View style={styles.topBox}>
             <View
-              style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
+              style={{ flexDirection: 'row', alignItems: 'center', gap: 0 }}>
               <TouchableOpacity
+                style={{ paddingVertical: 10, paddingHorizontal: 6 }}
                 onPress={() => {
                   setTimeout(() => {
                     setOrderType(ORDER_TYPE.RATING_DESC);
@@ -293,6 +295,7 @@ function NearbyAcademy() {
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
+                style={{ paddingVertical: 10, paddingHorizontal: 6 }}
                 onPress={() => {
                   setTimeout(() => {
                     setOrderType(ORDER_TYPE.REVIEW_CNT_DESC);
@@ -313,7 +316,7 @@ function NearbyAcademy() {
               </TouchableOpacity>
             </View>
             <TouchableOpacity
-              hitSlop={8}
+              hitSlop={12}
               onPress={() => {
                 openFileterModal();
               }}>
@@ -448,7 +451,7 @@ function NearbyAcademy() {
                 style={{
                   width: '100%',
                   height: 60,
-                  paddingHorizontal: 20,
+                  paddingHorizontal: 14,
                   paddingVertical: 16,
                 }}>
                 <Image
@@ -466,8 +469,14 @@ function NearbyAcademy() {
                       classTypeList.length > 0 &&
                       classTypeList.map((item, index) => {
                         return (
-                          <TouchableOpacity
+                          <Pressable
                             // eslint-disable-next-line react/no-array-index-key
+                            hitSlop={{
+                              top: 10,
+                              bottom: 10,
+                              left: 10,
+                              right: 10,
+                            }}
                             key={index}
                             onPress={() => {
                               setSelectedClassType(prev => {
@@ -499,7 +508,7 @@ function NearbyAcademy() {
                               ]}>
                               {item?.label}
                             </Text>
-                          </TouchableOpacity>
+                          </Pressable>
                         );
                       })}
                   </View>
@@ -512,8 +521,14 @@ function NearbyAcademy() {
                       teachingTypeList.length > 0 &&
                       teachingTypeList.map((item, index) => {
                         return (
-                          <TouchableOpacity
+                          <Pressable
                             // eslint-disable-next-line react/no-array-index-key
+                            hitSlop={{
+                              top: 10,
+                              bottom: 10,
+                              left: 10,
+                              right: 10,
+                            }}
                             key={index}
                             onPress={() => {
                               setSelectedTeachingType(prev => {
@@ -547,7 +562,7 @@ function NearbyAcademy() {
                               ]}>
                               {item?.label}
                             </Text>
-                          </TouchableOpacity>
+                          </Pressable>
                         );
                       })}
                   </View>
@@ -560,8 +575,14 @@ function NearbyAcademy() {
                       serviceTypeList.length > 0 &&
                       serviceTypeList.map((item, index) => {
                         return (
-                          <TouchableOpacity
+                          <Pressable
                             // eslint-disable-next-line react/no-array-index-key
+                            hitSlop={{
+                              top: 10,
+                              bottom: 10,
+                              left: 10,
+                              right: 10,
+                            }}
                             key={index}
                             onPress={() => {
                               setSelectedServiceType(prev => {
@@ -595,7 +616,7 @@ function NearbyAcademy() {
                               ]}>
                               {item?.label}
                             </Text>
-                          </TouchableOpacity>
+                          </Pressable>
                         );
                       })}
                   </View>
@@ -629,13 +650,13 @@ const styles = StyleSheet.create({
   contentsContainer: {
     flex: 1,
     paddingHorizontal: 16,
-    paddingVertical: 24,
+    paddingVertical: 12,
   },
   topBox: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 4,
   },
   topText: {
     fontSize: 12,

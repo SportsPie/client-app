@@ -7,7 +7,7 @@ import { handleError } from '../../utils/HandleError';
 import { useFocusEffect } from '@react-navigation/native';
 
 // PIE 트레이닝 > 상세 > 클래스 영상 리스트
-function ClassVideoTab({ trainingIdx }) {
+function ClassVideoTab({ trainingIdx, setLoading }) {
   // [ state ]
   const [videoList, setVideoList] = useState([]); // 클래스 영상 리스트
 
@@ -31,6 +31,7 @@ function ClassVideoTab({ trainingIdx }) {
         <ClassVideoItem
           key={`video-item-${item.videoIdx}`}
           index={index}
+          setLoading={setLoading}
           item={{ ...item, isCurrentStep }}
         />
       );

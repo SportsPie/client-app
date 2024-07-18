@@ -179,6 +179,7 @@ function WalletDetail() {
         leftIconColor={COLORS.white}
         rightContent={
           <Pressable
+            style={{ padding: 10 }}
             onPress={() => {
               NavigationService.navigate(navName.walletSetting);
             }}>
@@ -197,7 +198,16 @@ function WalletDetail() {
       <View style={styles.content}>
         <View style={styles.topContent}>
           <SPSvgs.WalletToken width={48} height={48} />
-          <Text>{Utils.changeNumberComma(balance, true)} PIE</Text>
+          <Text
+            style={{
+              fontSize: 24,
+              fontWeight: 70,
+              color: '#000',
+              lineHeight: 32,
+              letterSpacing: -0.552,
+            }}>
+            {Utils.changeNumberComma(balance, true)} PIE
+          </Text>
 
           <View style={styles.addressWrapper}>
             <Text
@@ -423,7 +433,7 @@ const styles = StyleSheet.create({
     width: '40%',
     backgroundColor: COLORS.fillStrong,
     paddingHorizontal: 10,
-    paddingVertical: 4,
+    paddingVertical: 7,
     borderRadius: 999,
     columnGap: 4,
     alignItems: 'center',

@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   View,
   Platform,
+  Pressable,
 } from 'react-native';
 import Collapsible from 'react-native-collapsible';
 import 'moment/locale/ko';
@@ -274,7 +275,14 @@ function MatchingSelectScorer({ route }) {
             </Text>
           </View>
         </View>
-        <TouchableOpacity onPress={() => toggleCollapse(index)}>
+        <Pressable
+          hitSlop={{
+            top: 10,
+            bottom: 10,
+            left: 10,
+            right: 10,
+          }}
+          onPress={() => toggleCollapse(index)}>
           <Image
             source={
               isCollapsed[index]
@@ -283,7 +291,7 @@ function MatchingSelectScorer({ route }) {
             }
             style={{ width: 24, height: 24 }}
           />
-        </TouchableOpacity>
+        </Pressable>
       </View>
       <Collapsible collapsed={!isCollapsed[index]} duration={500}>
         {item.data.map(player => (

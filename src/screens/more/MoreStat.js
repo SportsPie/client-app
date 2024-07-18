@@ -60,16 +60,18 @@ function MoreStat() {
         title="내 퍼포먼스"
         rightContent={
           <Pressable
+            style={{ padding: 10 }}
             onPress={() => {
               NavigationService.navigate(navName.moreStatModify);
             }}>
             <Text
-              style={[
-                fontStyles.fontSize14_Semibold,
-                {
-                  color: COLORS.darkBlue,
-                },
-              ]}>
+              style={{
+                fontSize: 16,
+                fontWeight: 600,
+                color: '#313779',
+                lineHeight: 24,
+                letterSpacing: -0.091,
+              }}>
               수정
             </Text>
           </Pressable>

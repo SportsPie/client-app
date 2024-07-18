@@ -131,6 +131,7 @@ function TournamentDetail({ route }) {
         title={tournamentInfo.trnNm}
         rightContent={
           <Pressable
+            style={{ padding: 10 }}
             onPress={() => {
               setShowShareModal(true);
             }}>

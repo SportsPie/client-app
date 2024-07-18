@@ -1,11 +1,5 @@
 import React, { memo, useEffect, useState, useRef } from 'react';
-import {
-  Pressable,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import LinearGradient from 'react-native-linear-gradient';
 import { SPSvgs } from '../../assets/svg';
@@ -32,6 +26,7 @@ import NavigationService from '../../navigation/NavigationService';
 import { navName } from '../../common/constants/navName';
 import SPSelectVideoModal from '../../components/SPSelectVideoModal';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import SPLoading from '../../components/SPLoading';
 
 // 초기값
 const initVideoDetail = {
@@ -46,7 +41,7 @@ const initVideoDetail = {
   cntComment: 0,
   cntLike: 0,
   cntView: 0,
-  confirmYn: 'N',
+  confirmYn: null,
   isLike: false,
   isMine: false,
   memberIdx: '',
@@ -72,6 +67,7 @@ function ChallengeContentPlayer({ route }) {
 
   // [ state ]
   const trlRef = useRef({ current: { disabled: false } }); // 다중 클릭 방지
+  const [loading, setLoading] = useState(false); // 데이터 로딩
   const [collapse, setCollapse] = useState(true); // 상세 설명 더보기
   const [showVideoMore, setShowVideoMore] = useState(false); // 영상 더보기 모달 Display
   const [showSelectModal, setShowSelectModal] = useState(false); // 동영상 첨부 모달
@@ -297,7 +293,9 @@ function ChallengeContentPlayer({ route }) {
   }, [videoListPage]);
 
   // [ return ]
-  return (
+  return loading ? (
+    <SPLoading />
+  ) : (
     <>
       <SafeAreaView style={styles.container}>
         {/* 헤더 */}
@@ -371,7 +369,7 @@ function ChallengeContentPlayer({ route }) {
 
           <View style={styles.footerWrapper}>
             <View style={styles.button}>
-              <Pressable onPress={touchLikeHandler}>
+              <Pressable hitSlop={11} onPress={touchLikeHandler}>
                 {targetVideo.isLike ? (
                   <SPSvgs.HeartFill fill={COLORS.white} />
                 ) : (
@@ -388,7 +386,7 @@ function ChallengeContentPlayer({ route }) {
               </Text>
             </View>
 
-            <Pressable onPress={openVideoSelectModal}>
+            <Pressable hitSlop={11} onPress={openVideoSelectModal}>
               <View style={styles.button}>
                 <Text
                   style={{
@@ -408,6 +406,7 @@ function ChallengeContentPlayer({ route }) {
         title="챌린지 동영상 업로드"
         visible={showSelectModal}
         onClose={() => setShowSelectModal(false)}
+        setLoading={setLoading}
         onComplete={({ type, fileUrl, videoName, videoType }) => {
           uploadMyMasterVideo(type, fileUrl, videoName, videoType);
         }}
@@ -420,6 +419,7 @@ function ChallengeContentPlayer({ route }) {
         onClose={closeVideoModal}
         onDelete={removeChallengeVideo}
         onModify={moveToModifyChallengeVideo}
+        targetUserIdx={targetVideo.memberIdx}
         type={MODAL_MORE_TYPE.CHALLENGE_VIDEO}
         idx={targetVideo.videoIdx}
         memberButtons={

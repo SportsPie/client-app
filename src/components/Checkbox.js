@@ -13,9 +13,11 @@ function Checkbox({
   onViewMorePress,
   labelStyle,
   checkBoxStyle,
+  containerStyle,
+  moreBtn,
 }) {
   return (
-    <Pressable onPress={onPress} style={styles.container}>
+    <Pressable onPress={onPress} style={[styles.container, containerStyle]}>
       <Pressable
         onPress={onPress}
         style={[
@@ -46,7 +48,7 @@ function Checkbox({
       {viewMore && (
         <Pressable
           onPress={onViewMorePress}
-          style={styles.viewMore}
+          style={(styles.viewMore, moreBtn)}
           hitSlop={18}>
           <Text style={styles.viewMoreText}>보기</Text>
         </Pressable>

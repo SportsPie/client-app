@@ -3,6 +3,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   apiPostAcademyReport,
+  apiPostCommunityReport,
   apiReportChallenge,
   apiReportTraining,
 } from '../../api/RestAPI';
@@ -18,6 +19,7 @@ import { COLORS } from '../../styles/colors';
 import fontStyles from '../../styles/fontStyles';
 import { handleError } from '../../utils/HandleError';
 import Utils from '../../utils/Utils';
+import SPModal from '../../components/SPModal';
 
 function Report({ route }) {
   const reasonRef = useRef();
@@ -26,9 +28,14 @@ function Report({ route }) {
    */
   const reportIdx = route?.params?.reportIdx;
   const reportType = route?.params?.reportType; // REPORT_TYPE
+  const isReportUser = route?.params?.isReportUser;
+  const targetUserIdx = route?.params?.targetUserIdx;
   const [selectedReason, setSelectedReason] = useState();
   const [memo, setMemo] = useState('');
   const trlRef = useRef({ current: { disabled: false } });
+  const [showUserReportCheckModal, setShowUserReportCheckModal] =
+    useState(false);
+  const [userReportParam, setUserReportParam] = useState({});
   const pageTypes = {
     ACADEMY: 'ACADEMY', // 아카데미
     USER: 'USER', // 사용자
@@ -71,6 +78,9 @@ function Report({ route }) {
       default:
         break;
     }
+  }
+  if (isReportUser) {
+    pageType = pageTypes.USER;
   }
 
   const reasons = {
@@ -120,8 +130,8 @@ function Report({ route }) {
       if (trlRef.current.disabled) return;
       trlRef.current.disabled = true;
       const params = {
-        reportType,
-        contentsIdx: reportIdx,
+        reportType: isReportUser ? REPORT_TYPE.USER : reportType,
+        contentsIdx: isReportUser ? targetUserIdx : reportIdx,
         reason:
           selectedReason === reasonList[reasonList.length - 1]
             ? memo
@@ -132,30 +142,60 @@ function Report({ route }) {
       switch (reportType) {
         // PIE 트래이닝 > 마스터 영상
         case REPORT_TYPE.MASTER_VIDEO:
-          params.reportType = REPORT_TYPE.VIDEO;
+          if (!isReportUser) params.reportType = REPORT_TYPE.VIDEO;
           await apiReportTraining(params);
           break;
         // PIE 트래이닝 > 마스터 댓글
         case REPORT_TYPE.MASTER_VIDEO_COMMENT:
-          params.reportType = REPORT_TYPE.VIDEO_COMMENT;
+          if (!isReportUser) params.reportType = REPORT_TYPE.VIDEO_COMMENT;
           await apiReportTraining(params);
           break;
         // PIE 트래이닝 > 챌린지 영상
         case REPORT_TYPE.CHALLENGE_VIDEO:
-          params.reportType = REPORT_TYPE.VIDEO;
+          if (!isReportUser) params.reportType = REPORT_TYPE.VIDEO;
           await apiReportChallenge(params);
           break;
         // PIE 트래이닝 > 챌린지 댓글
         case REPORT_TYPE.CHALLENGE_VIDEO_COMMENT:
-          params.reportType = REPORT_TYPE.VIDEO_COMMENT;
+          if (!isReportUser) params.reportType = REPORT_TYPE.VIDEO_COMMENT;
           await apiReportChallenge(params);
+          break;
+        // (아카데미)커뮤니티 > 커뮤니티 신고하기
+        case REPORT_TYPE.FEED:
+        case REPORT_TYPE.FEED_COMMENT:
+          if (isReportUser) {
+            setUserReportParam(params);
+            setShowUserReportCheckModal(true);
+          } else {
+            await apiPostCommunityReport(params);
+          }
           break;
         // 기타 > 아카데미
         default:
           await apiPostAcademyReport(params);
           break;
       }
+      if (!isReportUser) {
+        setTimeout(() => {
+          Utils.openModal({
+            title: '신고 완료',
+            body: '신고 처리가 완료되었어요',
+            closeEvent: MODAL_CLOSE_EVENT.goBack,
+          });
+        }, 0);
+      }
+    } catch (error) {
+      handleError(error);
+    }
+    trlRef.current.disabled = false;
+  };
 
+  const userReport = async params => {
+    if (trlRef.current.disabled) return;
+    trlRef.current.disabled = true;
+    try {
+      await apiPostCommunityReport(params);
+      setShowUserReportCheckModal(false);
       setTimeout(() => {
         Utils.openModal({
           title: '신고 완료',
@@ -166,6 +206,7 @@ function Report({ route }) {
     } catch (error) {
       handleError(error);
     }
+    trlRef.current.disabled = false;
   };
 
   /**
@@ -253,6 +294,24 @@ function Report({ route }) {
             />
           </View>
         </SPKeyboardAvoidingView>
+        <SPModal
+          title="주의"
+          noticeIcon
+          contents={
+            '신고 시, 해당 사용자의 모든 게시글이 차단됩니다.\n' +
+            '계속하시겠습니까?'
+          }
+          visible={showUserReportCheckModal}
+          onConfirm={() => {
+            userReport(userReportParam);
+          }}
+          onCancel={() => {
+            setShowUserReportCheckModal(false);
+          }}
+          onClose={() => {
+            setShowUserReportCheckModal(false);
+          }}
+        />
       </SafeAreaView>
     </DismissKeyboard>
   );

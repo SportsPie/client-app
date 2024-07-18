@@ -72,7 +72,13 @@ function HeartCounter({ heartNum = 0, videoIdx = '', isLike = false }) {
 
   // [ return ]
   return (
-    <Pressable style={styles.wrapper} onPress={touchLikeHandler}>
+    <Pressable
+      hitSlop={{
+        top: 10,
+        bottom: 10,
+      }}
+      style={styles.wrapper}
+      onPress={touchLikeHandler}>
       <View style={styles.container}>
         {isLiked ? <SPSvgs.Heart /> : <SPSvgs.HeartOutline />}
         <Text style={styles.text}>{Utils.changeNumberComma(cntLike)}</Text>
@@ -84,7 +90,7 @@ function HeartCounter({ heartNum = 0, videoIdx = '', isLike = false }) {
 export default memo(HeartCounter);
 
 const styles = StyleSheet.create({
-  wrapper: { flex: 1 },
+  wrapper: { flex: 1, alignSelf: 'flex-start' },
   container: {
     width: 'auto',
     flexDirection: 'row',

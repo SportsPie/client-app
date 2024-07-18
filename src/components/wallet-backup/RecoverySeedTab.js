@@ -102,13 +102,13 @@ const styles = StyleSheet.create({
   itemContainer: {
     backgroundColor: COLORS.fillNormal,
     width: (SCREEN_WIDTH - 40) / 2,
-    minHeight: 43,
+    minHeight: 48,
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 8,
   },
   footerContainer: {
-    marginTop: 8,
+    marginTop: 20,
     flexDirection: 'row',
     alignSelf: 'center',
     columnGap: 8,

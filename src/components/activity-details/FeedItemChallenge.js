@@ -124,7 +124,7 @@ function FeedItem({ item }) {
                 letterSpacing: 0.3,
               },
             ]}>
-            {item?.comment}
+            {item?.videoTitle}에 쓴 댓글
           </Text>
           <Text
             style={[
@@ -135,6 +135,16 @@ function FeedItem({ item }) {
               },
             ]}>
             {moment(item?.regDate).format('YYYY.MM.DD')}
+          </Text>
+          <Text
+            style={[
+              fontStyles.fontSize12_Semibold,
+              {
+                color: COLORS.labelAlternative,
+                letterSpacing: 0.3,
+              },
+            ]}>
+            {item?.comment}
           </Text>
         </View>
 
@@ -217,6 +227,7 @@ function FeedItem({ item }) {
         </Modal>
 
         <Pressable
+          hitSlop={8}
           style={[
             styles.iconWrapper,
             {

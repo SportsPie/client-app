@@ -105,13 +105,14 @@ const ChallengeCommentSection = forwardRef(
     const [targetComment, setTargetComment] = useState({
       commentIdx: '',
       comment: '',
+      memberIdx: '',
       isMine: false,
     });
     const [editCommentInput, setEditCommentInput] = useState('');
 
     // [ util ] 코멘트 '더보기' 모달 Open
-    const openCommentModal = ({ idx, isMine, comment }) => {
-      setTargetComment({ idx, comment, isMine });
+    const openCommentModal = ({ idx, isMine, comment, memberIdx }) => {
+      setTargetComment({ idx, comment, isMine, memberIdx });
       setEditCommentInput(comment);
       setShowCommentMore(true);
     };
@@ -293,6 +294,7 @@ const ChallengeCommentSection = forwardRef(
           <CommentInputSection
             onChangeText={text => setCommentInput(text)}
             onSubmit={saveChallengeVideoComment}
+            maxLength={1000}
           />
         </View>
 
@@ -304,6 +306,7 @@ const ChallengeCommentSection = forwardRef(
           onReport={hide}
           type={MODAL_MORE_TYPE.CHALLENGE_VIDEO_COMMENT}
           idx={targetComment.idx}
+          targetUserIdx={targetComment.memberIdx}
           onDelete={removeChallengeVideoComment}
           onModify={openModifyCommentModal}
           onConfirm={onSubmit}

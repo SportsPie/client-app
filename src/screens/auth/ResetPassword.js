@@ -1,17 +1,16 @@
 import { useRoute } from '@react-navigation/native';
-import React, { memo, useEffect, useState, useRef } from 'react';
-import { Alert, ScrollView, StyleSheet, Text } from 'react-native';
+import React, { memo, useEffect, useRef, useState } from 'react';
+import { ScrollView, StyleSheet, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { apiPassword } from '../../api/RestAPI';
-import { navName } from '../../common/constants/navName';
 import DismissKeyboard from '../../components/DismissKeyboard';
 import { PrimaryButton } from '../../components/PrimaryButton';
 import SPInput from '../../components/SPInput';
 import Header from '../../components/header';
-import NavigationService from '../../navigation/NavigationService';
 import { COLORS } from '../../styles/colors';
 import fontStyles from '../../styles/fontStyles';
 import { handleError } from '../../utils/HandleError';
+import Utils from '../../utils/Utils';
 
 function ResetPassword() {
   const [password, setPassword] = useState('');
@@ -88,8 +87,11 @@ function ResetPassword() {
       apiPassword(data)
         .then(response => {
           // 회원가입 성공 시 처리
-          Alert.alert('알림', '비밀번호가 변경되었습니다.');
-          NavigationService.navigate(navName.login);
+          Utils.openModal({
+            title: '알림',
+            body: '비밀번호가 변경되었습니다.',
+          });
+          Utils.logout();
         })
         .catch(error => {
           // 회원가입 실패 시 처리

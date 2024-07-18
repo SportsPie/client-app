@@ -104,6 +104,15 @@ function MoreInquiry() {
           </Text>
         </View>
 
+        <Text style={styles.headerText}>고객센터 안내</Text>
+
+        <View style={{ rowGap: 8 }}>
+          <Text style={styles.timeText}>고객센터 전화번호 : 010-4070-9024</Text>
+          <Text style={styles.timeText}>
+            고객센터 운영시간 : 평일 09:00 - 18:00(토, 일, 공휴일 휴무)
+          </Text>
+        </View>
+
         <PrimaryButton text="문의하기" onPress={nextPage} />
       </View>
     );

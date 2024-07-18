@@ -8,6 +8,7 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  Pressable,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Carousel from 'react-native-snap-carousel';
@@ -417,8 +418,14 @@ function CommunityEdit({ route }) {
                   {tagList &&
                     tagList.length > 0 &&
                     tagList.map((filterTag, index) => (
-                      <TouchableOpacity
+                      <Pressable
                         /* eslint-disable-next-line react/no-array-index-key */
+                        hitSlop={{
+                          top: 8,
+                          bottom: 8,
+                          left: 8,
+                          right: 8,
+                        }}
                         key={index}
                         style={[
                           styles.button,
@@ -435,7 +442,7 @@ function CommunityEdit({ route }) {
                           ]}>
                           #{filterTag.label}
                         </Text>
-                      </TouchableOpacity>
+                      </Pressable>
                     ))}
                 </View>
               </View>
@@ -447,16 +454,16 @@ function CommunityEdit({ route }) {
                 <TouchableOpacity
                   onPress={openGallery}
                   style={{
-                    width: 36,
-                    height: 36,
+                    width: 48,
+                    height: 48,
                     borderRadius: 8,
                     overflow: 'hidden',
                   }}>
                   <Image
                     source={SPIcons.icGallery}
                     style={{
-                      width: 36,
-                      height: 36,
+                      width: 48,
+                      height: 48,
                     }}
                   />
                 </TouchableOpacity>
@@ -557,7 +564,8 @@ const styles = {
   },
   buttonBox: {
     flexDirection: 'row',
-    gap: 8,
+    flexWrap: 'wrap',
+    gap: 16,
   },
   button: {
     paddingHorizontal: 7,

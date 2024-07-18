@@ -318,7 +318,7 @@ const styles = StyleSheet.create({
   },
   filterButton: {
     flex: 1,
-    height: 40,
+    height: 48,
     borderRadius: 8,
     backgroundColor: COLORS.peach,
     justifyContent: 'center',
@@ -333,10 +333,11 @@ const styles = StyleSheet.create({
   content: {
     paddingHorizontal: 16,
     gap: 16,
+    paddingTop: 16,
     paddingBottom: 16,
   },
   addressItemWrapper: {
-    height: 40,
+    height: 48,
     borderWidth: 1,
     borderRadius: 8,
     width: (SCREEN_WIDTH - 49) / 3,

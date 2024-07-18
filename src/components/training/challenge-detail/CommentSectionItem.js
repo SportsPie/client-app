@@ -34,6 +34,7 @@ function CommentSectionItem({ item, onPressMore = () => null }) {
                 idx: item.commentIdx,
                 isMine: item.isMine,
                 comment: item.comment,
+                memberIdx: item.memberIdx,
               });
             }}>
             <SPSvgs.EllipsesVertical />

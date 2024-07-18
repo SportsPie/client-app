@@ -19,6 +19,7 @@ import { MqttUtils } from './MqttUtils';
 import { waitForReduxState } from '../redux/store/store';
 import NavigationService from '../navigation/NavigationService';
 import { navName } from '../common/constants/navName';
+import { navSliceActions } from '../redux/reducers/navSlice';
 
 // 앱 초기화 코드에 로컬 알림 설정
 PushNotification.configure({
@@ -36,13 +37,18 @@ PushNotification.configure({
             roomId: notification?.data?.roomId,
           });
         }
+        if (notification?.data?.pageMoveUrl) {
+          store.dispatch(
+            navSliceActions.changeMoveUrl(notification.data.pageMoveUrl),
+          );
+        }
       } catch (error) {
         console.log('error', error);
       }
     }
   },
   // Android 전용 옵션
-  popInitialNotification: false,
+  popInitialNotification: true,
   requestPermissions: true,
 
   // IOS only

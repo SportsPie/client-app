@@ -37,6 +37,7 @@ const styles = StyleSheet.create({
     marginTop: 24,
     paddingHorizontal: 16,
     rowGap: 16,
+    marginBottom: 24,
   },
   header: {
     flexDirection: 'row',

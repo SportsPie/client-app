@@ -117,6 +117,8 @@ function CommunityDetails({
       setShowOptionButton(false);
       return;
     }
+    setShowOptionButton(true);
+
     try {
       const { data } = await apiGetMyInfo();
 
@@ -360,7 +362,7 @@ function CommunityDetails({
         }
       />
     );
-  }, []);
+  }, [showOptionButton]);
 
   const renderImages = useMemo(() => {
     const screenWidth = Dimensions.get('window').width;
@@ -483,6 +485,7 @@ function CommunityDetails({
                       styles.userInfoSection,
                       {
                         marginHorizontal: 0,
+                        paddingVertical: 4,
                       },
                     ]}>
                     <Avatar
@@ -497,6 +500,7 @@ function CommunityDetails({
                       </Text>
                     </View>
                     <Pressable
+                      hitSlop={12}
                       onPress={() => {
                         openCommentModal(item);
                       }}>
@@ -538,6 +542,7 @@ function CommunityDetails({
             style={styles.input}
             value={comment}
             onChangeText={e => {
+              if (e?.length > 1000) return;
               setComment(e);
             }}
             autoCorrect={false}
@@ -587,6 +592,7 @@ function CommunityDetails({
         isAdmin={false}
         type={MODAL_MORE_TYPE.FEED}
         idx={contentsIdx}
+        targetUserIdx={feedDetail?.userIdx}
         onConfirm={() => {
           NavigationService.goBack();
         }}
@@ -604,6 +610,7 @@ function CommunityDetails({
         isAdmin={false}
         type={MODAL_MORE_TYPE.FEED_COMMENT}
         idx={selectedComment?.commentIdx}
+        targetUserIdx={selectedComment?.userIdx}
         onModify={openModifyCommentModal}
         onConfirm={() => {
           setChangeEvent(prev => !prev);

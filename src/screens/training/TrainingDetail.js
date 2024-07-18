@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   View,
   useWindowDimensions,
+  Pressable,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
@@ -41,7 +42,11 @@ const MAX_DESC_TEXT = 70;
 // 탭 컴포넌트 (클래스 영상, 마스터 영상)
 function TabButton({ title, activeTab, setActiveTab }) {
   return (
-    <TouchableOpacity
+    <Pressable
+      hitSlop={{
+        top: 20,
+        bottom: 14,
+      }}
       activeOpacity={ACTIVE_OPACITY}
       style={[
         styles.tabButton,
@@ -55,7 +60,7 @@ function TabButton({ title, activeTab, setActiveTab }) {
         ]}>
         {title}
       </Text>
-    </TouchableOpacity>
+    </Pressable>
   );
 }
 
@@ -249,7 +254,11 @@ function TrainingDetail({ route }) {
             <Text style={styles.DetailViews}>
               조회수 {Utils.changeNumberComma(trainingSummary.cntView)}
             </Text>
-            <TouchableOpacity
+            <Pressable
+              hitSlop={{
+                top: 10,
+                bottom: 10,
+              }}
               activeOpacity={ACTIVE_OPACITY}
               style={styles.DetailLike}
               onPress={touchLikeHandler}>
@@ -272,7 +281,7 @@ function TrainingDetail({ route }) {
                   {Utils.changeNumberComma(trainingSummary.cntLike)}
                 </Text>
               </View>
-            </TouchableOpacity>
+            </Pressable>
             <View style={styles.introductionBox}>
               <Text style={styles.introductionName}>
                 {trainingSummary.coachName}
@@ -350,7 +359,10 @@ function TrainingDetail({ route }) {
                   videoList={masterVideoList}
                 />
               ) : (
-                <ClassVideoTab trainingIdx={trainingIdx} />
+                <ClassVideoTab
+                  trainingIdx={trainingIdx}
+                  setLoading={setLoading}
+                />
               )}
             </View>
           </View>
@@ -512,12 +524,15 @@ const styles = {
     alignItem: 'center',
     gap: 16,
     paddingHorizontal: 16,
+    marginTop: 32,
   },
   tabButton: {
     flex: 1,
     flexDirection: 'row',
     justifyContent: 'center',
-    paddingVertical: 8,
+    // paddingVertical: 8,
+    padddingTop: 20,
+    paddingBottom: 14,
   },
   tabText: {
     fontSize: 14,

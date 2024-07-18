@@ -267,11 +267,11 @@ const styles = StyleSheet.create({
   helpSection: {
     flexDirection: 'row',
     paddingHorizontal: 16,
-    paddingVertical: 8,
+    // paddingVertical: 8,
   },
   sectionButton: {
     flex: 1,
-    // minHeight: 44,
+    minHeight: 44,
     justifyContent: 'center',
     paddingVertical: 4,
     alignItems: 'center',

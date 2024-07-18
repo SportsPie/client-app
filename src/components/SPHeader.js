@@ -95,7 +95,8 @@ export default function SPHeader({
     alignItems: 'center',
     height: 58,
     paddingBottom: 2,
-    marginLeft: isTitleCentered ? 0 : 16, // 조건에 따라 marginLeft 조정
+    // marginLeft: isTitleCentered ? 0 : 16, // 조건에 따라 marginLeft 조정
+    marginLeft: 8,
   };
 
   return (
@@ -122,7 +123,8 @@ export default function SPHeader({
               }
               // navigation.pop();
               NavigationService.goBack();
-            }}>
+            }}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
             <Image
               source={
                 leftButtonIcon || // 새로운 prop 우선 사용
@@ -322,8 +324,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    gap: 16,
-    paddingHorizontal: 20,
+    // gap: 16,
+    paddingHorizontal: 4,
     paddingVertical: 14,
     backgroundColor: COLORS.white,
     // borderBottomWidth: 1,
@@ -341,6 +343,7 @@ const styles = StyleSheet.create({
   leftButton: {
     height: 28,
     width: 28,
+    margin: 10,
   },
   leftIcon: {
     width: 28,
@@ -362,6 +365,7 @@ const styles = StyleSheet.create({
   rightIcon: {
     width: 28,
     height: 28,
+    margin: 10,
     // tintColor: COLORS.black,
   },
   rightAddIconStyle: {
@@ -369,11 +373,14 @@ const styles = StyleSheet.create({
     height: 28,
   },
   // rightText: { height: 18, minWidth: 18 },
+  rightText: {
+    padding: 10,
+  },
   rightBasicButtonBox: {
     height: 60,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 16,
+    // gap: 16,
     paddingBottom: 2,
   },
 });

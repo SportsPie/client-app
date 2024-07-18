@@ -77,6 +77,9 @@ import BottomTabTrainingOutline from './bottom-tab/BottomTabTrainingOutline';
 import BottomTabTraining from './bottom-tab/BottomTabTraining';
 import InputClose from './InputClose';
 import LargeLogoWithText from './LargeLogoWithText';
+import ReportFeed from './ReportFeed';
+import ReportUser from './ReportUser';
+import ChevronRight from './ChevronRight';
 
 export class SPSvgs {
   static SportPieLogo = SportPieLogo;
@@ -146,6 +149,9 @@ export class SPSvgs {
   static Upgrade = Upgrade;
   static InputClose = InputClose;
   static LargeLogoWithText = LargeLogoWithText;
+  static ReportFeed = ReportFeed;
+  static ReportUser = ReportUser;
+  static ChevronRight = ChevronRight;
 
   //Bottom tab
   static BottomTabHomeOutline = BottomTabHomeOutline;

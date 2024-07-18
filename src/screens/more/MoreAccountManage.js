@@ -10,6 +10,9 @@ import fontStyles from '../../styles/fontStyles';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Header from '../../components/header';
 import SPModal from '../../components/SPModal';
+import { SPSvgs } from '../../assets/svg';
+import NavigationService from '../../navigation/NavigationService';
+import { navName } from '../../common/constants/navName';
 
 function MoreAccountManage() {
   const [userInfo, setUserInfo] = useState(null);
@@ -47,6 +50,20 @@ function MoreAccountManage() {
           <Text style={styles.titleText}>아이디</Text>
           <Text style={styles.valueText}>{userInfo?.userLoginId ?? ''}</Text>
         </View>
+
+        {userInfo?.loginType === 'EMAIL' && ( // 조건 추가
+          <Pressable
+            style={styles.menuWrapper}
+            onPress={() => {
+              NavigationService.navigate(navName.moreChangePassword);
+            }}>
+            <Text style={styles.titleText}>비밀번호</Text>
+            <View style={{ flexDirection: 'row', gap: 8 }}>
+              <Text style={styles.valueText}>비밀번호 변경</Text>
+              <SPSvgs.ChevronRight />
+            </View>
+          </Pressable>
+        )}
 
         {userInfo?.loginType !== 'EMAIL' && ( // 조건 추가
           <View style={styles.menuWrapper}>
@@ -104,7 +121,8 @@ const styles = StyleSheet.create({
   },
   userSection: {
     paddingHorizontal: 16,
-    rowGap: 16,
+    // rowGap: 16,
+    rowGap: 4,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.lineBorder,
     paddingVertical: 24,
@@ -113,6 +131,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    paddingVertical: 14,
   },
   titleText: {
     ...fontStyles.fontSize14_Regular,

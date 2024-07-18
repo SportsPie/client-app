@@ -1,6 +1,7 @@
 import api from '../utils/Api';
 // API Prefix
-const baseURL = process.env.API_SERVER;
+// const baseURL = process.env.API_SERVER;
+const baseURL = 'http://localhost:29081';
 const API_VERSION = 'api/v1';
 const API_PREFIX = `${baseURL}/${API_VERSION}`;
 
@@ -24,6 +25,12 @@ const API_TEST = `${API_PREFIX}/open/test`;
 // Request > Headers > multipart/form-data
 export const formDataConfig = {
   headers: { 'Content-Type': 'multipart/form-data' },
+};
+export const formDataConfigInfinity = {
+  headers: { 'Content-Type': 'multipart/form-data' },
+  maxContentLength: Infinity,
+  maxBodyLength: Infinity,
+  timeout: 1000 * 60 * 3,
 };
 // ----------------------------------------------------------
 // [ AUTH ] 공통 / 인증 / 코드 조회
@@ -455,6 +462,11 @@ export const apiDeleteAcademyConfigMngManagers = userIdx => {
   return api.delete(`${API_ACADEMY_CONFIG}/mng/managers/${userIdx}`);
 };
 
+// SPIC_IF_364 :: 관리자 양도
+export const apiPutAcademyConfigMngManagers = (userIdx, data) => {
+  return api.put(`${API_ACADEMY_CONFIG}/mng/managers/${userIdx}`);
+};
+
 // SPIC_IF_370 :: 대회 접수 내역 리스트 조회
 export const apiGetMngTournament = data => {
   return api.get(`${API_ACADEMY_CONFIG}/mng/tournament`, { params: data });
@@ -547,6 +559,11 @@ export const apiGetCommunityFindFeed = (commentIdx, data) => {
 // SPIC_IF_490 :: 커뮤니티 필터 리스트 조회
 export const apiGetCommunityOpenFilters = data => {
   return api.get(`${API_COMMUNITY}/open/filters`);
+};
+
+// SPIC_IF_491 :: 커뮤니티 필터 리스트 조회
+export const apiPostCommunityReport = data => {
+  return api.post(`${API_COMMUNITY}/report`, data);
 };
 
 // ----------------------------------------------------------
@@ -696,7 +713,7 @@ export const apiCompleteWatchTrainingVideo = videoIdx => {
 
 // SPIC_IF_608 :: 마스터 영상 등록
 export const apiSaveMasterVideo = data => {
-  return api.post(`${API_TRAINING}/master`, data, formDataConfig);
+  return api.post(`${API_TRAINING}/master`, data, formDataConfigInfinity);
 };
 
 // SPIC_IF_609 :: 트레이닝 마스터 영상 리스트 조회
@@ -787,7 +804,7 @@ export const apiRemoveChallengeVideoComment = commentIdx => {
 
 // SPIC_IF_659 :: 챌린지 영상 등록
 export const apiSaveChallengeVideo = data => {
-  return api.post(`${API_CHALLENGE}/videos`, data, formDataConfig);
+  return api.post(`${API_CHALLENGE}/videos`, data, formDataConfigInfinity);
 };
 
 // SPIC_IF_660 :: 챌린지 영상 수정
@@ -995,6 +1012,10 @@ export const apiGetMoreWalletSwapRate = () => {
 // SPIC_IF_960 :: 쿠폰등록
 export const apiPostCoupon = data => {
   return api.post(`${API_MORE}/coupon`, data);
+};
+// SPIC_IF_961 :: 패스워드 변경
+export const apiPatchPassword = data => {
+  return api.patch(`${API_MORE}/password`, data);
 };
 // SPIC_IF_958 :: 스왑 실행
 export const apiPostMoreWalletMoreWalletSwap = data => {

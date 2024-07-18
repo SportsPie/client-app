@@ -135,6 +135,7 @@ import WalletSetting from '../screens/wallet/wallet/WalletSetting';
 import { COLORS } from '../styles/colors';
 import Unsubscribe from '../screens/Unsubscribe';
 import { useSelector } from 'react-redux';
+import MoreChangePassword from '../screens/more/MoreChangePassword';
 
 function MatchingChatRoomListScreenComponent() {
   return <AuthLayout component={MatchingChatRoomListScreen} />;
@@ -360,6 +361,10 @@ export default function Navigation() {
       <Stack.Screen
         name={navName.moreCheckPhoneNo}
         component={MoreCheckPhoneNo}
+      />
+      <Stack.Screen
+        name={navName.moreChangePassword}
+        component={MoreChangePassword}
       />
       <Stack.Screen name={navName.socialToken} component={SocialToken} />
       <Stack.Screen

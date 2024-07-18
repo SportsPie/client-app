@@ -47,6 +47,7 @@ function MoreMyInfo() {
         closeIcon
         rightContent={
           <Pressable
+            style={{ padding: 10 }}
             onPress={() => {
               NavigationService.navigate(navName.moreSetting);
             }}>

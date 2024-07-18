@@ -245,5 +245,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     minHeight: 32,
     borderRadius: 8,
+    padding: 8,
   },
 });

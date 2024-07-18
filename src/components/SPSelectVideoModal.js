@@ -8,9 +8,9 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { launchImageLibrary } from 'react-native-image-picker';
 import ImagePicker from 'react-native-image-crop-picker';
 import { RESULTS } from 'react-native-permissions';
-// import { getVideoMetaData } from 'react-native-compressor';
 import fontStyles from '../styles/fontStyles';
 import { COLORS } from '../styles/colors';
 import { handleError } from '../utils/HandleError';
@@ -33,6 +33,7 @@ function SPSelectVideoModal({
   contentText2,
   onClose,
   onComplete,
+  setLoading = () => null,
 }) {
   /**
    * state
@@ -92,9 +93,6 @@ function SPSelectVideoModal({
       const image = await ImagePicker.openCamera(options);
       const { mime, path, size } = image;
 
-      console.log('Ori Size');
-      console.log(size / (1024 * 1024));
-
       // 원본 파일 용량 확인
       if (size / (1024 * 1024) > 1024) {
         throw new CustomException('영상 최대 용량은 1GB 입니다.');
@@ -114,24 +112,20 @@ function SPSelectVideoModal({
     }
   };
 
-  const onAlbum = async () => {
+  const onAlbum4Ios = async () => {
     const hasPermission = await checkphotoLibraryPermission();
     if (!hasPermission) return;
 
     const options = {
       mediaType: 'video',
-      compressVideoPreset: 'Passthrough',
+      compressVideoPreset: 'Passthrough', // or 'HighestQuality', 'Passthrough'
       multiple: false,
     };
 
     try {
       // 파일 선택
       const image = await ImagePicker.openPicker(options);
-      const { mime, path, size } = image;
-
-      console.log('Ori Size');
-      console.log(image);
-      console.log(size / (1024 * 1024));
+      const { mime, path, size, sourceURL } = image; // path = 라이브러리 저장 경로, sourceURL = 원본 경로
 
       // 원본 파일 용량 확인
       if (size / (1024 * 1024) > 1024) {
@@ -139,12 +133,13 @@ function SPSelectVideoModal({
       }
 
       // 파일 정보 반환
-      const uriPath = path.split('//').pop();
-      const videoName = path.split('/').pop();
+      const uriPath = sourceURL.split('//').pop();
+      const videoName = sourceURL.split('/').pop();
       const videoType = mime;
       const fileUrl = `file://${uriPath}`;
-      if (onComplete)
+      if (onComplete) {
         onComplete({ type: 'ALBUM', fileUrl, videoName, videoType });
+      }
     } catch (error) {
       if (error.code !== 'E_PICKER_CANCELLED') {
         handleError(error);
@@ -152,9 +147,51 @@ function SPSelectVideoModal({
     }
   };
 
-  // const onDefault = async () => {
-  //   if (onComplete) await onComplete({});
-  // };
+  const onAlbum4Android = async () => {
+    const hasPermission = await checkphotoLibraryPermission();
+    if (!hasPermission) return;
+
+    const options = {
+      mediaType: 'video',
+      videoQuality: 'high',
+      selectionLimit: 1,
+    };
+
+    try {
+      // 파일 선택
+      setLoading(true);
+      const result = await launchImageLibrary(options);
+
+      if (result.didCancel) {
+        setLoading(false);
+        return;
+      }
+      if (result.errorCode) throw new CustomException(result.errorMessage);
+
+      const { assets } = result;
+      const { uri, type, fileName, fileSize } = assets[0];
+
+      // 원본 파일 용량 확인
+      if (fileSize / (1024 * 1024) > 1024) {
+        throw new CustomException('영상 최대 용량은 1GB 입니다.');
+      }
+
+      // 파일 정보 반환
+      const uriPath = uri.split('//').pop();
+      const videoName = uri.split('/').pop();
+      const videoType = type;
+      const fileUrl = `file://${uriPath}`;
+      if (onComplete) {
+        onComplete({ type: 'ALBUM', fileUrl, videoName, videoType });
+      }
+      setLoading(false);
+    } catch (error) {
+      setLoading(false);
+      if (error.code !== 'E_PICKER_CANCELLED') {
+        handleError(error);
+      }
+    }
+  };
 
   const handleOnRequestCloseEvent = e => {
     setShowModal(false);
@@ -180,8 +217,10 @@ function SPSelectVideoModal({
   const handleOnAlbum = e => {
     setShowModal(false);
     setTimeout(async () => {
-      if (onAlbum) {
-        await onAlbum();
+      if (Platform.OS === 'ios') {
+        await onAlbum4Ios();
+      } else {
+        await onAlbum4Android();
       }
       if (onClose) {
         await onClose(false);

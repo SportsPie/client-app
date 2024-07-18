@@ -7,6 +7,7 @@ import {
   Text,
   TouchableOpacity,
   View,
+  Pressable,
 } from 'react-native';
 import { navName } from '../../common/constants/navName';
 import NavigationService from '../../navigation/NavigationService';
@@ -259,8 +260,14 @@ function AcademyReportDetails({ route }) {
           <View style={styles.tabContent}>
             <View style={styles.buttonBox}>
               {buttons.map((item, index) => (
-                <TouchableOpacity
+                <Pressable
                   /* eslint-disable-next-line react/no-array-index-key */
+                  hitSlop={{
+                    top: 13,
+                    bottom: 13,
+                    left: 4,
+                    right: 4,
+                  }}
                   key={index}
                   style={[
                     styles.button,
@@ -276,7 +283,7 @@ function AcademyReportDetails({ route }) {
                     ]}>
                     {item.label}
                   </Text>
-                </TouchableOpacity>
+                </Pressable>
               ))}
             </View>
             {reportList && reportList.length > 0 ? (
@@ -405,7 +412,9 @@ const styles = StyleSheet.create({
   },
   tabButton: {
     flex: 1,
-    paddingVertical: 8,
+    // paddingVertical: 8,
+    paddingTop: 18,
+    paddingBottom: 8,
   },
   tabText: {
     fontSize: 14,
@@ -429,7 +438,7 @@ const styles = StyleSheet.create({
   },
   buttonBox: {
     flexDirection: 'row',
-    gap: 8,
+    gap: 10,
     marginBottom: 16,
   },
   button: {

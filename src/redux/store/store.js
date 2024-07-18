@@ -16,7 +16,7 @@ import reducers from '../reducers';
 const persistConfig = {
   key: 'root',
   storage: AsyncStorage,
-  blacklist: ['modal', 'chat'],
+  blacklist: ['modal', 'chat', 'nav', 'wifi'],
 };
 
 const rootReducer = combineReducers(reducers);

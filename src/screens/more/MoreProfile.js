@@ -257,7 +257,9 @@ function MoreProfile() {
                     <Text style={[fontStyles.fontSize20_Semibold]}>
                       {CAREER_TYPE[item]?.desc}
                     </Text>
-                    <SPSvgs.Ellipse width={6} height={6} />
+                    {index !== stats?.careerType?.length - 1 && (
+                      <SPSvgs.Ellipse width={6} height={6} />
+                    )}
                   </>
                 );
               })}
