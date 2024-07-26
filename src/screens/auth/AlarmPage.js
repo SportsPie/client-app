@@ -63,7 +63,6 @@ function AlarmPage() {
     setTimeout(() => {
       if (!isLast) {
         setPage(prevPage => prevPage + 1);
-        setRefreshing(true);
       }
     }, 0);
   };
@@ -90,7 +89,7 @@ function AlarmPage() {
 
   useFocusEffect(
     useCallback(() => {
-      if (refreshing) {
+      if (refreshing || (!refreshing && page > 1)) {
         getNotiList();
       }
     }, [page, refreshing]),
@@ -120,7 +119,7 @@ function AlarmPage() {
           keyExtractor={item => item?.notiIdx}
           renderItem={renderNotiItem}
           onRefresh={onRefresh}
-          refreshing={loading}
+          refreshing={refreshing}
           onEndReached={loadMoreProjects}
           onEndReachedThreshold={0.5}
           ListFooterComponent={renderFooter}

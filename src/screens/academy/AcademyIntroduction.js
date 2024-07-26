@@ -217,15 +217,6 @@ function AcademyIntroduction({ route }) {
       <SPHeader
         title="아카데미 소개"
         noLeftLogo
-        {...(isAdmin
-          ? {
-              rightBasicButton: SPIcons.icSetting,
-              onPressRightIcon: () =>
-                NavigationService.navigate(navName.academyManagement, {
-                  academyIdx,
-                }),
-            }
-          : {})}
         rightBasicAddButton={SPIcons.icOptionsVertical}
         onPressAddRightIcon={openModal}
       />
@@ -235,7 +226,11 @@ function AcademyIntroduction({ route }) {
         isAdmin={isAdmin}
         type={MODAL_MORE_TYPE.ACADEMY}
         idx={academyIdx}
-        adminButtons={[MODAL_MORE_BUTTONS.EDIT, MODAL_MORE_BUTTONS.SHARE]}
+        adminButtons={[
+          MODAL_MORE_BUTTONS.ACADEMY_MANAGEMENT,
+          MODAL_MORE_BUTTONS.EDIT,
+          MODAL_MORE_BUTTONS.SHARE,
+        ]}
         memberButtons={[
           MODAL_MORE_BUTTONS.REPORT,
           MODAL_MORE_BUTTONS.SHARE,

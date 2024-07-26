@@ -652,9 +652,14 @@ export const apiGetTournamentDetailForMember = tournamentIdx => {
   return api.get(`${API_TOURNAMENT}/${tournamentIdx}`);
 };
 
-// SPIC_IF_522 :: 대회 신청
+// SPIC_IF_523 :: 대회 신청
 export const apiApplyTournament = data => {
   return api.post(`${API_TOURNAMENT}/mng/apply`, data);
+};
+
+// SPIC_IF_524 :: 대회 신청 취소
+export const apiPatchCancelTournament = data => {
+  return api.patch(`${API_TOURNAMENT}/mng/cancel`, data);
 };
 
 // ----------------------------------------------------------
@@ -903,9 +908,25 @@ export const apiGetArticleList = data => {
   return api.get(`${API_MORE}/open/articles`, { params: data });
 };
 
-// SPIC_IF_911 :: 아티클 상세 조회
+// SPIC_IF_911 :: 아티클 상세 조회[비회원]
 export const apiGetArticleDetail = idx => {
   return api.get(`${API_MORE}/open/articles/${idx}`);
+};
+// SPIC_IF_912 :: 아티클 상세 조회[회원]
+export const apiGetArticleDetailForUser = idx => {
+  return api.get(`${API_MORE}/articles/${idx}`);
+};
+// SPIC_IF_913 :: 아티클 즐겨찾기 리스트 조회
+export const apiGetArticleBookmark = data => {
+  return api.get(`${API_MORE}/articles/bookmark`, { params: data });
+};
+// SPIC_IF_914 :: 아티클 즐겨찾기 추가
+export const apiPostArticleBookmark = idx => {
+  return api.post(`${API_MORE}/articles/bookmark/${idx}`);
+};
+// SPIC_IF_915 :: 아티클 즐겨찾기 제거
+export const apiDeleteArticleBookmark = idx => {
+  return api.delete(`${API_MORE}/articles/bookmark/${idx}`);
 };
 // SPIC_IF_920 :: 매칭 내역 리스트 조회
 export const apiGetMatches = data => {

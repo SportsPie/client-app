@@ -65,6 +65,7 @@ function MoreQuestion() {
       setIsLast(true);
       handleError(error);
     } finally {
+      setRefreshing(false);
       setLoading(false); // 로딩 완료 후 로딩 상태 false로 설정
     }
   };
@@ -107,8 +108,7 @@ function MoreQuestion() {
   }, []);
 
   useEffect(() => {
-    if (refreshing || (!refreshing && currentPage > 0)) {
-      setRefreshing(false);
+    if (refreshing || (!refreshing && currentPage > 1)) {
       getFaqData();
     }
   }, [currentPage, refreshing]);

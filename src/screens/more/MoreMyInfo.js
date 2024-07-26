@@ -1,6 +1,6 @@
 import React, { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { apiGetMain } from '../../api/RestAPI';
+import { apiGetAcademyDetail, apiGetMain } from '../../api/RestAPI';
 import { SPSvgs } from '../../assets/svg';
 import { LOGIN_TYPES } from '../../common/constants/loginTypes';
 import { MAIN_FOOT } from '../../common/constants/mainFoot';
@@ -26,7 +26,17 @@ function MoreMyInfo() {
       const { data } = await apiGetMain();
       if (data) {
         const info = data.data;
-        setMember(info.member || {});
+        let memberInfo = { ...info.member };
+        if (info.member?.academyIdx && info.member?.academyMember) {
+          const academyResponse = await apiGetAcademyDetail(
+            info.member.academyIdx,
+          );
+          memberInfo = {
+            ...memberInfo,
+            acdmyNm: academyResponse?.data?.data?.academy?.academyName,
+          };
+        }
+        setMember(memberInfo || {});
         setPoint(info.point || {});
         setStats(info.stats || {});
       }

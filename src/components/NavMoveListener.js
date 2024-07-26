@@ -6,6 +6,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { navSliceActions } from '../redux/reducers/navSlice';
 import { apiGetMyInfo } from '../api/RestAPI';
 import WalletUtils from '../utils/WalletUtils';
+import Utils from '../utils/Utils';
 
 const LinkType = {
   PLAYER_MANAGE: 'PLAYER_MANAGE', // 선수관리,
@@ -114,6 +115,7 @@ function NavMoveListener() {
           });
           break;
         default:
+          Utils.openOrMoveUrl(url);
           break;
       }
     } catch (error) {

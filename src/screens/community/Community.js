@@ -243,7 +243,6 @@ function Community({ route }) {
 
   useEffect(() => {
     if ((!isInit && refreshing) || (!refreshing && page > 1)) {
-      setRefreshing(false);
       setSearchedKeyword('');
       getFeedList();
     }
@@ -388,7 +387,14 @@ function Community({ route }) {
         )}
       </View>
     );
-  }, [renderSearchInput, feedList, loading, keyword, selectedFilter]);
+  }, [
+    renderSearchInput,
+    feedList,
+    loading,
+    keyword,
+    selectedFilter,
+    refreshing,
+  ]);
 
   return (
     <DismissKeyboard>

@@ -190,46 +190,47 @@ function FeedItem({ item, onDelete }) {
         {/*    {item?.cntReview} */}
         {/*  </Text> */}
         {/* </View> */}
-        <Modal
-          animationType="fade"
-          transparent
-          visible={modalShow}
-          onRequestClose={() => {
-            closeModal();
-          }}>
-          <TouchableOpacity
-            style={styles.overlay}
-            onPress={() => {
+        <View>
+          <Modal
+            animationType="fade"
+            transparent
+            visible={modalShow}
+            onRequestClose={() => {
               closeModal();
             }}>
-            <View style={styles.modalContainer}>
-              <TouchableOpacity
-                style={styles.button}
-                onPress={() => {
-                  setModalShow(false);
-                  setShowCommentModify(true);
-                  setEditCommentInput(item?.comment);
-                }}>
-                <View style={styles.modalBox}>
-                  <Image source={SPIcons.icEdit} />
-                  <Text style={styles.modalText}>수정하기</Text>
-                </View>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.button}
-                onPress={() => {
-                  setModalShow(false);
-                  removeChallengeVideoComment();
-                }}>
-                <View style={styles.modalBox}>
-                  <Image source={SPIcons.icDelete} />
-                  <Text style={styles.modalText}>삭제하기</Text>
-                </View>
-              </TouchableOpacity>
-            </View>
-          </TouchableOpacity>
-        </Modal>
-
+            <TouchableOpacity
+              style={styles.overlay}
+              onPress={() => {
+                closeModal();
+              }}>
+              <View style={styles.modalContainer}>
+                <TouchableOpacity
+                  style={styles.button}
+                  onPress={() => {
+                    setModalShow(false);
+                    setShowCommentModify(true);
+                    setEditCommentInput(item?.comment);
+                  }}>
+                  <View style={styles.modalBox}>
+                    <Image source={SPIcons.icEdit} />
+                    <Text style={styles.modalText}>수정하기</Text>
+                  </View>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.button}
+                  onPress={() => {
+                    setModalShow(false);
+                    removeChallengeVideoComment();
+                  }}>
+                  <View style={styles.modalBox}>
+                    <Image source={SPIcons.icDelete} />
+                    <Text style={styles.modalText}>삭제하기</Text>
+                  </View>
+                </TouchableOpacity>
+              </View>
+            </TouchableOpacity>
+          </Modal>
+        </View>
         <Pressable
           hitSlop={8}
           style={[

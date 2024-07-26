@@ -7,8 +7,6 @@ import fontStyles, { FONTS } from '../../styles/fontStyles';
 import SPIcons from '../../assets/icon';
 
 function MatchInfo({ matchInfo, soccerPlayer }) {
-  console.log('matchInfo 정보', matchInfo);
-  console.log('soccerPlayer 정보', soccerPlayer);
   return (
     <View
       style={[
@@ -135,7 +133,9 @@ function MatchInfo({ matchInfo, soccerPlayer }) {
         <View style={styles.dateWrapper}>
           <SPSvgs.Calendar width={18} height={18} fill={COLORS.darkBlue} />
           <Text style={styles.dateTextValue}>
-            {moment(matchInfo?.matchDate).format('YYYY년MM월DD일 HH:mm')}
+            {moment(`${matchInfo?.matchDate} ${matchInfo?.matchTime}`).format(
+              'YYYY년MM월DD일 A hh:mm',
+            )}
           </Text>
         </View>
 

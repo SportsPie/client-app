@@ -1,4 +1,11 @@
-import React, { memo, useCallback, useMemo, useState, useEffect } from 'react';
+import React, {
+  memo,
+  useCallback,
+  useMemo,
+  useState,
+  useEffect,
+  useRef,
+} from 'react';
 import {
   Image,
   Pressable,
@@ -23,10 +30,10 @@ import {
   apiGetMyInfo,
   apiGetTournamentDetail,
   apiGetTournamentDetailForMember,
+  apiPatchCancelTournament,
 } from '../../api/RestAPI';
 import { handleError } from '../../utils/HandleError';
 import { TOURNAMENT_STATE } from '../../common/constants/tournamentState';
-import { isAfter, isBefore } from 'date-fns';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import SPMoreModal, {
@@ -37,6 +44,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 function TournamentDetail({ route }) {
   const { isLogin, userIdx } = useSelector(selector => selector.auth);
+  const trlRef = useRef({ current: { disabled: false } });
   // --------------------------------------------------
   // [ State ]
   // --------------------------------------------------
@@ -45,6 +53,9 @@ function TournamentDetail({ route }) {
   const [tournamentInfo, setTournamentInfo] = useState({});
   const [tournamentStatus, setTournamentStatus] = useState({});
   const [showShareModal, setShowShareModal] = useState(false);
+  const [posterImageSize, setPosterImageSize] = useState({});
+  const [tournamentImageSize, setTournamentImageSize] = useState({});
+  const [refresh, setRefresh] = useState(false);
 
   // --------------------------------------------------
   // [ Api ]
@@ -60,9 +71,7 @@ function TournamentDetail({ route }) {
 
       if (data) {
         setTournamentInfo(data.data.data);
-        setTournamentStatus(
-          getTournamentState(data.data.data.openDate, data.data.data.closeDate),
-        );
+        setTournamentStatus(getTournamentState(data.data.data));
       }
     } catch (error) {
       handleError(error);
@@ -71,6 +80,8 @@ function TournamentDetail({ route }) {
 
   const applyTournamentDetail = async () => {
     try {
+      if (trlRef.current.disabled) return;
+      trlRef.current.disabled = true;
       const param = {
         trnIdx: tournamentIdx,
       };
@@ -85,6 +96,25 @@ function TournamentDetail({ route }) {
     } catch (error) {
       handleError(error);
     }
+    trlRef.current.disabled = false;
+  };
+
+  const cancelApplyTournament = async () => {
+    try {
+      if (tournamentInfo.isApply) {
+        if (trlRef.current.disabled) return;
+        trlRef.current.disabled = true;
+        const params = {
+          trnIdx: tournamentIdx,
+        };
+        const { data } = await apiPatchCancelTournament(params);
+        Utils.openModal({ title: '성공', body: '대회 신청이 취소되었습니다.' });
+        setRefresh(prev => !prev);
+      }
+    } catch (error) {
+      handleError(error);
+    }
+    trlRef.current.disabled = false;
   };
 
   const getMyInfo = async () => {
@@ -104,12 +134,11 @@ function TournamentDetail({ route }) {
   // --------------------------------------------------
   // [ Utils ]
   // --------------------------------------------------
-  const getTournamentState = (openDate, closeDate) => {
-    const now = new Date();
-    if (isBefore(now, new Date(openDate))) {
+  const getTournamentState = item => {
+    if (!item.isOpened && !item.isClosed && item.closeYn !== 'Y') {
       return TOURNAMENT_STATE.UPCOMING;
     }
-    if (isAfter(now, new Date(closeDate))) {
+    if ((item.isOpened && item.isClosed) || item.closeYn === 'Y') {
       return TOURNAMENT_STATE.CLOSED;
     }
     return TOURNAMENT_STATE.REGISTERING;
@@ -122,7 +151,7 @@ function TournamentDetail({ route }) {
     useCallback(() => {
       getMyInfo();
       getTournamentDetail();
-    }, []),
+    }, [refresh]),
   );
 
   const renderHeader = useMemo(() => {
@@ -145,12 +174,23 @@ function TournamentDetail({ route }) {
   const renderCompetitionInfo = useMemo(() => {
     return (
       <View>
-        {tournamentInfo.thumbUrl ? (
+        {tournamentInfo.posterUrl ? (
           <Image
-            source={{
-              uri: `${tournamentInfo.thumbUrl}`,
+            onLoad={event => {
+              const { width, height } = event.nativeEvent.source;
+              setPosterImageSize({ width, height });
             }}
-            style={styles.coverImage}
+            source={{
+              uri: `${tournamentInfo.posterUrl}`,
+            }}
+            style={[
+              styles.coverImage,
+              posterImageSize.width && posterImageSize.height
+                ? {
+                    aspectRatio: posterImageSize.width / posterImageSize.height,
+                  }
+                : { height: (SCREEN_HEIGHT * 480) / 800 },
+            ]}
           />
         ) : (
           ''
@@ -189,16 +229,23 @@ function TournamentDetail({ route }) {
           {tournamentInfo.trnNm ? tournamentInfo.trnNm : '-'}
         </Text>
 
-        {tournamentInfo.posterUrl ? (
+        {tournamentInfo.imageUrl ? (
           <Image
+            onLoad={event => {
+              const { width, height } = event.nativeEvent.source;
+              setTournamentImageSize({ width, height });
+            }}
             source={{
-              uri: `${tournamentInfo.posterUrl}`,
+              uri: `${tournamentInfo.imageUrl}`,
             }}
             style={[
               styles.coverImage,
-              {
-                height: (SCREEN_HEIGHT * 491) / 800,
-              },
+              tournamentImageSize.width && tournamentImageSize.height
+                ? {
+                    aspectRatio:
+                      tournamentImageSize.width / tournamentImageSize.height,
+                  }
+                : { height: (SCREEN_HEIGHT * 480) / 800 },
             ]}
           />
         ) : (
@@ -238,7 +285,7 @@ function TournamentDetail({ route }) {
         </View>
       </View>
     );
-  }, [tournamentInfo, tournamentStatus]);
+  }, [tournamentInfo, tournamentStatus, posterImageSize, tournamentImageSize]);
 
   const renderApplicationInfo = useMemo(() => {
     return (
@@ -352,15 +399,28 @@ function TournamentDetail({ route }) {
         {renderOtherInfo}
       </ScrollView>
 
-      {member?.academyAdmin &&
-        (tournamentStatus.code === TOURNAMENT_STATE.REGISTERING.code ||
-          tournamentInfo.isApply) && (
-          <PrimaryButton
-            buttonStyle={styles.submitButton}
-            text={renderSubmitButtonText}
-            onPress={handleRegister}
-          />
-        )}
+      <View style={styles.buttonWrap}>
+        {member?.academyAdmin &&
+          tournamentStatus.code === TOURNAMENT_STATE.REGISTERING.code &&
+          tournamentInfo.aprvState === 'WAIT' && (
+            <PrimaryButton
+              outlineButton
+              buttonStyle={styles.submitButton}
+              text="접수신청 취소"
+              onPress={cancelApplyTournament}
+            />
+          )}
+
+        {member?.academyAdmin &&
+          (tournamentStatus.code === TOURNAMENT_STATE.REGISTERING.code ||
+            tournamentInfo.isApply) && (
+            <PrimaryButton
+              buttonStyle={styles.submitButton}
+              text={renderSubmitButtonText}
+              onPress={handleRegister}
+            />
+          )}
+      </View>
 
       <SPMoreModal
         visible={showShareModal}
@@ -386,7 +446,6 @@ const styles = StyleSheet.create({
   },
   coverImage: {
     width: '100%',
-    height: (SCREEN_HEIGHT * 480) / 800,
   },
   statusWrapper: {
     flexDirection: 'row',
@@ -434,9 +493,13 @@ const styles = StyleSheet.create({
     letterSpacing: 0.203,
     flex: 1,
   },
+  buttonWrap: {
+    flexDirection: 'row',
+    paddingHorizontal: 16,
+    paddingVertical: 24,
+    gap: 16,
+  },
   submitButton: {
-    marginHorizontal: 16,
-    marginBottom: 24,
-    marginTop: 16,
+    flex: 1,
   },
 });

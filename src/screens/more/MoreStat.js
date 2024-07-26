@@ -1,6 +1,13 @@
 /* eslint-disable no-unsafe-optional-chaining */
 import { SCREEN_WIDTH } from '@gorhom/bottom-sheet';
-import React, { memo, useCallback, useEffect, useMemo, useState } from 'react';
+import React, {
+  Fragment,
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { apiGetMyStat } from '../../api/RestAPI';
 import { CAREER_TYPE } from '../../common/constants/careerType';
@@ -148,18 +155,20 @@ function MoreStat() {
                   const lastItem = index === stats?.careerType?.length - 1;
                   if (lastItem) {
                     return (
-                      <Text style={[fontStyles.fontSize20_Semibold]}>
+                      <Text
+                        key={index}
+                        style={[fontStyles.fontSize20_Semibold]}>
                         {CAREER_TYPE[item]?.desc}
                       </Text>
                     );
                   }
                   return (
-                    <>
+                    <Fragment key={index}>
                       <Text style={[fontStyles.fontSize20_Semibold]}>
                         {CAREER_TYPE[item]?.desc}
                       </Text>
                       <SPSvgs.Ellipse width={6} height={6} />
-                    </>
+                    </Fragment>
                   );
                 })}
               </View>

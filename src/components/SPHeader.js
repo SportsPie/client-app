@@ -97,6 +97,8 @@ export default function SPHeader({
     paddingBottom: 2,
     // marginLeft: isTitleCentered ? 0 : 16, // 조건에 따라 marginLeft 조정
     marginLeft: 8,
+    flexGrow: 1,
+    flexShrink: 1,
   };
 
   return (
@@ -339,6 +341,8 @@ const styles = StyleSheet.create({
     lineHeight: 32,
     letterSpacing: -0.552,
     textAlign: 'left',
+    flexShrink: 1,
+    flexGrow: 1,
   },
   leftButton: {
     height: 28,

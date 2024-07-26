@@ -33,6 +33,7 @@ function ChallengeLastComment({ videoIdx = '' }) {
   const [loading, setLoading] = useState(true);
   const [isCollapseText, setIsCollapseText] = useState(false);
   const [showExpandButton, setShowExpandButton] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   const handleLayout = event => {
     const { height } = event.nativeEvent.layout;
@@ -57,6 +58,7 @@ function ChallengeLastComment({ videoIdx = '' }) {
   // [ util ] 코멘트 새로고침
   const onRefresh = () => {
     // setIsLast(false);
+    setRefreshing(true);
     setTimeout(() => {
       setPage(prev => {
         return typeof prev === 'string' ? 1 : '1';
@@ -85,12 +87,12 @@ function ChallengeLastComment({ videoIdx = '' }) {
           setCommentList([...data.data.list]);
         }
       }
-
-      setLoading(false);
     } catch (error) {
       handleError(error);
-      setLoading(false);
     }
+
+    setLoading(false);
+    setRefreshing(false);
   };
 
   // [ useEffect ]
@@ -179,7 +181,7 @@ function ChallengeLastComment({ videoIdx = '' }) {
             : null
         }
         refreshControl={
-          <RefreshControl refreshing={false} onRefresh={onRefresh} />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
       />
     </View>

@@ -102,7 +102,7 @@ const GeoLocationUtils = {
     }
     return null;
   },
-  getLngLat: async address => {
+  getLngLat: async (address, hideError) => {
     const apiUrl =
       'https://naveropenapi.apigw.ntruss.com/map-geocode/v2/geocode';
     const headers = {
@@ -135,7 +135,9 @@ const GeoLocationUtils = {
         return { latitude, longitude, jibunAddress, city, gu, dong };
       }
     } catch (error) {
-      handleError(error);
+      if (!hideError) {
+        handleError(error);
+      }
     }
 
     return null;

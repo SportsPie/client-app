@@ -36,6 +36,7 @@ import MatchingScore from '../screens/matching/MatchingScore';
 import MatchingSelectAcademy from '../screens/matching/MatchingSelectAcademy';
 import MatchingSelectScorer from '../screens/matching/MatchingSelectScorer';
 import MoreArticle from '../screens/more/MoreArticle';
+import MoreArticleBookmarks from '../screens/more/MoreArticleBookmarks';
 import MoreArticleDetail from '../screens/more/MoreArticleDetail';
 import MoreCheckPhoneNo from '../screens/more/MoreCheckPhoneNo';
 import MoreCouponComplete from '../screens/more/MoreCouponComplete';
@@ -173,6 +174,7 @@ export default function Navigation() {
         },
         statusBarStyle: 'dark',
         statusBarColor: COLORS.white,
+        animation: 'none',
       }}>
       {isLogin ? (
         <>
@@ -411,6 +413,10 @@ export default function Navigation() {
         component={MoreCouponComplete}
       />
       <Stack.Screen name={navName.moreArticle} component={MoreArticle} />
+      <Stack.Screen
+        name={navName.moreArticleBookmarks}
+        component={MoreArticleBookmarks}
+      />
       <Stack.Screen
         name={navName.moreArticleDetail}
         component={MoreArticleDetail}

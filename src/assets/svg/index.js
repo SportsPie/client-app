@@ -81,6 +81,8 @@ import ReportFeed from './ReportFeed';
 import ReportUser from './ReportUser';
 import ChevronRight from './ChevronRight';
 import PieTraining from './PieTraining';
+import Bookmarks from './Bookmarks';
+import BookmarksOutline from './BookmarksOutline';
 
 export class SPSvgs {
   static SportPieLogo = SportPieLogo;
@@ -154,6 +156,8 @@ export class SPSvgs {
   static ReportUser = ReportUser;
   static ChevronRight = ChevronRight;
   static PieTraining = PieTraining;
+  static Bookmarks = Bookmarks;
+  static BookmarksOutline = BookmarksOutline;
 
   //Bottom tab
   static BottomTabHomeOutline = BottomTabHomeOutline;

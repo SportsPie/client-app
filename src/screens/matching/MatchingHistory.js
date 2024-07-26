@@ -49,6 +49,7 @@ function MatchingHistory({ route }) {
   const [hideMatchingItem, setHideMatchingItem] = useState(false);
   const [matchSatistics, setMatchSatistics] = useState({});
   const [openPublic, setOpenPublic] = useState(false);
+  const [autoApproval, setAutoApproval] = useState(false);
 
   // list
   const [size, setSize] = useState(30);
@@ -79,6 +80,7 @@ function MatchingHistory({ route }) {
     try {
       const { data } = await apiGetAcademyDetail(academyIdx);
       setOpenPublic(data.data?.academy?.openMatchPublicYn === IS_YN.Y);
+      setAutoApproval(data.data?.academy?.autoApprovalYn === IS_YN.Y);
     } catch (error) {
       handleError(error);
     }
@@ -134,10 +136,17 @@ function MatchingHistory({ route }) {
       trlRef.current.disabled = true;
       const params = { academyIdx };
       const { data } = await apiPostAcademyJoin(params);
-      Utils.openModal({
-        title: '가입신청 완료',
-        body: '가입 신청이 완료되었습니다.\n가입이 승인되면 알려두릴게요!',
-      });
+      if (autoApproval) {
+        Utils.openModal({
+          title: '가입 완료',
+          body: '가입이 완료되었습니다.',
+        });
+      } else {
+        Utils.openModal({
+          title: '가입신청 완료',
+          body: '가입 신청이 완료되었습니다.\n가입이 승인되면 알려두릴게요!',
+        });
+      }
       setRefreshUserInfo(prev => !prev);
     } catch (error) {
       handleError(error);
@@ -258,7 +267,11 @@ function MatchingHistory({ route }) {
       {/* 미소속 회원일 경우 아래 가입신청 버튼이 보여짐 */}
       {hideMatchingItem && !openPublic && index > 1 && (
         <View style={styles.blurWrapper}>
-          <BlurView blurType="light" blurAmount={5} style={styles.blurView}>
+          <BlurView
+            blurType="light"
+            blurAmount={5}
+            style={styles.blurView}
+            reducedTransparencyFallbackColor="white">
             <View style={styles.blurContainer}>
               <View>
                 {joinType !== JOIN_TYPE.ACADEMY_MEMBER &&

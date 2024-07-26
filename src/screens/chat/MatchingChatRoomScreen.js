@@ -3,6 +3,7 @@ import {
   Dimensions,
   Image,
   Platform,
+  Pressable,
   StyleSheet,
   Text,
   TextInput,
@@ -38,6 +39,11 @@ import { MODAL_CLOSE_EVENT } from '../../common/constants/modalCloseEvent';
 import SPImages from '../../assets/images';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Header from '../../components/header';
+import { SPSvgs } from '../../assets/svg';
+import SPMoreModal, {
+  MODAL_MORE_BUTTONS,
+  MODAL_MORE_TYPE,
+} from '../../components/SPMoreModal';
 
 function MatchingChatRoomScreen({ navigation }) {
   /**
@@ -72,6 +78,7 @@ function MatchingChatRoomScreen({ navigation }) {
   const [inputHeight, setInputHeight] = useState(40);
 
   // modal
+  const [modalVisible, setModalVisible] = useState(false);
   const [showCheckModal, setShowCheckModal] = useState(false);
 
   /**
@@ -258,6 +265,8 @@ function MatchingChatRoomScreen({ navigation }) {
   /**
    * function
    */
+  const openModal = () => setModalVisible(true);
+  const closeModal = () => setModalVisible(false);
 
   const openCheckModal = () => {
     setShowCheckModal(true);
@@ -329,6 +338,14 @@ function MatchingChatRoomScreen({ navigation }) {
           targetUserDetail.userNickName &&
           targetAcademyDetail.academyName &&
           `${targetUserDetail.userNickName}(${targetAcademyDetail.academyName})`
+        }
+        rightContent={
+          <Pressable onPress={openModal} style={{ padding: 10 }}>
+            <Image
+              source={SPIcons.icOptionsVertical}
+              style={{ height: 28, width: 28 }}
+            />
+          </Pressable>
         }
       />
       <SPKeyboardAvoidingView
@@ -486,6 +503,14 @@ function MatchingChatRoomScreen({ navigation }) {
           />
         </View>
       </SPKeyboardAvoidingView>
+      <SPMoreModal
+        visible={modalVisible}
+        onClose={closeModal}
+        type={MODAL_MORE_TYPE.CHAT}
+        idx={chatRoom?.targetAcademyIdx}
+        targetUserIdx={chatRoom?.targetUserIdx}
+        memberButtons={[MODAL_MORE_BUTTONS.REPORT]}
+      />
     </SafeAreaView>
   ) : (
     <Loading />

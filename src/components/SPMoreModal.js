@@ -43,9 +43,13 @@ export const MODAL_MORE_TYPE = {
   MASTER_VIDEO_COMMENT: 'MASTER_VIDEO_COMMENT', // "마스터 영상 댓글"
   CHALLENGE_VIDEO: 'CHALLENGE_VIDEO', // "챌린지 영상"
   CHALLENGE_VIDEO_COMMENT: 'CHALLENGE_VIDEO_COMMENT', // "챌린지 영상 댓글"
+
+  // 채팅
+  CHAT: 'CHAT',
 };
 
 export const MODAL_MORE_BUTTONS = {
+  ACADEMY_MANAGEMENT: 'ACADEMY_MANAGEMENT', // 아카데미 관리
   REPORT: 'REPORT', // 신고하기
   REMOVE: 'REMOVE', // 삭제하기
   SHARE: 'SHARE', // 공유하기
@@ -332,6 +336,25 @@ function SPMoreModal({
           <View style={styles.modalContainer}>
             {isAdmin && (
               <>
+                {adminButtons.includes(
+                  MODAL_MORE_BUTTONS.ACADEMY_MANAGEMENT,
+                ) && (
+                  <TouchableOpacity
+                    activeOpacity={ACTIVE_OPACITY}
+                    style={styles.button}
+                    onPress={() => {
+                      if (onClose) onClose();
+                      NavigationService.navigate(navName.academyManagement, {
+                        academyIdx: idx,
+                      });
+                    }}>
+                    <View style={styles.modalBox}>
+                      <Image source={SPIcons.icSetting} />
+                      <Text style={styles.modalText}>아카데미 관리</Text>
+                    </View>
+                  </TouchableOpacity>
+                )}
+
                 {adminButtons.includes(MODAL_MORE_BUTTONS.EDIT) && (
                   <TouchableOpacity
                     activeOpacity={ACTIVE_OPACITY}
@@ -439,7 +462,8 @@ function SPMoreModal({
                   )}
                 {isLogin &&
                   memberButtons.includes(MODAL_MORE_BUTTONS.REPORT) &&
-                  type === MODAL_MORE_TYPE.ACADEMY && (
+                  (type === MODAL_MORE_TYPE.ACADEMY ||
+                    type === MODAL_MORE_TYPE.CHAT) && (
                     <TouchableOpacity
                       activeOpacity={ACTIVE_OPACITY}
                       style={styles.button}
@@ -449,13 +473,18 @@ function SPMoreModal({
                       }}>
                       <View style={styles.modalBox}>
                         <Image source={SPIcons.icWarning} />
-                        <Text style={styles.modalText}>신고하기</Text>
+                        <Text style={styles.modalText}>
+                          {type === MODAL_MORE_TYPE.CHAT
+                            ? '아카데미 신고하기'
+                            : '신고하기'}
+                        </Text>
                       </View>
                     </TouchableOpacity>
                   )}
                 {isLogin &&
                   memberButtons.includes(MODAL_MORE_BUTTONS.REPORT) &&
-                  type !== MODAL_MORE_TYPE.ACADEMY && (
+                  type !== MODAL_MORE_TYPE.ACADEMY &&
+                  type !== MODAL_MORE_TYPE.CHAT && (
                     <TouchableOpacity
                       activeOpacity={ACTIVE_OPACITY}
                       style={styles.button}
@@ -472,7 +501,8 @@ function SPMoreModal({
                   )}
                 {isLogin &&
                   memberButtons.includes(MODAL_MORE_BUTTONS.REPORT) &&
-                  type !== MODAL_MORE_TYPE.ACADEMY && (
+                  type !== MODAL_MORE_TYPE.ACADEMY &&
+                  type !== MODAL_MORE_TYPE.CHAT && (
                     <TouchableOpacity
                       activeOpacity={ACTIVE_OPACITY}
                       style={styles.button}

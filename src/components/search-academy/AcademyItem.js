@@ -6,6 +6,7 @@ import NavigationService from '../../navigation/NavigationService';
 import { COLORS } from '../../styles/colors';
 import fontStyles from '../../styles/fontStyles';
 import Utils from '../../utils/Utils';
+import SPIcons from '../../assets/icon';
 
 function AcademyItem({ item, containerStyle }) {
   return (
@@ -24,7 +25,17 @@ function AcademyItem({ item, containerStyle }) {
       />
       <View style={{ flex: 1 }}>
         <View style={styles.academyNameWrapper}>
-          <SPSvgs.Academic />
+          {/* <SPSvgs.Academic /> */}
+
+          {item?.logoPath ? (
+            <View style={styles.academyImg}>
+              <Image source={{ uri: item.logoPath }} style={styles.logo} />
+            </View>
+          ) : (
+            <View style={styles.academyImg}>
+              <Image source={SPIcons.icMyAcademy} style={styles.logo} />
+            </View>
+          )}
           <Text numberOfLines={1} style={styles.academyName}>
             {item?.academyName}
           </Text>
@@ -94,7 +105,7 @@ const styles = StyleSheet.create({
     ...fontStyles.fontSize16_Semibold,
     color: COLORS.labelNormal,
     letterSpacing: 0.091,
-    lineHeight: 24,
+    lineHeight: 23,
     flex: 1,
   },
   addressText: {
@@ -122,5 +133,16 @@ const styles = StyleSheet.create({
     marginTop: 8,
     color: COLORS.labelAlternative,
     letterSpacing: 0.302,
+  },
+  academyImg: {
+    width: 23,
+    height: 23,
+    backgroundColor: '#ADAFC9',
+    borderRadius: 5,
+  },
+  logo: {
+    width: 23,
+    height: 23,
+    borderRadius: 5,
   },
 });

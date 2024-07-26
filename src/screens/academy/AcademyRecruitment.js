@@ -1,17 +1,23 @@
 import { useFocusEffect } from '@react-navigation/native';
 import moment from 'moment';
-import React, { memo, useCallback, useRef, useState } from 'react';
+import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
+  Image,
+  Modal,
+  Pressable,
   RefreshControl,
+  ScrollView,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
+  apiCityList,
   apiGetAcademyConfigMngRecruits,
+  apiGuList,
   apiPostAcademyOpenRecruit,
 } from '../../api/RestAPI';
 import { MATCH_GENDER } from '../../common/constants/matchGender';
@@ -23,6 +29,8 @@ import NavigationService from '../../navigation/NavigationService';
 import { handleError } from '../../utils/HandleError';
 import { IS_YN } from '../../common/constants/isYN';
 import fontStyles from '../../styles/fontStyles';
+import SPIcons from '../../assets/icon';
+import GeoLocationUtils from '../../utils/GeoLocationUtils';
 
 function AcademyRecruitment({ route }) {
   /**
@@ -35,6 +43,12 @@ function AcademyRecruitment({ route }) {
   const [rejectModalVisible, setRejectModalVisible] = useState(false);
   const [confirmModalVisible, setConfirmModalVisible] = useState(false);
   const [selectedJoinIdx, setSelectedJoinIdx] = useState();
+  const [cityListVisible, setCityListVisible] = useState(false);
+  const [guListVisible, setGuListVisible] = useState(false);
+
+  const [cityList, setCityList] = useState([{ id: 0, label: '전체' }]);
+  const [guList, setGuList] = useState([{ id: 0, label: '전체' }]);
+  const [itemsToDisplay, setItemsToDisplay] = useState([]);
 
   const flatListRef = useRef();
   const [page, setPage] = useState(1);
@@ -42,8 +56,10 @@ function AcademyRecruitment({ route }) {
   const [loading, setLoading] = useState(true);
   const [totalCnt, setTotalCnt] = useState(0);
   const [isLast, setIsLast] = useState(false);
-  const [refreshing, setRefreshing] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [academyRecruitList, setAcademyRecruitList] = useState([]);
+  const [selectedCity, setSelectedCity] = useState(null);
+  const [selectedGu, setSelectedGu] = useState(null);
 
   // 'N' 항목들을 먼저 정렬
   const closeYNItemsN = academyRecruitList.filter(item => item.closeYn === 'N');
@@ -76,6 +92,8 @@ function AcademyRecruitment({ route }) {
       let data = null;
       switch (pageType) {
         case RECRUIT_PAGE_TYPE.ALL: {
+          params.addrCity = selectedCity;
+          params.addrGu = selectedGu;
           const response = await apiPostAcademyOpenRecruit(params);
           data = response.data;
           break;
@@ -108,6 +126,47 @@ function AcademyRecruitment({ route }) {
     setLoading(false);
   };
 
+  const getCityList = async () => {
+    try {
+      const { data } = await apiCityList();
+      if (data) {
+        const transformedData = [
+          { id: 0, code: '', label: '전체' },
+          ...data.data.map((city, index) => ({
+            id: index + 1,
+            code: city,
+            label: city,
+          })),
+        ];
+        setCityList(transformedData);
+      }
+    } catch (error) {
+      handleError(error);
+    }
+  };
+
+  const getGuList = async city => {
+    try {
+      if (!city) {
+        return false;
+      }
+      const { data } = await apiGuList(city);
+      if (data) {
+        const transformedData = [
+          { id: 0, code: '', label: '전체' },
+          ...data.data.map((gu, index) => ({
+            id: index + 1,
+            code: gu,
+            label: gu,
+          })),
+        ];
+        setGuList(transformedData);
+      }
+    } catch (error) {
+      handleError(error);
+    }
+  };
+
   /**
    * function
    */
@@ -124,6 +183,19 @@ function AcademyRecruitment({ route }) {
         <Text style={styles.recruitingText}>모집중</Text>
       </View>
     );
+  };
+
+  const handleSelectCity = city => {
+    setSelectedGu(null);
+    setSelectedCity(city);
+    setCityListVisible(false);
+    onRefresh();
+  };
+
+  const handleSelectGu = gu => {
+    setSelectedGu(gu);
+    setGuListVisible(false);
+    onRefresh();
   };
 
   const loadMoreProjects = () => {
@@ -145,12 +217,42 @@ function AcademyRecruitment({ route }) {
     setRefreshing(true);
   };
 
+  const getLocation = async () => {
+    try {
+      const { latitude, longitude } = await GeoLocationUtils.getLocation(false);
+      const resultAddr = await GeoLocationUtils.getAddress({
+        latitude,
+        longitude,
+      });
+
+      if (resultAddr) {
+        const { city: addrCity, gu: addrGu } = resultAddr;
+        setSelectedCity(addrCity ?? '');
+        setSelectedGu(addrGu ?? '');
+      }
+    } catch (error) {
+      handleError(error);
+    }
+  };
+
+  const onFocus = async () => {
+    try {
+      if (pageType === RECRUIT_PAGE_TYPE.ALL) {
+        await getLocation();
+        await getCityList();
+      }
+      onRefresh();
+    } catch (error) {
+      handleError(error);
+    }
+  };
+
   /**
    * useEffect
    */
   useFocusEffect(
     useCallback(() => {
-      onRefresh();
+      onFocus();
       return () => {
         setPage(1);
         setRefreshing(true);
@@ -166,12 +268,67 @@ function AcademyRecruitment({ route }) {
     }, [page, refreshing]),
   );
 
+  useEffect(() => {
+    if (pageType === RECRUIT_PAGE_TYPE.ALL && selectedCity) {
+      getGuList(selectedCity);
+    }
+  }, [selectedCity]);
+
   return (
     <SafeAreaView style={styles.container}>
       <Header title="아카데미 회원 모집" />
 
       <View style={styles.recruitmentContainer}>
         <View style={{ flex: 1, paddingHorizontal: 16, paddingVertical: 24 }}>
+          {pageType === RECRUIT_PAGE_TYPE.ALL && (
+            <View style={{ flexDirection: 'column', paddingBottom: 16 }}>
+              <View style={styles.dropdownBtn}>
+                <Pressable
+                  hitSlop={{
+                    top: 16,
+                    bottom: 16,
+                    left: 2,
+                    right: 2,
+                  }}
+                  style={styles.button}
+                  onPress={() => {
+                    setItemsToDisplay(cityList);
+                    setCityListVisible(true);
+                  }}>
+                  <Text style={styles.dropdownTitle}>
+                    {selectedCity ? selectedCity : '전체'}
+                  </Text>
+                  <Image
+                    source={SPIcons.icArrowDown}
+                    style={styles.dropdownIcon}
+                  />
+                </Pressable>
+                {selectedCity !== '세종특별자치시' && selectedCity && (
+                  <Pressable
+                    hitSlop={{
+                      top: 16,
+                      bottom: 16,
+                      left: 2,
+                      right: 2,
+                    }}
+                    style={styles.button}
+                    onPress={() => {
+                      setItemsToDisplay(guList);
+                      setGuListVisible(true);
+                    }}>
+                    <Text style={styles.dropdownTitle}>
+                      {selectedGu ? selectedGu : '전체'}
+                    </Text>
+                    <Image
+                      source={SPIcons.icArrowDown}
+                      style={styles.dropdownIcon}
+                    />
+                  </Pressable>
+                )}
+              </View>
+            </View>
+          )}
+
           {academyRecruitList && academyRecruitList.length > 0 ? (
             <FlatList
               ref={flatListRef}
@@ -205,6 +362,12 @@ function AcademyRecruitment({ route }) {
                       {
                         borderTopWidth: index > 0 ? 1 : 0,
                         borderTopColor: 'rgba(135, 141, 150, 0.22)',
+                        paddingTop:
+                          pageType === RECRUIT_PAGE_TYPE.ALL
+                            ? index > 0
+                              ? 16
+                              : 0
+                            : 16,
                       },
                     ]}>
                     <View
@@ -263,6 +426,76 @@ function AcademyRecruitment({ route }) {
           )}
         </View>
       </View>
+      <Modal
+        animationType="slide"
+        transparent
+        visible={cityListVisible}
+        onRequestClose={() => setCityListVisible(false)}>
+        <TouchableOpacity
+          style={{
+            flex: 1,
+            justifyContent: 'flex-end',
+            alignItems: 'center',
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            padding: 16,
+          }}
+          onPress={() => setCityListVisible(false)}>
+          <View
+            style={{
+              width: '100%',
+              height: '50%',
+              backgroundColor: '#fff',
+              padding: 16,
+              borderRadius: 16,
+            }}>
+            <ScrollView showsVerticalScrollIndicator={false}>
+              {itemsToDisplay.map((item, index) => (
+                <TouchableOpacity
+                  /* eslint-disable-next-line react/no-array-index-key */
+                  key={index}
+                  onPress={() => handleSelectCity(item.code)}>
+                  <Text style={styles.modalText}>{item.label}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+      {/* 구 선택 드롭다운 */}
+      <Modal
+        animationType="slide"
+        transparent
+        visible={guListVisible}
+        onRequestClose={() => setGuListVisible(false)}>
+        <TouchableOpacity
+          style={{
+            flex: 1,
+            justifyContent: 'flex-end',
+            alignItems: 'center',
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            padding: 16,
+          }}
+          onPress={() => setGuListVisible(false)}>
+          <View
+            style={{
+              width: '100%',
+              height: '50%',
+              backgroundColor: '#fff',
+              padding: 16,
+              borderRadius: 16,
+            }}>
+            <ScrollView showsVerticalScrollIndicator={false}>
+              {itemsToDisplay.map((item, index) => (
+                <TouchableOpacity
+                  key={index}
+                  onPress={() => handleSelectGu(item.code)}>
+                  <Text style={styles.modalText}>{item.label}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -412,5 +645,51 @@ const styles = {
     lineHeight: 18,
     letterSpacing: 0.252,
     textAlign: 'center',
+  },
+  dropdownBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  button: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  dropdownTitle: {
+    fontSize: 14,
+    fontWeight: 500,
+    color: '#1A1C1E',
+    lineHeight: 16,
+    letterSpacing: 0.302,
+  },
+  dropdownIcon: {
+    width: 16,
+    height: 16,
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#FFF',
+  },
+  dropdown: {
+    width: '100%',
+    backgroundColor: 'white',
+    maxHeight: 200,
+  },
+  item: {
+    padding: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ccc',
+  },
+  modalText: {
+    fontSize: 16,
+    fontWeight: 500,
+    color: '#1A1C1E',
+    lineHeight: 24,
+    letterSpacing: 0.091,
+    textAlign: 'center',
+    paddingVertical: 16,
   },
 };

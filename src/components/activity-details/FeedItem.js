@@ -292,6 +292,7 @@ function FeedItem({ item, onDelete }) {
             style={{
               ...fontStyles.fontSize14_Regular,
               textAlign: 'right',
+              paddingHorizontal: 16,
             }}>
             {Utils.changeNumberComma(editCommentInput.length)}/1,000
           </Text>

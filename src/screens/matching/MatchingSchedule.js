@@ -137,8 +137,12 @@ function MatchingSchedule({ route }) {
   const [lon, setLon] = useState();
   const [init, setInit] = useState(false);
   const [page, setPage] = useState(1);
+  const [tournamentPage, setTournamentPage] = useState(1);
+  const [playgroundPage, setPlaygroundPage] = useState(1);
+  const [tournamentIsLast, setTournamentIsLast] = useState(false);
+  const [playgroundIsLast, setPlaygroundIsLast] = useState(false);
   const [member, setMember] = useState({});
-  const [totalCnt, setTotalCnt] = useState();
+  const [playgroundTotalCnt, setPlaygroundTotalCnt] = useState();
   const [isLast, setIsLast] = useState(false);
   const [refreshing, setRefreshing] = useState(true);
   const [activeTab, setActiveTab] = useState('매칭'); // 매칭 , 대회 , 구장
@@ -211,12 +215,11 @@ function MatchingSchedule({ route }) {
     return format(date, 'MMMM do EEEE', { locale: ko });
   };
 
-  const getTournamentState = (openDate, closeDate) => {
-    const now = new Date();
-    if (isBefore(now, new Date(openDate))) {
+  const getTournamentState = item => {
+    if (!item.isOpened && !item.isClosed && item.closeYn !== 'Y') {
       return TOURNAMENT_STATE.UPCOMING;
     }
-    if (isAfter(now, new Date(closeDate))) {
+    if ((item.isOpened && item.isClosed) || item.closeYn === 'Y') {
       return TOURNAMENT_STATE.CLOSED;
     }
     return TOURNAMENT_STATE.REGISTERING;
@@ -285,8 +288,12 @@ function MatchingSchedule({ route }) {
 
   const onRefresh = async () => {
     setIsLast(false);
-    setTotalCnt();
+    setTournamentIsLast(false);
+    setPlaygroundIsLast(false);
+    setPlaygroundTotalCnt();
     setPage(1);
+    setTournamentPage(1);
+    setPlaygroundPage(1);
     setRefreshing(true);
   };
 
@@ -421,7 +428,7 @@ function MatchingSchedule({ route }) {
       const { data } = await apiGetMatchList(param);
 
       if (data) {
-        setTotalCnt(data.data.totalCnt);
+        // setTotalCnt(data.data.totalCnt);
         setIsLast(data.data.isLast);
         setSelectedDates(
           data.data.list ? data.data.list.map(item => item.matchDate) : [],
@@ -445,16 +452,16 @@ function MatchingSchedule({ route }) {
   const getTournamentList = async () => {
     try {
       const param = {
-        size,
-        page,
+        size: 30,
+        page: tournamentPage,
         searchDate: selectedDate,
       };
 
       const { data } = await apiGetTournamentList(param);
 
       if (data) {
-        setTotalCnt(data.data.totalCnt);
-        setIsLast(data.data.isLast);
+        // setTotalCnt(data.data.totalCnt);
+        setTournamentIsLast(data.data.isLast);
 
         // 날짜 포맷팅
         const formattedList = data.data.list.map(item => ({
@@ -462,10 +469,10 @@ function MatchingSchedule({ route }) {
           formattedOpenDate: formatTournamentDate(item.openDate),
           formattedStartDate: formatTournamentDate(item.startDate),
           formattedEndDate: formatTournamentDate(item.endDate),
-          state: getTournamentState(item.openDate, item.closeDate),
+          state: getTournamentState(item),
         }));
 
-        if (page === 1) {
+        if (tournamentPage === 1) {
           setTournamentList(formattedList);
         } else {
           setTournamentList(prev => [...prev, ...formattedList]);
@@ -488,8 +495,8 @@ function MatchingSchedule({ route }) {
   const getPlaygroundList = async () => {
     try {
       const param = {
-        size,
-        page,
+        size: 30,
+        page: playgroundPage,
         addrCity: selectedCity,
         addrGu: selectedGu,
         latitude: lat,
@@ -499,9 +506,9 @@ function MatchingSchedule({ route }) {
       const { data } = await apiGetPlaygroundList(param);
 
       if (data) {
-        setTotalCnt(data.data.totalCnt);
-        setIsLast(data.data.isLast);
-        if (page === 1) {
+        setPlaygroundTotalCnt(data.data.totalCnt);
+        setPlaygroundIsLast(data.data.isLast);
+        if (playgroundPage === 1) {
           setPlaygroundList(data.data.list);
         } else {
           setPlaygroundList(prev => [...prev, ...data.data.list]);
@@ -560,6 +567,30 @@ function MatchingSchedule({ route }) {
     setFilteredMatchList(filteredData);
   };
 
+  const loadMoreProjects = () => {
+    setTimeout(() => {
+      switch (activeTab) {
+        case '매칭':
+          if (!isLast) {
+            setPage(prevPage => prevPage + 1);
+          }
+          break;
+        case '대회':
+          if (!tournamentIsLast) {
+            setTournamentPage(prevPage => prevPage + 1);
+          }
+          break;
+        case '구장':
+          if (!playgroundIsLast) {
+            setPlaygroundPage(prevPage => prevPage + 1);
+          }
+          break;
+        default:
+          break;
+      }
+    }, 0);
+  };
+
   // --------------------------------------------------
   // [ UseEffect ]
   // --------------------------------------------------
@@ -604,16 +635,23 @@ function MatchingSchedule({ route }) {
   ]);
 
   useEffect(() => {
-    if (activeTab === '구장' && (refreshing || init)) {
+    if (
+      activeTab === '구장' &&
+      (refreshing || init || (!refreshing && playgroundPage > 1))
+    ) {
       getPlaygroundList();
     }
-  }, [page, selectedCity, selectedGu, activeTab, refreshing, init]);
+  }, [playgroundPage, activeTab, refreshing, init]);
 
   useEffect(() => {
-    if (activeTab === '대회' && selectedDate && (refreshing || init)) {
+    if (
+      activeTab === '대회' &&
+      selectedDate &&
+      (refreshing || init || (!refreshing && tournamentPage > 1))
+    ) {
       getTournamentList();
     }
-  }, [page, selectedDate, activeTab, refreshing, init]);
+  }, [tournamentPage, activeTab, refreshing, init]);
 
   useEffect(() => {
     if (selectedCity) {
@@ -624,6 +662,10 @@ function MatchingSchedule({ route }) {
   useEffect(() => {
     handleFilterMatchList();
   }, [matchList, selectedDate]);
+
+  useEffect(() => {
+    onRefresh();
+  }, [selectedDate, selectedCity, selectedGu]);
 
   const listCalendarHeader = () => {
     const calendarTheme = {
@@ -889,6 +931,7 @@ function MatchingSchedule({ route }) {
                   ref={flatListRef}
                   contentContainerStyle={{ gap: 12 }}
                   showsVerticalScrollIndicator={false}
+                  onEndReached={loadMoreProjects}
                   refreshControl={
                     <RefreshControl
                       refreshing={refreshing}
@@ -958,7 +1001,7 @@ function MatchingSchedule({ route }) {
               </View>
               {/* 구장 리스트 */}
               <View style={styles.playgroundCountBox}>
-                <Text style={styles.playgroundCount}>{totalCnt}</Text>
+                <Text style={styles.playgroundCount}>{playgroundTotalCnt}</Text>
                 <Text style={styles.playgroundCountText}>
                   개의 구장이 있어요
                 </Text>
@@ -969,6 +1012,7 @@ function MatchingSchedule({ route }) {
                   data={playgroundList}
                   contentContainerStyle={{ gap: 12 }}
                   showsVerticalScrollIndicator={false}
+                  onEndReached={loadMoreProjects}
                   refreshControl={
                     <RefreshControl
                       refreshing={refreshing}
@@ -1008,8 +1052,11 @@ function MatchingSchedule({ route }) {
               borderRadius: 16,
             }}>
             <ScrollView showsVerticalScrollIndicator={false}>
-              {itemsToDisplay.map(item => (
-                <TouchableOpacity onPress={() => handleSelectCity(item.code)}>
+              {itemsToDisplay.map((item, index) => (
+                <TouchableOpacity
+                  /* eslint-disable-next-line react/no-array-index-key */
+                  key={index}
+                  onPress={() => handleSelectCity(item.code)}>
                   <Text style={styles.modalText}>{item.label}</Text>
                 </TouchableOpacity>
               ))}
@@ -1041,8 +1088,10 @@ function MatchingSchedule({ route }) {
               borderRadius: 16,
             }}>
             <ScrollView showsVerticalScrollIndicator={false}>
-              {itemsToDisplay.map(item => (
-                <TouchableOpacity onPress={() => handleSelectGu(item.code)}>
+              {itemsToDisplay.map((item, index) => (
+                <TouchableOpacity
+                  key={index}
+                  onPress={() => handleSelectGu(item.code)}>
                   <Text style={styles.modalText}>{item.label}</Text>
                 </TouchableOpacity>
               ))}
@@ -1114,6 +1163,7 @@ function MatchingSchedule({ route }) {
 
                 return (
                   <TouchableOpacity
+                    key={index}
                     onPress={() => handleMonthPress(monthIndex)}
                     style={[
                       styles.monthContainer,
@@ -1364,10 +1414,12 @@ function MatchingBox({ item }) {
 
 // 대회 컴포넌트
 function TournamentBox({ item }) {
-  const { titleBoxStyle, titleTextStyle } = getStylesForTitle(item.state.code);
+  const { titleBoxStyle, titleTextStyle } = getStylesForTitle(
+    item?.state?.code,
+  );
   const gradientColors =
-    item.state.code === TOURNAMENT_STATE.REGISTERING.code ||
-    item.state.code === TOURNAMENT_STATE.CLOSED.code
+    item?.state?.code === TOURNAMENT_STATE.REGISTERING.code ||
+    item?.state?.code === TOURNAMENT_STATE.CLOSED.code
       ? ['transparent', 'rgba(0,0,0,0.35)']
       : ['transparent', 'rgba(0,0,0,1)']; // 조건에 따라 그라디언트 색상 변경
   const { width, height } = useWindowDimensions();
@@ -1391,14 +1443,14 @@ function TournamentBox({ item }) {
             <LinearGradient colors={gradientColors} style={styles.gradient}>
               <View style={[styles.matchTypeBox, titleBoxStyle]}>
                 <Text style={[styles.matchType, titleTextStyle]}>
-                  {item.state.code === TOURNAMENT_STATE.UPCOMING.code
+                  {item?.state?.code === TOURNAMENT_STATE.UPCOMING.code
                     ? `${item.formattedOpenDate} 접수`
-                    : item.state.desc}
+                    : item?.state?.desc}
                 </Text>
               </View>
               {!(
-                item.state.code === TOURNAMENT_STATE.REGISTERING.code ||
-                item.state.code === TOURNAMENT_STATE.CLOSED.code
+                item?.state?.code === TOURNAMENT_STATE.REGISTERING.code ||
+                item?.state?.code === TOURNAMENT_STATE.CLOSED.code
               ) && (
                 <View style={styles.comingSoonBox}>
                   <Image source={SPIcons.icClock} />
@@ -1654,7 +1706,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   dropdownTitle: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: 500,
     color: '#1A1C1E',
     lineHeight: 16,

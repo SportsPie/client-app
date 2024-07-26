@@ -550,7 +550,7 @@ function CommunityDetails({
             autoCapitalize="none"
             placeholderTextColor="rgba(46, 49, 53, 0.60)"
             multiline
-            textAlignVertical="top"
+            textAlignVertical="center"
             retrunKeyType="next"
           />
           <View
@@ -829,12 +829,14 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   input: {
+    padding: 0,
+    margin: 0,
     ...fontStyles.fontSize14_Medium,
     flex: 1,
     letterSpacing: 0.2,
     color: COLORS.labelNormal,
-    top: 4,
     maxHeight: 20 * 4,
+    lineHeight: 14,
   },
   submitCommentButton: {
     backgroundColor: COLORS.orange,

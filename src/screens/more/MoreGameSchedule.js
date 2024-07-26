@@ -12,7 +12,7 @@ import { handleError } from '../../utils/HandleError';
 function MoreGameSchedule() {
   const [matches, setMatches] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const [refreshing, setRefreshing] = useState(false);
+  const [refreshing, setRefreshing] = useState(true);
   const [loading, setLoading] = useState(true);
   const [isLast, setIsLast] = useState(false);
   const flatListRef = useRef();
@@ -31,7 +31,7 @@ function MoreGameSchedule() {
     };
     try {
       const { data } = await apiGetMatches(params);
-
+      console.log(data.data.list);
       if (Array.isArray(data.data.list)) {
         const newList = data.data.list;
         setIsLast(data.data.isLast);
@@ -42,29 +42,26 @@ function MoreGameSchedule() {
     } catch (error) {
       handleError(error);
     } finally {
+      setRefreshing(false);
       setLoading(false); // 데이터 가져오기 완료 후 로딩 상태 false로 설정
     }
   };
 
   const onRefresh = useCallback(async () => {
+    setLoading(true);
     setIsLast(false);
-    setRefreshing(true);
     setCurrentPage(1);
     setMatches([]);
-    await getMatchInfo();
-    setRefreshing(false);
+    setRefreshing(true);
   }, []);
 
   useFocusEffect(
     useCallback(() => {
-      setCurrentPage(1);
-      getMatchInfo();
-    }, []),
+      if (refreshing || (!refreshing && currentPage > 1)) {
+        getMatchInfo();
+      }
+    }, [currentPage, refreshing]),
   );
-
-  useEffect(() => {
-    getMatchInfo();
-  }, [currentPage]);
 
   const renderMatchesItem = useCallback(
     ({ item }) => {

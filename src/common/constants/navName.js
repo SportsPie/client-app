@@ -62,8 +62,7 @@ const authPage = {
   moreStatModify: 'moreStatModify',
   moreCouponRegister: 'moreCouponRegister',
   moreCouponComplete: 'moreCouponComplete',
-  moreArticle: 'moreArticle',
-  moreArticleDetail: 'moreArticleDetail',
+  moreArticleBookmarks: 'moreArticleBookmarks',
   moreGameSchedule: 'moreGameSchedule',
   moreMatchDetail: 'moreMatchDetail',
   moreActiveHistory: 'moreActiveHistory',
@@ -94,6 +93,8 @@ const authPage = {
   moreNotice: 'moreNotice',
   moreNoticeDetail: 'moreNoticeDetail',
   unsubscribe: 'Unsubscribe',
+  moreArticle: 'moreArticle',
+  moreArticleDetail: 'moreArticleDetail',
 
   // 아래는 테스트용
   signedTestPage: 'signedTestPage',

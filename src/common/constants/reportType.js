@@ -1,6 +1,7 @@
 export const REPORT_TYPE = {
   ACADEMY: 'ACADEMY', // "아카데미 신고",
   USER: 'USER', // "회원 신고",
+  CHAT: 'CHAT', // "채팅 신고",
   VIDEO: 'VIDEO', // "영상 게시글 신고",
   VIDEO_COMMENT: 'VIDEO_COMMENT', // "영상 댓글 신고",
   FEED: 'FEED', // "커뮤니티 게시글 신고",

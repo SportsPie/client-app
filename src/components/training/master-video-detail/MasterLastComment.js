@@ -30,6 +30,7 @@ function MasterLastComment({ videoIdx = '' }) {
   const [totalCount, setTotalCount] = useState(0);
   const [isLast, setIsLast] = useState(true);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
   // [ util ] 코멘트 페이징
   const getNextPage = () => {
@@ -43,6 +44,7 @@ function MasterLastComment({ videoIdx = '' }) {
   // [ util ] 코멘트 새로고침
   const onRefresh = () => {
     // setIsLast(false);
+    setRefreshing(true);
     setTimeout(() => {
       setPage(prev => {
         return typeof prev === 'string' ? 1 : '1';
@@ -66,17 +68,16 @@ function MasterLastComment({ videoIdx = '' }) {
         setTotalCount(data.data.totalCnt);
 
         if (+page > 1) {
-          setCommentList([...commentList, ...data.data.list]);
+          setCommentList(prev => [...prev, ...data.data.list]);
         } else {
           setCommentList([...data.data.list]);
         }
       }
-
-      setLoading(false);
     } catch (error) {
       handleError(error);
-      setLoading(false);
     }
+    setLoading(false);
+    setRefreshing(false);
   };
 
   // [ useEffect ]
@@ -146,7 +147,7 @@ function MasterLastComment({ videoIdx = '' }) {
             : null
         }
         refreshControl={
-          <RefreshControl refreshing={false} onRefresh={onRefresh} />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
       />
     </View>

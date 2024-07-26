@@ -48,6 +48,7 @@ function MoreInquiry() {
       setIsLast(true);
       handleError(error);
     } finally {
+      setRefreshing(false);
       setLoading(false);
     }
   };
@@ -93,8 +94,7 @@ function MoreInquiry() {
     }, []),
   );
   useEffect(() => {
-    if (refreshing || (!refreshing && currentPage > 0)) {
-      setRefreshing(false);
+    if (refreshing || (!refreshing && currentPage > 1)) {
       getInquiryInfo();
     }
   }, [currentPage, refreshing]);

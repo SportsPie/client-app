@@ -415,7 +415,7 @@ function AcademyCommunity({ route }) {
                   : null
               }
               refreshControl={
-                <RefreshControl refreshing={false} onRefresh={onRefresh} />
+                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
               }
               onEndReached={() => {
                 loadMoreProjects();

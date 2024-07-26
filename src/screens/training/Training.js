@@ -8,9 +8,7 @@ import {
   Image,
   ImageBackground,
   Linking,
-  Modal,
   Platform,
-  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -30,7 +28,7 @@ import {
 } from '../../api/RestAPI';
 import SPIcons from '../../assets/icon';
 import SPImages from '../../assets/images';
-import { ACTIVE_OPACITY, CONSTANTS } from '../../common/constants/constants';
+import { ACTIVE_OPACITY } from '../../common/constants/constants';
 import { navName } from '../../common/constants/navName';
 import SPLoading from '../../components/SPLoading';
 import Header from '../../components/header';
@@ -38,11 +36,6 @@ import NavigationService from '../../navigation/NavigationService';
 import { COLORS } from '../../styles/colors';
 import { handleError } from '../../utils/HandleError';
 import Utils from '../../utils/Utils';
-import { SPSvgs } from '../../assets/svg';
-import fontStyles from '../../styles/fontStyles';
-import FontStyles from '../../styles/fontStyles';
-import { getStorage, setStorage } from '../../utils/AsyncStorageUtils';
-import { useSelector } from 'react-redux';
 
 // 기초튼튼 훈련 Carousel 슬라이드 컴포넌트
 function BasicCarousel({ listData = [] }) {
@@ -246,6 +239,7 @@ function Training({ route }) {
     key: Math.floor(Math.random() * 10000), // 챌린지 페이지 Key
     isLast: false, // 챌린지 페이지 마지막
   });
+  const [refreshing, setRefreshing] = useState(false);
 
   const paddingTop = Platform.OS === 'ios' ? insets.top : 14;
 
@@ -263,6 +257,7 @@ function Training({ route }) {
 
   // [ util ] 챌린지 새로고침 ( with Key 갱신 )
   const onRefreshChallenge = () => {
+    setRefreshing(true);
     setChallengePage(prev => {
       return {
         isLast: false,
@@ -321,12 +316,11 @@ function Training({ route }) {
           setChallengeList(prev => [...prev, ...data.data.list]);
         }
       }
-
-      setChallengeLoading(false);
     } catch (error) {
       handleError(error);
-      setChallengeLoading(false);
     }
+    setChallengeLoading(false);
+    setRefreshing(false);
   };
 
   // [ api ] 배너 조회수 갱신
@@ -526,7 +520,7 @@ function Training({ route }) {
                   }
                   refreshControl={
                     <RefreshControl
-                      refreshing={false}
+                      refreshing={refreshing}
                       onRefresh={onRefreshChallenge}
                     />
                   }

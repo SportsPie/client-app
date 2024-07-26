@@ -26,7 +26,7 @@ function ChallengeTab() {
   const [selectedCategory, setSelectedCategory] = useState('apply');
   const [feeds, setFeeds] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 5;
+  const pageSize = 30;
   const flatListRef = useRef();
   const [isLast, setIsLast] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -57,6 +57,7 @@ function ChallengeTab() {
       setIsLast(true);
       handleError(error);
     } finally {
+      setRefreshing(false);
       setLoading(false);
     }
   };
@@ -84,8 +85,7 @@ function ChallengeTab() {
   );
 
   useEffect(() => {
-    if (refreshing || (!refreshing && currentPage > 0)) {
-      setRefreshing(false);
+    if (refreshing || (!refreshing && currentPage > 1)) {
       getFeeds();
     }
   }, [currentPage, refreshing]);

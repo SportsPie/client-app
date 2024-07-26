@@ -79,9 +79,9 @@ function GameScheduleItem({ item }) {
     }
   };
 
-  if (item?.hostScore > item?.opponentScore) {
+  if (item?.hostScore > item?.participantScore) {
     scoreBackgroundColor = COLORS.statusPositive; // 호스트 스코어가 더 높으면 분홍색
-  } else if (item?.hostScore < item?.opponentScore) {
+  } else if (item?.hostScore < item?.participantScore) {
     scoreBackgroundColor = COLORS.peach; // 호스트 스코어가 더 낮으면 파란색
   } else {
     scoreBackgroundColor = COLORS.darkBlue; // 무승부일 경우 그레이색
@@ -117,19 +117,19 @@ function GameScheduleItem({ item }) {
                 styles.statusText,
                 {
                   color:
-                    item?.hostScore < item?.opponentScore
+                    item?.hostScore < item?.participantScore
                       ? COLORS.red
                       : COLORS.white,
                 },
               ]}>
-              {item?.hostScore} - {item?.opponentScore}
+              {item?.hostScore} - {item?.participantScore}
             </Text>
           </View>
         );
       default:
         return null;
     }
-  }, [item?.matchState, item?.hostScore, item?.opponentScore]);
+  }, [item?.matchState, item?.hostScore, item?.participantScore]);
 
   return (
     <Pressable onPress={detailPage} style={styles.container}>

@@ -38,16 +38,18 @@ function FeedVideoItem({ item, hideTitle }) {
           });
         }}
         style={{ borderRadius: 12 }}>
-        <Image
-          source={{
-            uri: item?.thumbPath,
-          }}
-          style={{
-            width: imageWidth,
-            height: imageHeight,
-            borderRadius: 12,
-          }}
-        />
+        {item?.thumbPath && (
+          <Image
+            source={{
+              uri: item?.thumbPath,
+            }}
+            style={{
+              width: imageWidth,
+              height: imageHeight,
+              borderRadius: 12,
+            }}
+          />
+        )}
       </Pressable>
 
       <View style={{ flex: 1, rowGap: 4 }}>

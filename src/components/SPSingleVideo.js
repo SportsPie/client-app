@@ -45,7 +45,7 @@ const SPSingleVideo = forwardRef(
     const insets = useSafeAreaInsets();
     const styles = StyleSheet.create({
       video: {
-        width: windowWidth,
+        width: windowWidth - (insets.left + insets.right),
         margin: 0,
         padding: 0,
       },
@@ -138,7 +138,7 @@ const SPSingleVideo = forwardRef(
             ? [styles.video, { height: videoHeight }]
             : {
                 flex: 1,
-                width: windowWidth,
+                width: windowWidth - (insets.left + insets.right),
                 height:
                   Platform.OS === 'ios'
                     ? windowHeight - (insets.top + insets.bottom)

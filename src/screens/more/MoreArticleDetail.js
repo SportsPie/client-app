@@ -1,12 +1,13 @@
 import moment from 'moment';
-import React, { memo, useCallback, useState } from 'react';
+import React, { memo, useCallback, useRef, useState } from 'react';
 import {
   Image,
+  Pressable,
   ScrollView,
   StyleSheet,
   Text,
-  View,
   useWindowDimensions,
+  View,
 } from 'react-native';
 import fontStyles from '../../styles/fontStyles';
 import { COLORS } from '../../styles/colors';
@@ -14,11 +15,21 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Header from '../../components/header';
 import { useFocusEffect } from '@react-navigation/native';
 import { handleError } from '../../utils/HandleError';
-import { apiGetArticleDetail } from '../../api/RestAPI';
+import {
+  apiDeleteArticleBookmark,
+  apiGetArticleDetail,
+  apiGetArticleDetailForUser,
+  apiPostArticleBookmark,
+} from '../../api/RestAPI';
+import { SPSvgs } from '../../assets/svg';
+import { useSelector } from 'react-redux';
 
 function MoreArticleDetail({ route }) {
   const boardIdx = route?.params?.boardIdx;
+  const { isLogin, userIdx } = useSelector(selector => selector.auth);
+  const trlRef = useRef({ current: { disabled: false } });
   const [articleDetail, setArticleDetail] = useState({});
+  const [refresh, setRefresh] = useState(false);
   let imageHeight;
   const { width } = useWindowDimensions();
 
@@ -31,22 +42,75 @@ function MoreArticleDetail({ route }) {
 
   const getArticleDetail = async () => {
     try {
-      const { data } = await apiGetArticleDetail(boardIdx);
-      setArticleDetail(data.data);
+      let articleData;
+      if (isLogin) {
+        const { data } = await apiGetArticleDetailForUser(boardIdx);
+        articleData = data;
+      } else {
+        const { data } = await apiGetArticleDetail(boardIdx);
+        articleData = data;
+      }
+      setArticleDetail(articleData.data);
     } catch (error) {
       handleError(error);
     }
   };
 
+  const addBookmark = async () => {
+    try {
+      if (trlRef.current.disabled) return;
+      trlRef.current.disabled = true;
+      const { data } = await apiPostArticleBookmark(boardIdx);
+      setRefresh(prev => !prev);
+    } catch (error) {
+      handleError(error);
+    }
+    trlRef.current.disabled = false;
+  };
+
+  const removeBookmark = async () => {
+    try {
+      if (trlRef.current.disabled) return;
+      trlRef.current.disabled = true;
+      const { data } = await apiDeleteArticleBookmark(boardIdx);
+      setRefresh(prev => !prev);
+    } catch (error) {
+      handleError(error);
+    }
+    trlRef.current.disabled = false;
+  };
+
   useFocusEffect(
     useCallback(() => {
       getArticleDetail();
-    }, [boardIdx]),
+    }, [boardIdx, refresh]),
   );
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
-      <Header />
+      <Header
+        {...(isLogin
+          ? {
+              rightContent: (
+                <Pressable
+                  onPress={() => {
+                    if (articleDetail?.bookmarked) {
+                      removeBookmark();
+                    } else {
+                      addBookmark();
+                    }
+                  }}
+                  style={{ padding: 16 }}>
+                  {articleDetail?.bookmarked ? (
+                    <SPSvgs.Bookmarks />
+                  ) : (
+                    <SPSvgs.BookmarksOutline />
+                  )}
+                </Pressable>
+              ),
+            }
+          : {})}
+      />
 
       <ScrollView
         showsVerticalScrollIndicator={false}

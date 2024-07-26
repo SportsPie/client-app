@@ -18,6 +18,7 @@ import { MODAL_CLOSE_EVENT } from '../../common/constants/modalCloseEvent';
 import SPIcons from '../../assets/icon';
 import { handleError } from '../../utils/HandleError';
 import {
+  apiGetAcademyDetail,
   apiGetAcademyOpenMatchReviews,
   apiLogin,
   apiPostAcademyJoin,
@@ -31,6 +32,7 @@ import moment from 'moment';
 import Header from '../../components/header';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ACTIVE_OPACITY } from '../../common/constants/constants';
+import { IS_YN } from '../../common/constants/isYN';
 
 function MatchingReview({ route }) {
   /**
@@ -45,6 +47,7 @@ function MatchingReview({ route }) {
   const [refresh, setRefresh] = useState(false);
   const [refreshUserInfo, setRefreshUserInfo] = useState(false);
   const [joinType, setJoinType] = useState();
+  const [autoApproval, setAutoApproval] = useState(false);
 
   const [hideReviewItem, setHideReviewItem] = useState(false);
 
@@ -73,6 +76,15 @@ function MatchingReview({ route }) {
       handleError(error);
     }
     setIsFocus(false);
+  };
+
+  const getAcademyDetail = async () => {
+    try {
+      const { data } = await apiGetAcademyDetail(academyIdx);
+      setAutoApproval(data.data?.academy?.autoApprovalYn === IS_YN.Y);
+    } catch (error) {
+      handleError(error);
+    }
   };
 
   const getReviewHistory = async () => {
@@ -104,10 +116,17 @@ function MatchingReview({ route }) {
       trlRef.current.disabled = true;
       const params = { academyIdx };
       const { data } = await apiPostAcademyJoin(params);
-      Utils.openModal({
-        title: '가입신청 완료',
-        body: '가입 신청이 완료되었습니다.\n가입이 승인되면 알려두릴게요!',
-      });
+      if (autoApproval) {
+        Utils.openModal({
+          title: '가입 완료',
+          body: '가입이 완료되었습니다.',
+        });
+      } else {
+        Utils.openModal({
+          title: '가입신청 완료',
+          body: '가입 신청이 완료되었습니다.\n가입이 승인되면 알려두릴게요!',
+        });
+      }
       setRefreshUserInfo(prev => !prev);
     } catch (error) {
       handleError(error);
@@ -170,6 +189,7 @@ function MatchingReview({ route }) {
   useFocusEffect(
     useCallback(() => {
       getUserInfo();
+      getAcademyDetail();
     }, [refreshUserInfo]),
   );
 
@@ -197,7 +217,11 @@ function MatchingReview({ route }) {
       <View style={styles.contentItem}>
         {hideReviewItem && index > 1 && (
           <View style={styles.blurWrapper}>
-            <BlurView blurType="light" blurAmount={5} style={styles.blurView}>
+            <BlurView
+              blurType="light"
+              blurAmount={5}
+              style={styles.blurView}
+              reducedTransparencyFallbackColor="white">
               <View style={styles.blurContainer}>
                 <View>
                   {joinType !== JOIN_TYPE.ACADEMY_MEMBER &&

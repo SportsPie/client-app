@@ -17,6 +17,7 @@ import {
   apiCancelApplyMatch,
   apiGetMatchDetail,
   apiGetMyInfo,
+  apiPostAcademyJoin,
 } from '../../api/RestAPI';
 import { BlurView } from '@react-native-community/blur';
 import { handleError } from '../../utils/HandleError';
@@ -43,22 +44,42 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ACTIVE_OPACITY } from '../../common/constants/constants';
 import { isBefore } from 'date-fns';
 import SPLoading from '../../components/SPLoading';
+import { JOIN_TYPE } from '../../common/constants/joinType';
 
-function BlurWrapper({ onJoinPress }) {
+function BlurWrapper({ onJoinPress, joinType }) {
   return (
     <View style={styles.blurWrapper}>
-      <BlurView blurType="light" blurAmount={5} style={styles.blurView}>
+      <BlurView
+        blurType="light"
+        blurAmount={5}
+        style={styles.blurView}
+        reducedTransparencyFallbackColor="white">
         <View style={styles.blurContainer}>
           <View>
-            <Text style={styles.blurText}>소속된 회원만 조회 가능해요.</Text>
-            <Text style={styles.blurText}>아카데미에 가입해보세요.</Text>
+            {(joinType === JOIN_TYPE.NO_LOGIN ||
+              joinType === JOIN_TYPE.NO_JOIN ||
+              joinType === JOIN_TYPE.JOIN_OR_WAIT) && (
+              <Text style={styles.blurText}>소속된 회원만 조회 가능해요.</Text>
+            )}
+            {(joinType === JOIN_TYPE.NO_LOGIN ||
+              joinType === JOIN_TYPE.NO_JOIN) && (
+              <Text style={styles.blurText}>아카데미에 가입해보세요.</Text>
+            )}
+            {joinType === JOIN_TYPE.ACADEMY_WAIT && (
+              <Text style={styles.blurText}>
+                현재 아카데미 가입 대기중입니다.
+              </Text>
+            )}
           </View>
-          <TouchableOpacity
-            style={styles.joinBtn}
-            onPress={onJoinPress}
-            activeOpacity={ACTIVE_OPACITY}>
-            <Text style={styles.joinBtnText}>가입하기</Text>
-          </TouchableOpacity>
+          {(joinType === JOIN_TYPE.NO_LOGIN ||
+            joinType === JOIN_TYPE.NO_JOIN) && (
+            <TouchableOpacity
+              style={styles.joinBtn}
+              onPress={onJoinPress}
+              activeOpacity={ACTIVE_OPACITY}>
+              <Text style={styles.joinBtnText}>가입하기</Text>
+            </TouchableOpacity>
+          )}
         </View>
       </BlurView>
     </View>
@@ -76,6 +97,8 @@ function MatchingDetail({ route }) {
   // --------------------------------------------------
   // [ State ]
   // --------------------------------------------------
+  // member
+  const [joinType, setJoinType] = useState();
   // detail
   const [matchInfo, setMatchInfo] = useState({});
   const [isMatchOver, setIsMatchOver] = useState(false);
@@ -94,6 +117,7 @@ function MatchingDetail({ route }) {
   // modal
   const [modalVisible, setModalVisible] = useState(false);
   const [academyModalShow, setAcademyModalShow] = useState(false);
+  const [joinModalVisible, setJoinModalVisible] = useState(false);
 
   // --------------------------------------------------
   // [ Utils ]
@@ -169,6 +193,7 @@ function MatchingDetail({ route }) {
         body: '로그인이 필요한 작업입니다. \n로그인 페이지로 이동하시겠습니까?',
         confirmEvent: MODAL_CLOSE_EVENT.login,
         cancelEvent: MODAL_CLOSE_EVENT.nothing,
+        data: { goBack: true },
       });
     }
   };
@@ -421,6 +446,32 @@ function MatchingDetail({ route }) {
       handleError(error);
     }
   };
+  const checkJoinType = async () => {
+    if (!isLogin) {
+      setJoinType(JOIN_TYPE.NO_LOGIN);
+      return;
+    }
+    const { homeAcademyIdx } = matchInfo;
+    const { awayAcademyIdx } = matchInfo;
+    const { academyIdx, academyAdmin, academyCreator, academyMember } = member;
+    if (academyIdx) {
+      if (academyIdx === homeAcademyIdx || academyIdx === awayAcademyIdx) {
+        if (academyAdmin || academyCreator || academyMember) {
+          // 아카데미 관리자, 운영자, 회원인 경우
+          setJoinType(JOIN_TYPE.ACADEMY_MEMBER);
+          return;
+        }
+        // 가입 대기자
+        setJoinType(JOIN_TYPE.ACADEMY_WAIT);
+        return;
+      }
+      // 다른 아카데미회원 또는 가입대기자
+      setJoinType(JOIN_TYPE.JOIN_OR_WAIT);
+      return;
+    }
+    // 아카데미 미가입자
+    setJoinType(JOIN_TYPE.NO_JOIN);
+  };
 
   // --------------------------------------------------
   // [ UseEffect ]
@@ -432,14 +483,19 @@ function MatchingDetail({ route }) {
         await getMatchDetail();
       };
       focus();
-    }, []),
+    }, [isLogin]),
   );
 
   useEffect(() => {
     if (refresh) {
+      getMyInfo();
       getMatchDetail();
     }
   }, [refresh]);
+
+  useEffect(() => {
+    checkJoinType();
+  }, [member, matchInfo, isLogin]);
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
@@ -520,11 +576,15 @@ function MatchingDetail({ route }) {
               <View style={styles.contentBox}>
                 <Text style={styles.title}>경기결과</Text>
                 <View style={styles.resultContainer}>
-                  {member.academyIdx === matchInfo.homeAcademyIdx ||
-                  member.academyIdx === matchInfo.awayAcademyIdx ? (
+                  {joinType === JOIN_TYPE.ACADEMY_MEMBER ||
+                  (matchInfo.hostOpenMatchPublicYn === 'Y' &&
+                    matchInfo.awayOpenMatchPublicYn === 'Y') ? (
                     ''
                   ) : (
-                    <BlurWrapper onJoinPress={() => moveToJoin()} />
+                    <BlurWrapper
+                      joinType={joinType}
+                      onJoinPress={() => moveToJoin()}
+                    />
                   )}
                   <View>
                     <View style={styles.resultBox}>
@@ -588,14 +648,14 @@ function MatchingDetail({ route }) {
                 <View style={styles.contentBox}>
                   <Text style={styles.title}>경기결과</Text>
                   <View style={styles.resultContainer}>
-                    {member.academyIdx === matchInfo.homeAcademyIdx ||
-                    member.academyIdx === matchInfo.awayAcademyIdx ? (
+                    {joinType === JOIN_TYPE.ACADEMY_MEMBER ||
+                    (matchInfo.hostOpenMatchPublicYn === 'Y' &&
+                      matchInfo.awayOpenMatchPublicYn === 'Y') ? (
                       ''
                     ) : (
                       <BlurWrapper
-                        onJoinPress={() =>
-                          NavigationService.navigate(navName.academyMember)
-                        }
+                        joinType={joinType}
+                        onJoinPress={() => moveToJoin()}
                       />
                     )}
                     {matchInfo.matchState === MATCH_STATE.FINISH.code ||

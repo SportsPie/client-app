@@ -86,6 +86,19 @@ function SearchAcademy() {
             longitude: data.data.list[0].longitude,
           });
         } else {
+          const address =
+            `${searchedCity} ${searchedGu} ${searchedDong}`.trim();
+          if (address) {
+            const response = await GeoLocationUtils.getLngLat(address, true);
+            const latitude = response?.latitude;
+            const longitude = response?.longitude;
+            if (latitude && longitude) {
+              setCenter({
+                latitude: Number(latitude),
+                longitude: Number(longitude),
+              });
+            }
+          }
           SPToast.show({ text: '검색된 아카데미가 존재하지 않습니다.' });
         }
       }

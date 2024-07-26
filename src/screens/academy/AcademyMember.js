@@ -486,15 +486,15 @@ function Academy({ navigation }) {
                         <Text style={styles.topBtn}>모두 보기</Text>
                       </TouchableOpacity>
                     </View>
-                    {nearbyAcademyList && nearbyAcademyList.length > 0 && (
-                      <View style={styles.location}>
-                        <Image
-                          source={SPIcons.icMyLocation}
-                          style={styles.locationIcon}
-                        />
-                        <Text style={styles.locationText}>{address}</Text>
-                      </View>
-                    )}
+                    {/* {nearbyAcademyList && nearbyAcademyList.length > 0 && ( */}
+                    {/*  <View style={styles.location}> */}
+                    {/*    <Image */}
+                    {/*      source={SPIcons.icMyLocation} */}
+                    {/*      style={styles.locationIcon} */}
+                    {/*    /> */}
+                    {/*    <Text style={styles.locationText}>{address}</Text> */}
+                    {/*  </View> */}
+                    {/* )} */}
                     <View>
                       {nearbyAcademyList && nearbyAcademyList.length > 0 ? (
                         <FlatList
@@ -1111,7 +1111,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     backgroundColor: '#ADAFC9',
-    padding: 3.333,
+    // padding: 3.333,
     borderRadius: 8,
     overflow: 'hidden',
   },

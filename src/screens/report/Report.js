@@ -45,6 +45,7 @@ function Report({ route }) {
 
   if (reportType) {
     switch (reportType) {
+      case REPORT_TYPE.CHAT:
       case REPORT_TYPE.ACADEMY:
         pageType = pageTypes.ACADEMY;
         break;
@@ -168,6 +169,16 @@ function Report({ route }) {
             setShowUserReportCheckModal(true);
           } else {
             await apiPostCommunityReport(params);
+          }
+          break;
+        // 채팅
+        case REPORT_TYPE.CHAT:
+          if (isReportUser) {
+            setUserReportParam(params);
+            setShowUserReportCheckModal(true);
+          } else {
+            params.reportType = REPORT_TYPE.ACADEMY;
+            await apiPostAcademyReport(params);
           }
           break;
         // 기타 > 아카데미

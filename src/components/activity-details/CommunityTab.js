@@ -12,7 +12,7 @@ import { useFocusEffect } from '@react-navigation/native';
 function CommunityTab() {
   const [feeds, setFeeds] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [currentPage, setCurrentPage] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
   const [isLast, setIsLast] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [deleteEvent, setDeleteEvent] = useState(false);
@@ -37,6 +37,7 @@ function CommunityTab() {
       setIsLast(true);
       handleError(error);
     } finally {
+      setRefreshing(false);
       setLoading(false);
     }
   };
@@ -62,8 +63,7 @@ function CommunityTab() {
   );
 
   useEffect(() => {
-    if (refreshing || (!refreshing && currentPage > 0)) {
-      setRefreshing(false);
+    if (refreshing || (!refreshing && currentPage > 1)) {
       getFeeds();
     }
   }, [currentPage, refreshing]);

@@ -16,7 +16,7 @@ import { COLORS } from '../../styles/colors';
 import moment from 'moment';
 import fontStyles from '../../styles/fontStyles';
 
-function ArticleItem({ item, containerStyle }) {
+function ArticleItem({ item, containerStyle, onPressHiddenItem, test }) {
   const { width } = useWindowDimensions();
   const imageWidth = (SCREEN_WIDTH - 40) / 2;
   let imageHeight = 107;
@@ -34,20 +34,39 @@ function ArticleItem({ item, containerStyle }) {
   };
 
   return (
-    <Pressable style={[styles.container, containerStyle]} onPress={detailPage}>
+    <Pressable
+      style={[styles.container, containerStyle]}
+      onPress={() => {
+        if (!item.deleted && !item.hide) {
+          detailPage();
+        } else if (onPressHiddenItem) {
+          onPressHiddenItem(item);
+        }
+      }}>
       <View style={{ width: imageWidth, height: imageHeight }}>
-        {item.files && item.files.length > 0 && (
-          <Image
-            source={{ uri: item.files[0].fileUrl }}
-            style={[
-              styles.image,
-              {
-                width: imageWidth,
-                height: imageHeight,
-              },
-            ]}
-            resizeMode="cover"
-          />
+        {item.deleted ? (
+          <View style={styles.hideArticleBox}>
+            <Text style={styles.hideArticleText}>삭제된 아티클</Text>
+          </View>
+        ) : item.hide ? (
+          <View style={styles.hideArticleBox}>
+            <Text style={styles.hideArticleText}>비공개 아티클</Text>
+          </View>
+        ) : (
+          item.files &&
+          item.files.length > 0 && (
+            <Image
+              source={{ uri: item.files[0].fileUrl }}
+              style={[
+                styles.image,
+                {
+                  width: imageWidth,
+                  height: imageHeight,
+                },
+              ]}
+              resizeMode="cover"
+            />
+          )
         )}
       </View>
       <View style={styles.content}>
@@ -77,6 +96,17 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.23,
     shadowRadius: 2.62,
     elevation: 4,
+    overflow: 'hidden',
+  },
+  hideArticleBox: {
+    flex: 1,
+    backgroundColor: COLORS.gray,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  hideArticleText: {
+    ...fontStyles.fontSize16_Medium,
+    color: COLORS.white,
   },
   image: {
     borderTopLeftRadius: 16,

@@ -50,7 +50,7 @@ function CommentInputSection({ onChangeText, onSubmit, userInfo }) {
         autoCorrect={false}
         autoCapitalize="none"
         // numberOfLines={comment?.split('\n').length || 1}
-        textAlignVertical="top"
+        textAlignVertical="center"
         retrunKeyType="next"
       />
 
@@ -87,23 +87,23 @@ export default memo(CommentInputSection);
 
 const styles = StyleSheet.create({
   textInput: {
-    maxHeight: 20 * 3,
+    maxHeight: 20 * 4,
     flex: 1,
     fontSize: 14,
     fontWeight: '500',
     color: '#1A1C1E',
-    lineHeight: 20,
+    lineHeight: 14,
     letterSpacing: 0.203,
-    top: 4,
+    // top: 4,
     margin: 0,
     padding: 0,
     // height: 'auto',
     // maxHeight: 20 * 3,
-    paddingTop: 0,
+    // paddingTop: 0,
   },
   inputBox: {
     flexDirection: 'row',
-    gap: 8,
+    columnGap: 8,
     padding: 16,
     borderTopWidth: 1,
     borderTopColor: '#D9D9D9',

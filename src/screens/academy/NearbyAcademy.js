@@ -373,9 +373,14 @@ function NearbyAcademy() {
                       alignItems: 'center',
                       overflow: 'hidden',
                     }}>
-                    {item.logoPath && (
+                    {item.logoPath ? (
                       <Image
                         source={{ uri: item.logoPath }}
+                        style={{ height: 40, width: 40 }}
+                      />
+                    ) : (
+                      <Image
+                        source={SPIcons.icMyAcademy}
                         style={{ height: 40, width: 40 }}
                       />
                     )}

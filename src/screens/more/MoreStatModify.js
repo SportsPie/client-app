@@ -1,5 +1,5 @@
 import React, { memo, useEffect, useState } from 'react';
-import { KeyboardAvoidingView, ScrollView, StyleSheet } from 'react-native';
+import { ScrollView, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { apiGetMyStat, apiModifyMyStat } from '../../api/RestAPI';
 import { CAREER_TYPE } from '../../common/constants/careerType';
@@ -13,6 +13,7 @@ import Selector from '../../components/Selector';
 import Header from '../../components/header';
 import { handleError } from '../../utils/HandleError';
 import Utils from '../../utils/Utils';
+import SPKeyboardAvoidingView from '../../components/SPKeyboardAvoidingView';
 
 function MoreStatModify() {
   // --------------------------------------------------
@@ -157,10 +158,13 @@ function MoreStatModify() {
 
   return (
     <DismissKeyboard>
-      <SafeAreaView style={{ flex: 1 }}>
-        <Header title="내 퍼포먼스 수정" />
-
-        <KeyboardAvoidingView behavior="padding" style={styles.container}>
+      <SPKeyboardAvoidingView
+        behavior="padding"
+        isResize
+        keyboardVerticalOffset={0}
+        style={{ flex: 1 }}>
+        <SafeAreaView style={styles.container}>
+          <Header title="내 퍼포먼스 수정" />
           <ScrollView
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.content}>
@@ -258,8 +262,8 @@ function MoreStatModify() {
             onPress={modifyStat}
             disabled={!isValid}
           />
-        </KeyboardAvoidingView>
-      </SafeAreaView>
+        </SafeAreaView>
+      </SPKeyboardAvoidingView>
     </DismissKeyboard>
   );
 }
