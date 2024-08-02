@@ -29,7 +29,7 @@ function ChallengeContentItem({ challenge }) {
   return (
     <Pressable
       onPress={() =>
-        NavigationService.navigate(navName.challengeDetail, {
+        NavigationService.push(navName.challengeDetail, {
           videoIdx: challenge.videoIdx,
         })
       }

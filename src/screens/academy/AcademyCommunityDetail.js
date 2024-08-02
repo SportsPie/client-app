@@ -6,16 +6,16 @@ import {
   Image,
   Keyboard,
   Modal,
+  SafeAreaView,
   ScrollView,
   Text,
   TextInput,
-  SafeAreaView,
   TouchableOpacity,
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Carousel from 'react-native-snap-carousel';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import {
   apiGetCommunityCommentList,
   apiGetCommunityDetail,
@@ -48,6 +48,10 @@ import fontStyles from '../../styles/fontStyles';
 import { handleError } from '../../utils/HandleError';
 import Utils from '../../utils/Utils';
 import AcademyJoinModal from './AcademyJoinModal';
+import { academyCommunityCommentListAction } from '../../redux/reducers/list/academyCommunityCommentListSlice';
+import { store } from '../../redux/store';
+import { academyCommunityListAction } from '../../redux/reducers/list/academyCommunityListSlice';
+import { navName } from '../../common/constants/navName';
 
 // 커뮤니티 이미지 슬라이드
 function CarouselSection({ data, openFileterModal, setSelectedImage }) {
@@ -101,6 +105,17 @@ function AcademyCommunityDetail({
   /**
    * state
    */
+  const listName = 'academyCommunityCommentList';
+  const {
+    page,
+    list: commentList,
+    refreshing,
+    loading,
+    isLast,
+  } = useSelector(selector => selector[listName]);
+  const dispatch = useDispatch();
+  const noParamReset = route?.params?.noParamReset;
+  const action = academyCommunityCommentListAction;
 
   const scrollRef = useRef();
   const targetRef = useRef();
@@ -121,14 +136,8 @@ function AcademyCommunityDetail({
   const [showOptionButton, setShowOptionButton] = useState(false);
 
   // list
-  const [page, setPage] = useState(1);
   const [size, setSize] = useState(30);
-  const [loading, setLoading] = useState(true);
-  const [totalCnt, setTotalCnt] = useState(0);
-  const [isLast, setIsLast] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
   const [isFocus, setIsFocus] = useState(true);
-  const [commentList, setCommentList] = useState([]);
 
   // modal
   const [modalVisible, setModalVisible] = useState(false);
@@ -147,6 +156,8 @@ function AcademyCommunityDetail({
   const [selectedImage, setSelectedImage] = useState(null);
 
   const trlRef = useRef({ current: { disabled: false } });
+  const [keyboardAvoidingViewRefresh, setKeyboardAvoidingViewRefresh] =
+    useState(false);
 
   /**
    * api
@@ -229,20 +240,29 @@ function AcademyCommunityDetail({
           params,
         );
       }
-      const data = response?.data?.data;
-      setTotalCnt(data.totalCnt);
-      setIsLast(data.isLast);
+      const data = response?.data;
+      dispatch(action.setTotalCnt(data.data.totalCnt));
+      dispatch(action.setIsLast(data.data.isLast));
       if (page === 1) {
-        setCommentList(data.list);
+        dispatch(action.setList(data.data.list));
       } else {
-        setCommentList(prev => [...prev, ...data.list]);
+        const prevList = store.getState()[listName].list;
+        dispatch(action.setList([...prevList, ...data.data.list]));
       }
+      feedDetail.cntComment = data.data.totalCnt;
+      dispatch(
+        academyCommunityListAction.modifyItem({
+          idxName: 'feedIdx',
+          idx: feedDetail.feedIdx,
+          item: feedDetail,
+        }),
+      );
     } catch (error) {
       handleError(error);
     }
     setIsFocus(false);
-    setLoading(false);
-    setRefreshing(false);
+    dispatch(action.setRefreshing(false));
+    dispatch(action.setLoading(false));
   };
 
   const changeLike = async () => {
@@ -269,6 +289,13 @@ function AcademyCommunityDetail({
     setFeedDetail(prev => {
       return { ...prev };
     });
+    dispatch(
+      academyCommunityListAction.modifyItem({
+        idxName: 'feedIdx',
+        idx: feedDetail.feedIdx,
+        item: feedDetail,
+      }),
+    );
   };
 
   const registComment = async () => {
@@ -292,8 +319,15 @@ function AcademyCommunityDetail({
       const { data } = await apiPostCommunityComment(params);
       feedDetail.cntComment += 1;
       setFeedDetail(prev => prev);
-      setCommentList(prev => [data.data, ...prev]);
       Keyboard.dismiss();
+      dispatch(
+        academyCommunityListAction.modifyItem({
+          idxName: 'feedIdx',
+          idx: feedDetail.feedIdx,
+          item: feedDetail,
+        }),
+      );
+      dispatch(action.refresh());
 
       setTimeout(() => {
         handleScrollToElement();
@@ -315,7 +349,13 @@ function AcademyCommunityDetail({
       };
       const { data } = await apiPutCommunityComment(params);
       selectedComment.comment = modifyComment;
-      setCommentList(prev => [...prev]);
+      dispatch(
+        action.modifyItem({
+          idxName: 'commentIdx',
+          idx: selectedComment.commentIdx,
+          item: selectedComment,
+        }),
+      );
       Keyboard.dismiss();
       closeModifyCommentModal();
       SPToast.show({ text: '댓글을 수정했어요' });
@@ -378,63 +418,76 @@ function AcademyCommunityDetail({
   const loadMoreProjects = () => {
     setTimeout(() => {
       if (!isLast) {
-        setPage(prevPage => prevPage + 1);
+        const prevPage = store.getState()[listName].page;
+        dispatch(action.setPage(prevPage + 1));
       }
     }, 0);
   };
 
-  const onRefresh = async () => {
-    setLoading(true);
-    setPage(1);
-    setIsLast(false);
-    setCommentList([]);
-    setRefreshing(true);
+  const onRefresh = async noLoading => {
+    dispatch(action.refresh(noLoading));
   };
 
   const onFocus = async () => {
     try {
+      if (!noParamReset) {
+        dispatch(action.reset());
+        setIsFocus(true);
+        setIsJoined(false);
+        setSelectedComment({});
+        setModifyComment({});
+        setSelectedImage();
+        NavigationService.replace(navName.academyCommunityDetail, {
+          ...(route?.params || {}),
+          noParamReset: true,
+        });
+        return;
+      }
       await getUserInfo();
       await getDetail();
     } catch (error) {
       handleError(error);
     }
+    setKeyboardAvoidingViewRefresh(prev => !prev);
     setIsFocus(false);
   };
 
   /**
    * useEffect
    */
+  // useEffect(() => {
+  //   onFocus();
+  // }, [noParamReset]);
   useFocusEffect(
     useCallback(() => {
       onFocus();
-    }, []),
-  );
-
-  useFocusEffect(
-    useCallback(() => {
-      if (!isFocus) {
-        getUserInfo();
-      }
-    }, [isJoined]),
-  );
-
-  useFocusEffect(
-    useCallback(() => {
-      if (!isFocus) {
-        onRefresh();
-      }
-    }, [isFocus, changeEvent]),
+    }, [noParamReset]),
   );
 
   useEffect(() => {
-    if ((!isFocus && refreshing) || (!refreshing && page > 1)) {
-      getCommentList();
+    if (!isFocus && noParamReset) {
+      getUserInfo();
     }
-  }, [page, isFocus, refreshing]);
+  }, [isJoined, noParamReset]);
+
+  useEffect(() => {
+    if (!isFocus && noParamReset) {
+      onRefresh();
+    }
+  }, [isFocus, changeEvent, noParamReset]);
+
+  useEffect(() => {
+    if (noParamReset) {
+      if ((!isFocus && refreshing) || (!refreshing && page > 1)) {
+        getCommentList();
+      }
+    }
+  }, [page, isFocus, refreshing, noParamReset]);
 
   return (
     <DismissKeyboard>
       <SPKeyboardAvoidingView
+        key={keyboardAvoidingViewRefresh ? 'key1' : 'key2'}
         behavior="padding"
         isResize
         keyboardVerticalOffset={0}
@@ -700,6 +753,9 @@ function AcademyCommunityDetail({
               type={MODAL_MORE_TYPE.FEED}
               idx={contentsIdx}
               targetUserIdx={feedDetail?.userIdx}
+              onDelete={() => {
+                dispatch(academyCommunityListAction.refresh());
+              }}
               onConfirm={() => {
                 NavigationService.goBack();
               }}
@@ -801,7 +857,7 @@ function AcademyCommunityDetail({
             transparent={false}
             visible={modifyCommentModalVisible}
             onRequestClose={closeModifyCommentModal}>
-            <SafeAreaView style={{ flex: 1 }}>
+            <SafeAreaView style={{ flex: 1, paddingTop: insets.top }}>
               <SPHeader
                 title="댓글 수정"
                 onPressLeftBtn={closeModifyCommentModal}
@@ -828,7 +884,7 @@ function AcademyCommunityDetail({
               />
               <View style={{ flex: 1, padding: 16 }}>
                 <TextInput
-                  style={styles.textInput}
+                  // style={styles.textInput}
                   defaultValue={modifyComment}
                   onChangeText={e => {
                     if (e?.length > 1000) return;
@@ -848,6 +904,7 @@ function AcademyCommunityDetail({
                 style={{
                   ...fontStyles.fontSize14_Regular,
                   textAlign: 'right',
+                  padding: 16,
                 }}>
                 {Utils.changeNumberComma(modifyComment.length)}/1,000
               </Text>

@@ -43,6 +43,7 @@ export default function AcademyJoinModal({
   const [isAdmin, setIsAdmin] = useState(false);
   const [academyDetail, setAcademyDetail] = useState({});
   const [autoApproval, setAutoApproval] = useState(false);
+  const [showJoinModalButton, setShowJoinModalButton] = useState(false);
 
   const [fstCall, setFstCall] = useState(false);
 
@@ -96,6 +97,9 @@ export default function AcademyJoinModal({
       const { data } = await apiGetAcademyDetail(academyIdx);
       setAcademyDetail(data.data.academy);
       setAutoApproval(data.data?.academy?.autoApprovalYn === IS_YN.Y);
+      setShowJoinModalButton(
+        Utils.chkEmail(data.data.academy.academyCreatorId),
+      );
     } catch (error) {
       handleError(error);
     }
@@ -201,9 +205,10 @@ export default function AcademyJoinModal({
   );
 
   return (
-    fstCall && (
+    fstCall &&
+    showJoinModalButton && (
       <View>
-        {!isAdmin && (!isLogin || showButton) && (
+        {!isAdmin && ((!isLogin && !recruitmentEnds) || showButton) && (
           <View style={{ paddingVertical: 24, paddingHorizontal: 16 }}>
             <TouchableOpacity
               onPress={() => {

@@ -14,7 +14,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { apiGetAcademyOpenSchedule } from '../../api/RestAPI';
 import SPIcons from '../../assets/icon';
 import { JOIN_TYPE } from '../../common/constants/joinType';
@@ -26,11 +26,27 @@ import NavigationService from '../../navigation/NavigationService';
 import { handleError } from '../../utils/HandleError';
 import Utils from '../../utils/Utils';
 import AcademyJoinModal from './AcademyJoinModal';
+import { matchingReviewListAction } from '../../redux/reducers/list/matchingReviewListSlice';
+import { academyScheduleListAction } from '../../redux/reducers/list/academyScheduleListSlice';
+import { store } from '../../redux/store';
 
 function AcademySchedule({ route }) {
   /**
    * state
    */
+  const dispatch = useDispatch();
+  const listName = 'academyScheduleList';
+  const {
+    page,
+    list: scheduleList,
+    refreshing,
+    loading,
+    isLast,
+    totalCnt,
+  } = useSelector(selector => selector[listName]);
+  const noParamReset = route?.params?.noParamReset;
+  const action = academyScheduleListAction;
+
   const academyIdx = route?.params?.academyIdx;
   const { isLogin, userIdx } = useSelector(selector => selector.auth);
   const flatListRef = useRef();
@@ -41,12 +57,6 @@ function AcademySchedule({ route }) {
 
   // list
   const [size, setSize] = useState(30);
-  const [page, setPage] = useState(1);
-  const [loading, setLoading] = useState(true);
-  const [totalCnt, setTotalCnt] = useState(0);
-  const [isLast, setIsLast] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
-  const [scheduleList, setScheduleList] = useState([]);
 
   // modal
   const [checkModalShow, setCheckModalShow] = useState(false);
@@ -75,19 +85,20 @@ function AcademySchedule({ route }) {
         // size,
       };
       const { data } = await apiGetAcademyOpenSchedule(params);
-      setTotalCnt(data.data.totalCnt);
-      setIsLast(data.data.isLast);
+      dispatch(action.setTotalCnt(data.data.totalCnt));
+      dispatch(action.setIsLast(data.data.isLast));
       if (page === 1) {
-        setScheduleList(data.data.list);
+        dispatch(action.setList(data.data.list));
       } else {
-        setScheduleList(prev => [...prev, ...data.data.list]);
+        const prevList = store.getState()[listName].list;
+        dispatch(action.setList([...prevList, ...data.data.list]));
       }
     } catch (error) {
       handleError(error);
     }
     setIsFocus(false);
-    setLoading(false);
-    setRefreshing(false);
+    dispatch(action.setRefreshing(false));
+    dispatch(action.setLoading(false));
   };
 
   /**
@@ -112,45 +123,46 @@ function AcademySchedule({ route }) {
   const loadMoreProjects = () => {
     setTimeout(() => {
       if (!isLast) {
-        setPage(prevPage => prevPage + 1);
+        const prevPage = store.getState()[listName].page;
+        dispatch(action.setPage(prevPage + 1));
       }
     }, 0);
   };
 
   const onRefresh = async () => {
-    if (flatListRef.current) {
-      flatListRef.current.scrollToOffset({ animated: false, offset: 0 });
-    }
-    setLoading(true);
-    setPage(1);
-    setIsLast(false);
-    setScheduleList([]);
-    setRefreshing(true);
+    // if (flatListRef.current) {
+    //   flatListRef.current.scrollToOffset({ animated: false, offset: 0 });
+    // }
+    dispatch(action.refresh());
   };
 
   /**
    * useEffect
    */
 
-  useFocusEffect(
-    useCallback(() => {
+  useEffect(() => {
+    if (!noParamReset) {
+      setIsFocus(true);
+      setIsFocus(true);
+      dispatch(action.reset());
+      NavigationService.replace(navName.academySchedule, {
+        ...(route?.params || {}),
+        noParamReset: true,
+      });
+    } else {
       getSchedules();
-    }, [refreshing]),
-  );
+    }
+  }, [refreshing, noParamReset]);
 
-  useFocusEffect(
-    useCallback(() => {
-      getUserInfo();
-    }, [isJoined]),
-  );
+  useEffect(() => {
+    if (noParamReset) getUserInfo();
+  }, [isJoined, noParamReset]);
 
-  useFocusEffect(
-    useCallback(() => {
-      if (!isFocus) {
-        onRefresh();
-      }
-    }, [isFocus]),
-  );
+  useEffect(() => {
+    if (!isFocus) {
+      onRefresh();
+    }
+  }, [isFocus]);
   // useEffect(() => {
   //   if ((!isFocus && refreshing) || (!refreshing && page > 1)) {
   //     getSchedules();

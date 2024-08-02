@@ -24,6 +24,7 @@ import {
   apiDeleteAcademyJoin,
   apiGetAcademyInit,
   apiGetAcademyOpen,
+  apiPatchBannerViewCnt,
 } from '../../api/RestAPI';
 import SPIcons from '../../assets/icon';
 import { SPSvgs } from '../../assets/svg';
@@ -248,7 +249,7 @@ function Academy({ navigation }) {
       const {
         data: { data },
       } = academyMainData;
-
+      console.log(data);
       if (isLogin) {
         if (data?.isAcademyAdmin || data?.isAcademyCreator) {
           setAcademyMemberType(ACADEMY_MEMBER_TYPE.ADMIN);
@@ -307,6 +308,10 @@ function Academy({ navigation }) {
       handleError(error);
     }
     trlRef.current.disabled = false;
+  };
+
+  const patchBannerViewCnt = async idx => {
+    await apiPatchBannerViewCnt(idx);
   };
 
   /**
@@ -434,9 +439,9 @@ function Academy({ navigation }) {
                       onPress={() => {
                         if (img.linkUrl) {
                           Utils.openOrMoveUrl(img.linkUrl);
+                          patchBannerViewCnt(img.boardIdx);
                         }
                       }}
-                      // eslint-disable-next-line react/no-array-index-key
                       key={index}
                       style={[styles.slide, { height: imageHeight }]}>
                       <Image

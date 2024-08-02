@@ -21,6 +21,8 @@ import Header from '../../components/header';
 import { COLORS } from '../../styles/colors';
 import { handleError } from '../../utils/HandleError';
 import Utils from '../../utils/Utils';
+import { useDispatch } from 'react-redux';
+import { academyScheduleListAction } from '../../redux/reducers/list/academyScheduleListSlice';
 
 LocaleConfig.locales.fr = {
   monthNames: [
@@ -69,6 +71,7 @@ function AcademyScheduleEdit({ route }) {
   /**
    * state
    */
+  const dispatch = useDispatch();
   const scheduleData = route?.params?.scheduleData;
   const [contents, setContents] = useState('');
   const [showFullCalendar, setShowFullCalendar] = useState(false);
@@ -93,6 +96,7 @@ function AcademyScheduleEdit({ route }) {
       const { data } = await apiDeleteAcademyMngSchedule(
         scheduleData?.scheduleIdx,
       );
+      dispatch(academyScheduleListAction.refresh());
       Utils.openModal({
         title: '완료',
         body: '일정 삭제 완료되었습니다.',
@@ -116,6 +120,7 @@ function AcademyScheduleEdit({ route }) {
         ).format('HH:mm')}:00`,
       };
       const { data } = await apiPutAcademyMngSchedule(params);
+      dispatch(academyScheduleListAction.refresh());
       Utils.openModal({
         title: '완료',
         body: '일정이 수정 완료되었습니다.',

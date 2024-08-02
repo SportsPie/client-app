@@ -1,14 +1,14 @@
 /* eslint-disable react/no-unstable-nested-components */
 import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
 import {
-  Text,
-  View,
-  Image,
-  TouchableOpacity,
-  FlatList,
-  Platform,
   ActivityIndicator,
+  FlatList,
+  Image,
+  Platform,
   RefreshControl,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { BlurView } from '@react-native-community/blur';
 import NavigationService from '../../navigation/NavigationService';
@@ -20,12 +20,11 @@ import { handleError } from '../../utils/HandleError';
 import {
   apiGetAcademyDetail,
   apiGetAcademyOpenMatchReviews,
-  apiLogin,
   apiPostAcademyJoin,
 } from '../../api/RestAPI';
 import { useFocusEffect } from '@react-navigation/native';
 import { JOIN_TYPE } from '../../common/constants/joinType';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import SPModal from '../../components/SPModal';
 import SPLoading from '../../components/SPLoading';
 import moment from 'moment';
@@ -33,11 +32,25 @@ import Header from '../../components/header';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ACTIVE_OPACITY } from '../../common/constants/constants';
 import { IS_YN } from '../../common/constants/isYN';
+import { matchingReviewListAction } from '../../redux/reducers/list/matchingReviewListSlice';
+import { store } from '../../redux/store';
 
 function MatchingReview({ route }) {
   /**
    * state
    */
+  const dispatch = useDispatch();
+  const listName = 'matchingReviewList';
+  const {
+    page,
+    list: reviewList,
+    refreshing,
+    loading,
+    isLast,
+    totalCnt,
+  } = useSelector(selector => selector[listName]);
+  const noParamReset = route?.params?.noParamReset;
+  const action = matchingReviewListAction;
   const academyIdx = route?.params?.academyIdx;
   const { isLogin, userIdx } = useSelector(selector => selector.auth);
   const flatListRef = useRef();
@@ -53,12 +66,6 @@ function MatchingReview({ route }) {
 
   // list
   const [size, setSize] = useState(30);
-  const [page, setPage] = useState(1);
-  const [loading, setLoading] = useState(true);
-  const [totalCnt, setTotalCnt] = useState(0);
-  const [isLast, setIsLast] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
-  const [reviewList, setReviewList] = useState([]);
 
   // modal
   const [joinModalVisible, setJoinModalVisible] = useState(false);
@@ -95,19 +102,20 @@ function MatchingReview({ route }) {
         size,
       };
       const { data } = await apiGetAcademyOpenMatchReviews(params);
-      setTotalCnt(data.data.totalCnt);
-      setIsLast(data.data.isLast);
+      dispatch(action.setTotalCnt(data.data.totalCnt));
+      dispatch(action.setIsLast(data.data.isLast));
       if (page === 1) {
-        setReviewList(data.data.list);
+        dispatch(action.setList(data.data.list));
       } else {
-        setReviewList(prev => [...prev, ...data.data.list]);
+        const prevList = store.getState()[listName].list;
+        dispatch(action.setList([...prevList, ...data.data.list]));
       }
     } catch (error) {
       handleError(error);
     }
     setIsFocus(false);
-    setLoading(false);
-    setRefreshing(false);
+    dispatch(action.setRefreshing(false));
+    dispatch(action.setLoading(false));
   };
 
   const joinRequest = async () => {
@@ -166,51 +174,60 @@ function MatchingReview({ route }) {
   const loadMoreProjects = () => {
     setTimeout(() => {
       if (!isLast) {
-        setPage(prevPage => prevPage + 1);
+        const prevPage = store.getState()[listName].page;
+        dispatch(action.setPage(prevPage + 1));
       }
     }, 0);
   };
 
   const onRefresh = async () => {
-    if (flatListRef.current) {
-      flatListRef.current.scrollToOffset({ animated: false, offset: 0 });
+    // if (flatListRef.current) {
+    //   flatListRef.current.scrollToOffset({ animated: false, offset: 0 });
+    // }
+    dispatch(action.refresh());
+  };
+
+  const onFocus = () => {
+    if (!noParamReset) {
+      setIsFocus(true);
+      dispatch(action.reset());
+      NavigationService.replace(navName.matchingReview, {
+        ...(route?.params || {}),
+        noParamReset: true,
+      });
+      return;
     }
-    setLoading(true);
-    setPage(1);
-    setIsLast(false);
-    setReviewList([]);
-    setRefreshing(true);
+    getUserInfo();
+    getAcademyDetail();
+
+    setIsFocus(false);
   };
 
   /**
    * useEffect
    */
 
-  useFocusEffect(
-    useCallback(() => {
-      getUserInfo();
-      getAcademyDetail();
-    }, [refreshUserInfo]),
-  );
-
-  useFocusEffect(
-    useCallback(() => {
-      renderByJoinType();
-    }, [joinType]),
-  );
-
-  useFocusEffect(
-    useCallback(() => {
-      if (!isFocus) {
-        onRefresh();
-      }
-    }, [isFocus, refresh]),
-  );
   useEffect(() => {
-    if ((!isFocus && refreshing) || (!refreshing && page > 1)) {
-      getReviewHistory();
+    onFocus();
+  }, [refreshUserInfo, noParamReset]);
+
+  useEffect(() => {
+    if (noParamReset) renderByJoinType();
+  }, [joinType, noParamReset]);
+
+  useEffect(() => {
+    if (!isFocus && noParamReset) {
+      onRefresh();
     }
-  }, [page, isFocus, refreshing]);
+  }, [isFocus, refresh, noParamReset]);
+
+  useEffect(() => {
+    if (noParamReset) {
+      if ((!isFocus && refreshing) || (!refreshing && page > 1)) {
+        getReviewHistory();
+      }
+    }
+  }, [page, isFocus, refreshing, noParamReset]);
 
   const renderReviewItem = ({ item, index }) => {
     return (

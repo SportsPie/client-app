@@ -20,9 +20,6 @@ import PerformanceInfo from '../screens/auth/PerformanceInfo';
 import ResetPassword from '../screens/auth/ResetPassword';
 import TermsService from '../screens/auth/TermsService';
 import UserInfo from '../screens/auth/UserInfo';
-import ChatCreateRoomScreen from '../screens/chat/ChatCreateRoomScreen';
-import ChatRoomListScreen from '../screens/chat/ChatRoomListScreen';
-import ChatRoomScreen from '../screens/chat/ChatRoomScreen';
 import MatchingChatRoomListScreen from '../screens/chat/MatchingChatRoomListScreen';
 import MatchingChatRoomScreen from '../screens/chat/MatchingChatRoomScreen';
 import CommunityWrite from '../screens/community/CommunityWrite';
@@ -144,18 +141,6 @@ function MatchingChatRoomListScreenComponent() {
 
 function MatchingChatRoomScreenComponent() {
   return <AuthLayout component={MatchingChatRoomScreen} />;
-}
-
-function ChatRoomListScreenComponent() {
-  return <AuthLayout component={ChatRoomListScreen} />;
-}
-
-function ChatRoomScreenComponent() {
-  return <AuthLayout component={ChatRoomScreen} />;
-}
-
-function ChatCreateRoomScreenComponent() {
-  return <AuthLayout component={ChatCreateRoomScreen} />;
 }
 
 export default function Navigation() {
@@ -519,18 +504,6 @@ export default function Navigation() {
       />
       <Stack.Screen name={navName.walletBackup} component={WalletBackup} />
       <Stack.Screen name={navName.walletDetail} component={WalletDetail} />
-      <Stack.Screen
-        name={navName.chatRoomList}
-        component={ChatRoomListScreenComponent}
-      />
-      <Stack.Screen
-        name={navName.chatRoom}
-        component={ChatRoomScreenComponent}
-      />
-      <Stack.Screen
-        name={navName.chatCreateRoom}
-        component={ChatCreateRoomScreenComponent}
-      />
       <Stack.Screen name={navName.unsubscribe} component={Unsubscribe} />
     </Stack.Navigator>
   );

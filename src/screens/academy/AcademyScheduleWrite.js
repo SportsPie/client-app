@@ -16,6 +16,7 @@ import SPModal from '../../components/SPModal';
 import Header from '../../components/header';
 import { handleError } from '../../utils/HandleError';
 import Utils from '../../utils/Utils';
+import { academyScheduleListAction } from '../../redux/reducers/list/academyScheduleListSlice';
 
 LocaleConfig.locales.fr = {
   monthNames: [
@@ -64,6 +65,7 @@ function AcademyScheduleWrite() {
   /**
    * state
    */
+  const dispatch = useDispatch();
   const [contents, setContents] = useState('');
   const [showFullCalendar, setShowFullCalendar] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
@@ -91,6 +93,7 @@ function AcademyScheduleWrite() {
         ).format('HH:mm')}:00`,
       };
       const { data } = await apiPostAcademyMngSchedule(params);
+      dispatch(academyScheduleListAction.refresh());
       Utils.openModal({
         title: '완료',
         body: '일정 등록이 완료되었습니다.',
@@ -112,7 +115,6 @@ function AcademyScheduleWrite() {
   };
 
   const handleConfirmTime = date => {
-    console.log('date', date);
     setStartTime(date);
     setSelectedTime(date);
     setShowTimePicker(false);

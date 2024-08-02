@@ -36,6 +36,7 @@ import NavigationService from '../../navigation/NavigationService';
 import { COLORS } from '../../styles/colors';
 import { handleError } from '../../utils/HandleError';
 import Utils from '../../utils/Utils';
+import ListEmptyView from '../../components/ListEmptyView';
 
 // 기초튼튼 훈련 Carousel 슬라이드 컴포넌트
 function BasicCarousel({ listData = [] }) {
@@ -258,6 +259,7 @@ function Training({ route }) {
   // [ util ] 챌린지 새로고침 ( with Key 갱신 )
   const onRefreshChallenge = () => {
     setRefreshing(true);
+    setChallengeList([]);
     setChallengePage(prev => {
       return {
         isLast: false,
@@ -300,7 +302,7 @@ function Training({ route }) {
     try {
       setChallengeLoading(true);
       const { data } = await apiGetChallengeList({
-        page: +challengePage.page,
+        page: Number(challengePage.page),
         size: 10,
         pagingKey: challengePage.key,
       });
@@ -310,7 +312,7 @@ function Training({ route }) {
           return { ...prev, isLast: data.data.isLast };
         });
 
-        if (+challengePage.page === 1) {
+        if (Number(challengePage.page) === 1) {
           setChallengeList([...data.data.list]);
         } else {
           setChallengeList(prev => [...prev, ...data.data.list]);
@@ -366,7 +368,7 @@ function Training({ route }) {
   // [ useEffect ] 챌린지 페이징
   useFocusEffect(
     useCallback(() => {
-      if (challengePage.page) {
+      if (Number(challengePage.page)) {
         getChallengeList();
       }
     }, [challengePage.page]),
@@ -494,37 +496,45 @@ function Training({ route }) {
             {/* Tab > 챌린지 */}
             {activeTab === '챌린지' && (
               <View style={styles.challenge}>
-                <FlatList
-                  ref={challengeListRef}
-                  data={challengeList}
-                  renderItem={renderChallengeItem}
-                  onEndReached={() => {
-                    if (!challengePage.isLast) {
-                      setChallengePage(prev => {
-                        return { ...prev, page: +prev.page + 1 };
-                      });
-                    }
-                  }}
-                  // onEndReachedThreshold={0.5}
-                  ListFooterComponent={
-                    challengeLoading
-                      ? () => {
-                          return (
-                            <ActivityIndicator
-                              size="small"
-                              style={{ marginVertical: 20 }}
-                            />
-                          );
+                {challengeList && challengeList.length > 0 ? (
+                  <FlatList
+                    ref={challengeListRef}
+                    data={challengeList}
+                    renderItem={renderChallengeItem}
+                    onEndReached={() => {
+                      setTimeout(() => {
+                        if (!challengePage.isLast) {
+                          setChallengePage(prev => {
+                            return { ...prev, page: Number(prev.page) + 1 };
+                          });
                         }
-                      : null
-                  }
-                  refreshControl={
-                    <RefreshControl
-                      refreshing={refreshing}
-                      onRefresh={onRefreshChallenge}
-                    />
-                  }
-                />
+                      }, 0);
+                    }}
+                    // onEndReachedThreshold={0.5}
+                    ListFooterComponent={
+                      challengeLoading
+                        ? () => {
+                            return (
+                              <ActivityIndicator
+                                size="small"
+                                style={{ marginVertical: 20 }}
+                              />
+                            );
+                          }
+                        : null
+                    }
+                    refreshControl={
+                      <RefreshControl
+                        refreshing={refreshing}
+                        onRefresh={onRefreshChallenge}
+                      />
+                    }
+                  />
+                ) : challengeLoading ? (
+                  <SPLoading />
+                ) : (
+                  <ListEmptyView text="챌린지 영상이 존재하지 않습니다." />
+                )}
               </View>
             )}
           </View>

@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Carousel from 'react-native-snap-carousel';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import {
   apiGetCommunityDetail,
   apiGetCommunityOpenFilters,
@@ -29,6 +29,8 @@ import SPModal from '../../components/SPModal';
 import SPSelectPhotoModal from '../../components/SPSelectPhotoModal';
 import { handleError } from '../../utils/HandleError';
 import Utils from '../../utils/Utils';
+import { communityListAction } from '../../redux/reducers/list/communityListSlice';
+import { academyCommunityListAction } from '../../redux/reducers/list/academyCommunityListSlice';
 
 // 커뮤니티 이미지 슬라이드
 function CarouselSection({
@@ -103,6 +105,7 @@ function CarouselSection({
  * CommunityWrite
  */
 function CommunityEdit({ route }) {
+  const dispatch = useDispatch();
   /**
    * state
    */
@@ -225,6 +228,21 @@ function CommunityEdit({ route }) {
       }
 
       const { data } = await apiPutCommunity(formData);
+      const detailResponse = await apiGetCommunityDetail(feedIdx);
+      dispatch(
+        communityListAction.modifyItem({
+          idxName: 'feedIdx',
+          idx: communityDetail.feedIdx,
+          item: detailResponse.data.data,
+        }),
+      );
+      dispatch(
+        academyCommunityListAction.modifyItem({
+          idxName: 'feedIdx',
+          idx: communityDetail.feedIdx,
+          item: detailResponse.data.data,
+        }),
+      );
       Utils.openModal({
         title: '성공',
         body: '게시글 수정이 완료되었습니다.',
@@ -419,7 +437,6 @@ function CommunityEdit({ route }) {
                     tagList.length > 0 &&
                     tagList.map((filterTag, index) => (
                       <Pressable
-                        /* eslint-disable-next-line react/no-array-index-key */
                         hitSlop={{
                           top: 8,
                           bottom: 8,

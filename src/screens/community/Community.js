@@ -20,7 +20,7 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import {
   apiGetCommunityOpen,
   apiGetCommunityOpenFilters,
@@ -39,8 +39,11 @@ import NavigationService from '../../navigation/NavigationService';
 import { COLORS } from '../../styles/colors';
 import fontStyles from '../../styles/fontStyles';
 import { handleError } from '../../utils/HandleError';
+import { communityListAction } from '../../redux/reducers/list/communityListSlice';
+import { store } from '../../redux/store';
 
 function Community({ route }) {
+  const dispatch = useDispatch();
   const insets = useSafeAreaInsets();
   const flatListRef = useRef();
   const isLogin = useSelector(selector => selector.auth)?.isLogin;
@@ -49,6 +52,15 @@ function Community({ route }) {
   // --------------------------------------------------
   // [ State ]
   // --------------------------------------------------
+  const {
+    page,
+    list: feedList,
+    refreshing,
+    loading,
+    isLast,
+    listParamReset,
+  } = useSelector(selector => selector.communityList);
+  const action = communityListAction;
   const [userInfo, setUserInfo] = useState(null);
   const [showWriteButton, setShowWriteButton] = useState(false);
 
@@ -57,12 +69,6 @@ function Community({ route }) {
 
   // list
   const [size, setSize] = useState(30);
-  const [page, setPage] = useState(1);
-  const [loading, setLoading] = useState(true);
-  const [totalCnt, setTotalCnt] = useState(0);
-  const [isLast, setIsLast] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
-  const [feedList, setFeedList] = useState([]);
 
   const [filterList, setFilterList] = useState([]);
   const [selectedFilter, setSelectedFilter] = useState();
@@ -129,19 +135,20 @@ function Community({ route }) {
         tag: selectedFilter,
       };
       const { data } = await apiGetCommunityOpen(params);
-      setTotalCnt(data.data.totalCnt);
-      setIsLast(data.data.isLast);
+      dispatch(action.setTotalCnt(data.data.totalCnt));
+      dispatch(action.setIsLast(data.data.isLast));
       if (page === 1) {
-        setFeedList(data.data.list);
+        dispatch(action.setList(data.data.list));
       } else {
-        setFeedList(prev => [...prev, ...data.data.list]);
+        const prevList = store.getState().communityList.list;
+        dispatch(action.setList([...prevList, ...data.data.list]));
       }
     } catch (error) {
       handleError(error);
     }
     setIsFocus(false);
-    setLoading(false);
-    setRefreshing(false);
+    dispatch(action.setRefreshing(false));
+    dispatch(action.setLoading(false));
   };
 
   // --------------------------------------------------
@@ -150,7 +157,8 @@ function Community({ route }) {
   const loadMoreProjects = () => {
     setTimeout(() => {
       if (!isLast) {
-        setPage(prevPage => prevPage + 1);
+        const prevPage = store.getState().communityList.page;
+        dispatch(action.setPage(prevPage + 1));
       }
     }, 0);
   };
@@ -161,23 +169,23 @@ function Community({ route }) {
   };
 
   const onRefresh = async () => {
-    if (flatListRef.current) {
-      flatListRef.current.scrollToOffset({ animated: false, offset: 0 });
-    }
-    setLoading(true);
-    setPage(1);
-    setFeedList([]);
-    setIsLast(false);
-    setRefreshing(true);
+    // if (flatListRef.current) {
+    //   flatListRef.current.scrollToOffset({ animated: false, offset: 0 });
+    // }
+    dispatch(action.refresh());
   };
 
   const onFocus = async () => {
     try {
-      if (paramReset) {
+      if (paramReset || listParamReset) {
+        setIsFocus(true);
+        dispatch(action.reset());
+        setIsInit(true);
         setSelectedFilter();
         setSearched();
         setSearchedKeyword();
         setKeyword();
+        dispatch(action.setListParamReset(false));
         NavigationService.navigate(navName.community);
       } else {
         await getFilterList();
@@ -201,52 +209,41 @@ function Community({ route }) {
   // --------------------------------------------------
   // [ UseEffect ]
   // --------------------------------------------------
-  useFocusEffect(
-    useCallback(() => {
-      return () => {
-        setIsFocus(true);
-        setFeedList([]);
-        setIsLast(false);
-        setIsInit(true);
-        setKeyword('');
-      };
-    }, []),
-  );
 
   useFocusEffect(
     useCallback(() => {
       onFocus();
-    }, [paramReset]),
+    }, [paramReset, listParamReset]),
   );
 
   useFocusEffect(
     useCallback(() => {
-      if (!isFocus) {
+      if (!isFocus && !paramReset && !listParamReset) {
         getUserInfo();
       }
-    }, [isFocus]),
-  );
-
-  useFocusEffect(
-    useCallback(() => {
-      if (!isInit) {
-        onRefresh();
-      }
-    }, [searched, selectedFilter, isInit]),
+    }, [isFocus, paramReset, listParamReset]),
   );
 
   useEffect(() => {
-    if (filterList && filterList.length > 0) {
+    if (!isInit && !paramReset && !listParamReset) {
+      onRefresh();
+    }
+  }, [searched, selectedFilter, isInit, paramReset, listParamReset]);
+
+  useEffect(() => {
+    if (!paramReset && !listParamReset && filterList && filterList.length > 0) {
       setSelectedFilter(selectedFilter || filterList?.[0].value);
     }
-  }, [filterList]);
+  }, [filterList, paramReset, listParamReset]);
 
   useEffect(() => {
-    if ((!isInit && refreshing) || (!refreshing && page > 1)) {
-      setSearchedKeyword('');
-      getFeedList();
+    if (!paramReset && !listParamReset) {
+      if ((!isInit && refreshing) || (!refreshing && page > 1)) {
+        setSearchedKeyword('');
+        getFeedList();
+      }
     }
-  }, [page, isInit, refreshing]);
+  }, [page, isInit, refreshing, paramReset, listParamReset]);
 
   const renderHeader = useMemo(() => {
     return (
@@ -362,11 +359,20 @@ function Community({ route }) {
           <FlatList
             ref={flatListRef}
             data={feedList}
-            keyExtractor={item => item?.feedIdx}
+            keyExtractor={item =>
+              typeof item?.feedIdx === 'string'
+                ? `key${item?.feedIdx}`
+                : item?.feedIdx
+            }
             renderItem={renderFeedItem}
             ItemSeparatorComponent={<Divider />}
             refreshControl={
-              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={() => {
+                  onRefresh();
+                }}
+              />
             }
             onEndReached={() => {
               loadMoreProjects();

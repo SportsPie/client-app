@@ -8,7 +8,7 @@ import {
   View,
 } from 'react-native';
 import Share from 'react-native-share';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import {
   apiDeleteAcademyConfigMngAcademy,
   apiDeleteAcademyLeave,
@@ -28,6 +28,8 @@ import Utils from '../utils/Utils';
 import SPModal from './SPModal';
 import { ACTIVE_OPACITY } from '../common/constants/constants';
 import { SPSvgs } from '../assets/svg';
+import { communityListAction } from '../redux/reducers/list/communityListSlice';
+import { academyCommunityListAction } from '../redux/reducers/list/academyCommunityListSlice';
 
 export const MODAL_MORE_TYPE = {
   // 아카데미
@@ -58,7 +60,6 @@ export const MODAL_MORE_BUTTONS = {
   FIX: 'FIX', // 고정하기
   UNFIX: 'UNFIX', // 고정해제
 };
-
 function SPMoreModal({
   visible,
   onClose,
@@ -77,6 +78,7 @@ function SPMoreModal({
   shareTitle,
   shareDescription,
 }) {
+  const dispatch = useDispatch();
   const { isLogin, userIdx } = useSelector(selector => selector.auth);
   const trlRef = useRef({ current: { disabled: false } });
 
@@ -109,6 +111,7 @@ function SPMoreModal({
             title: '성공',
             body: '삭제되었습니다.',
           });
+          if (onDelete) onDelete();
           if (onConfirm) onConfirm();
           break;
         case MODAL_MORE_TYPE.FEED_COMMENT:
@@ -117,6 +120,7 @@ function SPMoreModal({
             title: '성공',
             body: '삭제되었습니다.',
           });
+          if (onDelete) onDelete();
           if (onConfirm) onConfirm();
           break;
         case MODAL_MORE_TYPE.VIDEO:
@@ -245,6 +249,7 @@ function SPMoreModal({
           break;
         case MODAL_MORE_TYPE.FEED: {
           await apiPatchCommunityMngFix(idx);
+          dispatch(academyCommunityListAction.refresh());
           Utils.openModal({ title: '성공', body: '게시글이 고정되었습니다.' });
           if (onConfirm) onConfirm();
           break;
@@ -271,6 +276,7 @@ function SPMoreModal({
           break;
         case MODAL_MORE_TYPE.FEED: {
           await apiPatchCommunityMngUnFix(idx);
+          dispatch(academyCommunityListAction.refresh());
           Utils.openModal({
             title: '성공',
             body: '게시글이 고정해제 되었습니다.',

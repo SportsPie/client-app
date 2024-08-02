@@ -24,14 +24,29 @@ import fontStyles from '../../styles/fontStyles';
 import GeoLocationUtils from '../../utils/GeoLocationUtils';
 import { handleError } from '../../utils/HandleError';
 import { uniqBy } from 'lodash';
-import { useFocusEffect } from '@react-navigation/native';
 import SPLoading from '../../components/SPLoading';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useDispatch, useSelector } from 'react-redux';
+import { searchAcademyListAction } from '../../redux/reducers/list/searchAcademyListSlice';
+import { store } from '../../redux/store';
+import NavigationService from '../../navigation/NavigationService';
+import { navName } from '../../common/constants/navName';
 
-function SearchAcademy() {
+function SearchAcademy({ route }) {
+  const dispatch = useDispatch();
+  const action = searchAcademyListAction;
+  const noParamReset = route?.params?.noParamReset;
   const flatListRef = useRef();
   const addressFilterRef = useRef();
   const academyFilterRef = useRef();
+
+  const {
+    page,
+    list: academyList,
+    refreshing,
+    loading,
+    isLast,
+  } = useSelector(selector => selector.searchAcademyList);
 
   const [mapSearch, setMapSearch] = useState(true);
   const [orderType, setOrderType] = useState(ORDER_TYPE.RATING_DESC);
@@ -44,13 +59,8 @@ function SearchAcademy() {
   const [searchedTeachingType, setSearchedTeachingType] = useState([]);
   const [searchedServiceType, setSearchedServiceType] = useState([]);
   const [searchedKeyword, setSearchedKeyword] = useState('');
-  const [page, setPage] = useState(1);
-  const [isLast, setIsLast] = useState(false);
-  const [academyList, setAcademyList] = useState([]);
-  const [refreshing, setRefreshing] = useState(false);
   const [isFocus, setIsFocus] = useState(true);
   const [searched, setSearched] = useState(false);
-  const [loading, setLoading] = useState(false);
 
   const getAcademyList = async () => {
     try {
@@ -71,12 +81,15 @@ function SearchAcademy() {
 
       const { data } = await apiGetSearchOpenAcademy(params);
 
-      setIsLast(data.data.isLast);
+      dispatch(action.setIsLast(data.data.isLast));
       if (page === 1) {
-        setAcademyList(data.data.list);
+        dispatch(action.setList(data.data.list));
       } else {
-        setAcademyList(prev =>
-          uniqBy([...prev, ...data.data.list], 'academyIdx'),
+        const prevList = store.getState().searchAcademyList.list;
+        dispatch(
+          action.setList(
+            uniqBy([...prevList, ...data.data.list], 'academyIdx'),
+          ),
         );
       }
       if (mapSearch) {
@@ -104,34 +117,40 @@ function SearchAcademy() {
       }
     } catch (error) {
       handleError(error);
-      setAcademyList([]);
+      dispatch(action.setList([]));
     } finally {
-      setRefreshing(false);
-      setLoading(false);
+      dispatch(action.setRefreshing(false));
+      dispatch(action.setLoading(false));
     }
   };
 
   const onLoadMore = () => {
     setTimeout(() => {
       if (!isLast) {
-        setPage(prevPage => prevPage + 1);
+        const prevPage = store.getState().searchAcademyList.page;
+        dispatch(action.setPage(prevPage + 1));
       }
     }, 0);
   };
 
   const onRefresh = async () => {
-    if (!mapSearch && flatListRef.current) {
-      flatListRef.current.scrollToOffset({ animated: false, offset: 0 });
-    }
-    setPage(1);
-    setAcademyList([]);
-    setLoading(true);
-    setIsLast(false);
-    setRefreshing(true);
+    // if (!mapSearch && flatListRef.current) {
+    //   flatListRef.current.scrollToOffset({ animated: false, offset: 0 });
+    // }
+    dispatch(action.refresh());
   };
 
   const onFocus = async () => {
     try {
+      if (!noParamReset) {
+        dispatch(action.reset());
+        NavigationService.replace(navName.searchAcademy, {
+          ...(route?.params || {}),
+          noParamReset: true,
+        });
+        setIsFocus(true);
+        return;
+      }
       const { latitude, longitude } = await GeoLocationUtils.getLocation();
       setCenter({ latitude, longitude });
       const resultAddr = await GeoLocationUtils.getAddress({
@@ -156,29 +175,21 @@ function SearchAcademy() {
     return () => {
       setIsFocus(true);
     };
-  }, []);
-
-  // useFocusEffect(
-  //   useCallback(() => {
-  //     return () => {
-  //       setIsFocus(true);
-  //     };
-  //   }, []),
-  // );
-
-  useFocusEffect(
-    useCallback(() => {
-      if (!isFocus) {
-        onRefresh();
-      }
-    }, [searched, orderType, isFocus, mapSearch]),
-  );
+  }, [noParamReset]);
 
   useEffect(() => {
-    if ((!isFocus && refreshing) || (!refreshing && page > 1)) {
-      getAcademyList();
+    if (!isFocus && noParamReset) {
+      onRefresh();
     }
-  }, [page, isFocus, refreshing]);
+  }, [searched, orderType, isFocus, mapSearch, noParamReset]);
+
+  useEffect(() => {
+    if (noParamReset) {
+      if ((!isFocus && refreshing) || (!refreshing && page > 1)) {
+        getAcademyList();
+      }
+    }
+  }, [page, isFocus, refreshing, noParamReset]);
 
   const renderMapView = useMemo(() => {
     return (

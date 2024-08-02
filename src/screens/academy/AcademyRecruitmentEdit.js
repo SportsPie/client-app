@@ -1,4 +1,3 @@
-/* eslint-disable no-shadow */
 import { useFocusEffect } from '@react-navigation/native';
 import moment from 'moment';
 import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
@@ -30,8 +29,12 @@ import { FONTS } from '../../styles/fontStyles';
 import { handleError } from '../../utils/HandleError';
 import Utils from '../../utils/Utils';
 import Header from '../../components/header';
+import { useDispatch } from 'react-redux';
+import { academyRecruitmentListAction } from '../../redux/reducers/list/academyRecruitmentListSlice';
+import { academyRecruitmentForAdminListAction } from '../../redux/reducers/list/academyRecruitmentForAdminListSlice';
 
 function AcademyRecruitmentEdit({ route }) {
+  const dispatch = useDispatch();
   /**
    * state
    */
@@ -45,6 +48,8 @@ function AcademyRecruitmentEdit({ route }) {
 
   // 클래스
   const [classTypeList, setClassTypeList] = useState([]);
+  // 삭제할 클래스
+  const [removeClassTypeList, setRemoveClassTypeList] = useState([]); // idxs
 
   // 모집기간
   const periodTypes = {
@@ -59,6 +64,7 @@ function AcademyRecruitmentEdit({ route }) {
     return { label: item, value: item };
   });
 
+  const [recruitmentDetail, setRecruitmentDetail] = useState({});
   // 제목
   const [title, setTitle] = useState('');
   // 내용
@@ -66,7 +72,7 @@ function AcademyRecruitmentEdit({ route }) {
   // 성별
   const [selectedGenderType, setSelectedGenderType] = useState();
   // 클래스
-  const [selectedClassType, setSelectedClassType] = useState('');
+  const [selectedClassType, setSelectedClassType] = useState({});
   const [etc, setEtc] = useState('');
   // 모집기간
   const [selectedPeriodType, setSelectedPeriodType] = useState();
@@ -98,10 +104,20 @@ function AcademyRecruitmentEdit({ route }) {
       const { data } = await apiGetAcademyConfigMngRecruitsDetail(recruitIdx);
       const recruit = data.data?.recruit;
       if (recruit) {
+        setRecruitmentDetail(recruit);
         setTitle(recruit.title);
         setDescription(recruit.contents);
         setSelectedGenderType(recruit.genderCode);
-        setSelectedClassType(recruit.classCode);
+        if (recruit.classTypeList && recruit.classTypeList.length > 0) {
+          const classObj = {};
+          recruit.classTypeList.forEach(item => {
+            classObj[item.planTypeCode] = true;
+          });
+          setSelectedClassType(classObj);
+          setRemoveClassTypeList(
+            recruit.classTypeList.map(item => item.planIdx),
+          );
+        }
 
         if (recruit.endDate) {
           setStartDate(moment(recruit.startDate).toDate());
@@ -133,7 +149,6 @@ function AcademyRecruitmentEdit({ route }) {
         const etcItem = data.data.find(v => v.planTypeCode.includes('ETC'));
         if (etcItem) setEtc(etcItem.etc);
         setClassTypeList(list.reverse());
-        setSelectedClassType(list[0].value);
       }
     } catch (error) {
       handleError(error);
@@ -150,7 +165,8 @@ function AcademyRecruitmentEdit({ route }) {
         title,
         contents: description,
         genderCode: selectedGenderType,
-        classCode: selectedClassType,
+        classTypeList: getFilterList(),
+        removeClassTypeList,
         startDate: `${moment(startDate).format('YYYY-MM-DD')} ${moment(
           startTime,
         ).format('HH:mm:ss')}`,
@@ -161,6 +177,24 @@ function AcademyRecruitmentEdit({ route }) {
           : null,
       };
       const { data } = await apiPutAcademyConfigMngRecruits(params);
+      const recruitResponse = await apiGetAcademyConfigMngRecruitsDetail(
+        recruitIdx,
+      );
+      const recruit = recruitResponse.data.data?.recruit;
+      dispatch(
+        academyRecruitmentListAction.modifyItem({
+          idxName: 'recruitIdx',
+          idx: recruitIdx,
+          item: recruit,
+        }),
+      );
+      dispatch(
+        academyRecruitmentForAdminListAction.modifyItem({
+          idxName: 'recruitIdx',
+          idx: recruitIdx,
+          item: recruit,
+        }),
+      );
       Utils.openModal({
         title: '성공',
         body: '공고가 수정되었습니다.',
@@ -176,8 +210,16 @@ function AcademyRecruitmentEdit({ route }) {
    * function
    */
   // 클래스 기타 클릭시 Input
-  const checkShowEtcInput = selectedClassType => {
-    return selectedClassType?.includes('ETC');
+  const checkShowEtcInput = obj => {
+    if (!obj) return false;
+    const keys = Object.keys(obj);
+    for (let i = 0; i < keys.length; i += 1) {
+      const key = keys[i];
+      if (obj[key]) {
+        if (key?.includes('ETC')) return true;
+      }
+    }
+    return false;
   };
 
   const handlePeriodTypeChange = () => {
@@ -229,6 +271,34 @@ function AcademyRecruitmentEdit({ route }) {
     setRegistModalShow(false);
   };
 
+  const filterExistsCheck = () => {
+    let classTypeExists = false;
+    const classEtcExists = false;
+    const classKeys = Object.keys(selectedClassType);
+
+    for (let i = 0; i < classKeys.length; i += 1) {
+      const key = classKeys[i];
+      if (selectedClassType[key]) {
+        classTypeExists = true;
+        break;
+      }
+    }
+    return classTypeExists;
+  };
+
+  const getFilterList = () => {
+    const selectedClass = [];
+    Object.keys(selectedClassType).forEach(key => {
+      if (selectedClassType[key]) {
+        selectedClass.push({
+          planTypeCode: key,
+          etc: key?.includes('ETC') ? etc : null,
+        });
+      }
+    });
+    return [...selectedClass];
+  };
+
   // 공고 등록 버튼 활성화 조건
   const isFormValid = () => {
     return (
@@ -238,6 +308,7 @@ function AcademyRecruitmentEdit({ route }) {
       selectedGenderType &&
       selectedClassType &&
       selectedPeriodType &&
+      filterExistsCheck() &&
       (isAlwaysRecruiting || (startDate && endDate && startTime && endTime))
     );
   };
@@ -388,29 +459,31 @@ function AcademyRecruitmentEdit({ route }) {
                     <TouchableOpacity
                       key={index}
                       onPress={() => {
-                        setSelectedClassType(item.value);
+                        setSelectedClassType(prev => {
+                          return {
+                            ...prev,
+                            [item.value]: !prev[item.value],
+                          };
+                        });
                       }}
                       style={[
                         styles.classTypeBtn,
                         {
-                          backgroundColor:
-                            selectedClassType === item.value
-                              ? '#FF671F'
-                              : 'rgba(135, 141, 150, 0.16)',
-                          borderColor:
-                            selectedClassType === item.value
-                              ? '#FF671F'
-                              : 'rgba(135, 141, 150, 0.16)',
+                          backgroundColor: selectedClassType?.[item.value]
+                            ? '#FF671F'
+                            : 'rgba(135, 141, 150, 0.16)',
+                          borderColor: selectedClassType?.[item.value]
+                            ? '#FF671F'
+                            : 'rgba(135, 141, 150, 0.16)',
                         },
                       ]}>
                       <Text
                         style={[
                           styles.classTypeText,
                           {
-                            color:
-                              selectedClassType === item.value
-                                ? '#FFF'
-                                : 'rgba(46, 49, 53, 0.60)',
+                            color: selectedClassType?.[item.value]
+                              ? '#FFF'
+                              : 'rgba(46, 49, 53, 0.60)',
                           },
                         ]}>
                         {item.label}

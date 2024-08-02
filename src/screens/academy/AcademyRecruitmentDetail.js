@@ -1,7 +1,7 @@
-import React, { useCallback, useEffect, useState, useRef, memo } from 'react';
-import { Image, Text, View, TouchableOpacity, Pressable } from 'react-native';
+import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
+import { Image, Pressable, Text, TouchableOpacity, View } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import moment from 'moment/moment';
 import { ScrollView } from 'react-native-gesture-handler';
 import SPIcons from '../../assets/icon';
@@ -13,15 +13,13 @@ import SPMoreModal, {
   MODAL_MORE_BUTTONS,
   MODAL_MORE_TYPE,
 } from '../../components/SPMoreModal';
-import { REPORT_TYPE } from '../../common/constants/reportType';
 import { handleError } from '../../utils/HandleError';
 import {
   apiGetAcademyOpenRecruitByIdx,
+  apiGetAcademyRecruitByIdx,
   apiGetMyInfo,
   apiPatchAcademyConfigMngConfirm,
   apiPatchAcademyConfigMngReject,
-  apiPostAcademyOpenRecruitByIdx,
-  apiPostWallet,
 } from '../../api/RestAPI';
 import { IS_YN } from '../../common/constants/isYN';
 import { GENDER } from '../../common/constants/gender';
@@ -29,8 +27,11 @@ import SPModal from '../../components/SPModal';
 import Utils from '../../utils/Utils';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import fontStyles from '../../styles/fontStyles';
+import { academyRecruitmentListAction } from '../../redux/reducers/list/academyRecruitmentListSlice';
+import { academyRecruitmentForAdminListAction } from '../../redux/reducers/list/academyRecruitmentForAdminListSlice';
 
 function AcademyRecruitmentDetail({ route, type }) {
+  const dispatch = useDispatch();
   /**
    * state
    */
@@ -73,17 +74,34 @@ function AcademyRecruitmentDetail({ route, type }) {
     try {
       let response = null;
       if (isLogin) {
-        response = await apiGetAcademyOpenRecruitByIdx(recruitIdx);
+        response = await apiGetAcademyRecruitByIdx(recruitIdx);
       } else {
-        response = await apiPostAcademyOpenRecruitByIdx(recruitIdx);
+        response = await apiGetAcademyOpenRecruitByIdx(recruitIdx);
       }
       const { data } = response;
-      setRecruitDetail(data.data?.recruit);
+      setRecruitDetail({
+        ...data.data?.recruit,
+        classTypeList: data.data?.recruit.classTypeList?.reverse(),
+      });
       setRecruitEnd(
         data.data?.recruit?.closeYn === IS_YN.Y || data.data?.recruit?.dday < 0,
       );
       setWaitList(data.data?.waitList);
       setConfirmList(data.data?.confirmList);
+      dispatch(
+        academyRecruitmentListAction.modifyItem({
+          idxName: 'recruitIdx',
+          idx: recruitIdx,
+          item: data.data?.recruit,
+        }),
+      );
+      dispatch(
+        academyRecruitmentForAdminListAction.modifyItem({
+          idxName: 'recruitIdx',
+          idx: recruitIdx,
+          item: data.data?.recruit,
+        }),
+      );
     } catch (error) {
       handleError(error);
     }
@@ -112,6 +130,23 @@ function AcademyRecruitmentDetail({ route, type }) {
       handleError(error);
     }
     trlRef.current.disabled = false;
+  };
+
+  const handleRecruitEnd = async end => {
+    try {
+      const { data } = await apiGetAcademyOpenRecruitByIdx(recruitIdx);
+      dispatch(academyRecruitmentListAction.refresh());
+      dispatch(
+        academyRecruitmentForAdminListAction.modifyItem({
+          idxName: 'recruitIdx',
+          idx: recruitIdx,
+          item: data.data?.recruit,
+        }),
+      );
+      setRecruitEnd(end);
+    } catch (error) {
+      handleError(error);
+    }
   };
 
   /**
@@ -293,7 +328,18 @@ function AcademyRecruitmentDetail({ route, type }) {
                       overflow: 'hidden',
                     }}
                   />
-                  <Text style={styles.subText}>{recruitDetail.className}</Text>
+                  <Text style={styles.subText}>
+                    {recruitDetail?.classTypeList &&
+                    recruitDetail?.classTypeList.length > 0
+                      ? recruitDetail?.classTypeList
+                          .map(item =>
+                            item.planTypeCode?.includes('ETC')
+                              ? item?.etc
+                              : item?.planTypeName,
+                          )
+                          .join(', ')
+                      : ''}
+                  </Text>
                 </View>
               </View>
             </View>
@@ -560,7 +606,7 @@ function AcademyRecruitmentDetail({ route, type }) {
           recruitIdx={recruitIdx}
           setIsJoined={setIsJoined}
           recruitmentEnds={recruitEnd}
-          onRecruitmentEnds={setRecruitEnd}
+          onRecruitmentEnds={handleRecruitEnd}
           showRecruitmentEnd
         />
         <SPModal

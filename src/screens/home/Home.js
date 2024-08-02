@@ -26,6 +26,7 @@ import {
   apiGetHomeInit,
   apiGetHomeOpen,
   apiGetNoticesDetail,
+  apiPatchBannerViewCnt,
 } from '../../api/RestAPI';
 import SPIcons from '../../assets/icon';
 import SPImages from '../../assets/images';
@@ -174,6 +175,9 @@ function Home() {
     });
   };
 
+  const patchBannerViewCnt = async idx => {
+    await apiPatchBannerViewCnt(idx);
+  };
   const calculateMargin = index => {
     const marginStyle = {};
     if (index % 2 === 0) {
@@ -385,7 +389,10 @@ function Home() {
                   }}>
                   {images.map((img, index) => (
                     <Pressable
-                      onPress={() => bannerWebPress(img)}
+                      onPress={() => {
+                        bannerWebPress(img);
+                        patchBannerViewCnt(img.boardIdx);
+                      }}
                       key={index}
                       style={[styles.slide, { height: imageHeight }]}>
                       <Image
@@ -440,7 +447,7 @@ function Home() {
                 <TouchableOpacity
                   activeOpacity={ACTIVE_OPACITY}
                   onPress={() => {
-                    NavigationService.navigate(navName.academyMember);
+                    NavigationService.navigate(navName.nearbyAcademy);
                   }}
                   style={styles.moreBtn}>
                   <Text style={styles.topBtn}>모두 보기</Text>
@@ -557,7 +564,10 @@ function Home() {
                 {slidesData.map((slide, index) => (
                   <Pressable
                     key={index}
-                    onPress={() => tournamentWebPress(slide)}
+                    onPress={() => {
+                      tournamentWebPress(slide);
+                      patchBannerViewCnt(slide.boardIdx);
+                    }}
                     style={[styles.slide, { height: subImageHeight }]}>
                     <ImageBackground
                       source={{ uri: slide.filePath }}

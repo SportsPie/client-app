@@ -50,6 +50,11 @@ function WalletBackUp() {
         WalletUtils.saveWalletMnemonnic(auth, mnemonic);
         setMnemonicTextList(mnemonic?.split(' ') || []);
         setPk(privateKey);
+        let walletCreated = false;
+        while (walletCreated) {
+          // eslint-disable-next-line no-await-in-loop
+          walletCreated = await WalletUtils.getWalletAddress();
+        }
       } catch (error) {
         if (error?.code === 5103) {
           handleError(error);

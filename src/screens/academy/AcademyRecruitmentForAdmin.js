@@ -1,13 +1,13 @@
-import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
+import React, { memo, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
   Image,
+  Pressable,
   RefreshControl,
   Text,
   TouchableOpacity,
   View,
-  Pressable,
 } from 'react-native';
 import moment from 'moment';
 import { navName } from '../../common/constants/navName';
@@ -18,21 +18,20 @@ import {
   apiGetAcademyConfigMngRecruits,
   apiPatchAcademyConfigMngConfirm,
   apiPatchAcademyConfigMngReject,
-  apiPostAcademyOpenRecruit,
 } from '../../api/RestAPI';
 import { MATCH_GENDER } from '../../common/constants/matchGender';
 import fontStyles from '../../styles/fontStyles';
 import SPLoading from '../../components/SPLoading';
 import SPHeader from '../../components/SPHeader';
-import { RECRUIT_PAGE_TYPE } from '../../common/constants/recruitPageType';
-import { useFocusEffect } from '@react-navigation/native';
-import { REPORT_TYPE } from '../../common/constants/reportType';
 import SPIcons from '../../assets/icon';
 import { GENDER } from '../../common/constants/gender';
 import SPModal from '../../components/SPModal';
 import Utils from '../../utils/Utils';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { IS_YN } from '../../common/constants/isYN';
+import { useDispatch, useSelector } from 'react-redux';
+import { store } from '../../redux/store';
+import { academyRecruitmentForAdminListAction } from '../../redux/reducers/list/academyRecruitmentForAdminListSlice';
 
 const tabs = {
   notice: {
@@ -66,9 +65,21 @@ function TabButton({ tab, activeTab, setActiveTab }) {
 }
 
 function AcademyRecruitmentForAdmin({ route }) {
+  const dispatch = useDispatch();
   /**
    * state
    */
+  const listName = 'academyRecruitmentForAdminList';
+  const {
+    page,
+    list: academyRecruitList,
+    refreshing,
+    loading,
+    isLast,
+  } = useSelector(selector => selector[listName]);
+  const action = academyRecruitmentForAdminListAction;
+  const noParamReset = route?.params?.noParamReset;
+
   const academyIdx = route.params?.academyIdx;
   const [activeTab, setActiveTab] = useState(tabs.notice.value);
 
@@ -78,13 +89,7 @@ function AcademyRecruitmentForAdmin({ route }) {
   const [selectedJoinIdx, setSelectedJoinIdx] = useState();
 
   const flatListRef = useRef();
-  const [page, setPage] = useState(1);
   const [size, setSize] = useState(30);
-  const [loading, setLoading] = useState(true);
-  const [totalCnt, setTotalCnt] = useState(0);
-  const [isLast, setIsLast] = useState(false);
-  const [refreshing, setRefreshing] = useState(true);
-  const [academyRecruitList, setAcademyRecruitList] = useState([]);
 
   const [waitList, setWaitList] = useState([]);
 
@@ -120,18 +125,19 @@ function AcademyRecruitmentForAdmin({ route }) {
         size,
       };
       const { data } = await apiGetAcademyConfigMngRecruits(params);
-      setTotalCnt(data.data.totalCnt);
-      setIsLast(data.data.isLast);
+      dispatch(action.setTotalCnt(data.data.totalCnt));
+      dispatch(action.setIsLast(data.data.isLast));
       if (page === 1) {
-        setAcademyRecruitList([...data.data.list]);
+        dispatch(action.setList(data.data.list));
       } else {
-        setAcademyRecruitList(prev => [...prev, ...data.data.list]);
+        const prevList = store.getState()[listName].list;
+        dispatch(action.setList([...prevList, ...data.data.list]));
       }
     } catch (error) {
       handleError(error);
     }
-    setRefreshing(false);
-    setLoading(false);
+    dispatch(action.setRefreshing(false));
+    dispatch(action.setLoading(false));
   };
 
   const getNoRecuirtList = async () => {
@@ -189,49 +195,50 @@ function AcademyRecruitmentForAdmin({ route }) {
   const loadMoreProjects = () => {
     setTimeout(() => {
       if (!isLast) {
-        setPage(prevPage => prevPage + 1);
+        const prevPage = store.getState()[listName].page;
+        dispatch(action.setPage(prevPage + 1));
       }
     }, 0);
   };
 
   const onRefresh = async () => {
-    if (flatListRef.current) {
-      flatListRef.current.scrollToOffset({ animated: false, offset: 0 });
+    // if (flatListRef.current) {
+    //   flatListRef.current.scrollToOffset({ animated: false, offset: 0 });
+    // }
+    dispatch(action.refresh());
+  };
+
+  const focus = () => {
+    if (!noParamReset) {
+      setActiveTab(tabs.notice.value);
+      dispatch(action.reset());
+      NavigationService.replace(navName.academyRecruitmentForAdmin, {
+        ...(route?.params ?? {}),
+        noParamReset: true,
+      });
+    } else {
+      onRefresh();
     }
-    setLoading(true);
-    setAcademyRecruitList([]);
-    setPage(1);
-    setIsLast(false);
-    setRefreshing(true);
   };
 
   /**
    * useEffect
    */
-  useFocusEffect(
-    useCallback(() => {
-      onRefresh();
-      return () => {
-        setPage(1);
-        setRefreshing(true);
-        setActiveTab(tabs.notice.value);
-      };
-    }, []),
-  );
+  useEffect(() => {
+    focus();
+  }, [noParamReset]);
 
-  useFocusEffect(
-    useCallback(() => {
-      getNoRecuirtList();
-    }, [refresh]),
-  );
+  useEffect(() => {
+    if (noParamReset) getNoRecuirtList();
+  }, [refresh, noParamReset]);
 
-  useFocusEffect(
-    useCallback(() => {
+  useEffect(() => {
+    if (noParamReset) {
       if (refreshing || (!refreshing && page > 1)) {
         getRecruitList();
       }
-    }, [page, refreshing]),
-  );
+    }
+  }, [page, refreshing, noParamReset]);
 
   return (
     <SafeAreaView style={styles.container}>

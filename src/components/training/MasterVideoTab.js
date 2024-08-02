@@ -34,7 +34,7 @@ function MasterVideoTab({ title = '', videoList = [] }) {
       return (
         <Pressable
           onPress={() =>
-            NavigationService.navigate(navName.masterVideoDetail, {
+            NavigationService.push(navName.masterVideoDetail, {
               videoIdx: item.videoIdx,
             })
           }>

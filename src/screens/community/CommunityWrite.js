@@ -12,7 +12,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import {
   apiGetCommunityOpenFilters,
   apiGetMyInfo,
@@ -33,11 +33,14 @@ import SPKeyboardAvoidingView from '../../components/SPKeyboardAvoidingView';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import SPIcons from '../../assets/icon';
 import SPModal from '../../components/SPModal';
+import { communityListAction } from '../../redux/reducers/list/communityListSlice';
+import { academyCommunityListAction } from '../../redux/reducers/list/academyCommunityListSlice';
 
 /**
  * CommunityWrite
  */
 function CommunityWrite({ route }) {
+  const dispatch = useDispatch();
   const trlRef = useRef({ current: { disabled: false } });
 
   /**
@@ -127,6 +130,10 @@ function CommunityWrite({ route }) {
       }
 
       const { data } = await apiPostCommunity(formData);
+      dispatch(communityListAction.setListParamReset(true));
+      dispatch(academyCommunityListAction.setListParamReset(true));
+      dispatch(communityListAction.refresh());
+      dispatch(academyCommunityListAction.refresh());
       Utils.openModal({
         title: '성공',
         body: '게시글 등록이 완료되었습니다.',
@@ -251,7 +258,7 @@ function CommunityWrite({ route }) {
           <TouchableOpacity
             onPress={() => inputRef.current.focus()}
             style={styles.inputSection}>
-            <View style={styles.inputSection}>
+            <View style={[styles.inputSection, { paddingHorizontal: 0 }]}>
               <ScrollView
                 style={{ flex: 1 }}
                 showsVerticalScrollIndicator={false}>

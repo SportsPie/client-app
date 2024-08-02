@@ -14,7 +14,7 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import {
   apiGetAcademyDetail,
   apiGetAcademyOpenMatchResults,
@@ -35,11 +35,25 @@ import { COLORS } from '../../styles/colors';
 import { handleError } from '../../utils/HandleError';
 import Utils from '../../utils/Utils';
 import { IS_YN } from '../../common/constants/isYN';
+import { academyCommunityListAction } from '../../redux/reducers/list/academyCommunityListSlice';
+import { store } from '../../redux/store';
+import { matchingHistoryListAction } from '../../redux/reducers/list/matchingHistoryListSlice';
 
 function MatchingHistory({ route }) {
   /**
    * state
    */
+  const dispatch = useDispatch();
+  const listName = 'matchingHistoryList';
+  const {
+    page,
+    list: matchList,
+    refreshing,
+    loading,
+    isLast,
+  } = useSelector(selector => selector[listName]);
+  const noParamReset = route?.params?.noParamReset;
+  const action = matchingHistoryListAction;
   const flatListRef = useRef();
   const insets = useSafeAreaInsets();
   const academyIdx = route?.params?.academyIdx;
@@ -53,15 +67,10 @@ function MatchingHistory({ route }) {
 
   // list
   const [size, setSize] = useState(30);
-  const [page, setPage] = useState(1);
-  const [loading, setLoading] = useState(true);
   const [totalCnt, setTotalCnt] = useState(0);
-  const [isLast, setIsLast] = useState(false);
   const [refresh, setRefresh] = useState(false);
   const [refreshUserInfo, setRefreshUserInfo] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
   const [isFocus, setIsFocus] = useState(true);
-  const [matchList, setMatchList] = useState([]);
 
   // filter
   const [matchResultType, setMatchResultType] = useState(null);
@@ -115,19 +124,20 @@ function MatchingHistory({ route }) {
         resultType: matchResultType,
       };
       const { data } = await apiGetAcademyOpenMatchResults(parmas);
-      setTotalCnt(data.data.totalCnt);
-      setIsLast(data.data.isLast);
+      dispatch(action.setTotalCnt(data.data.totalCnt));
+      dispatch(action.setIsLast(data.data.isLast));
       if (page === 1) {
-        setMatchList(data.data.list);
+        dispatch(action.setList(data.data.list));
       } else {
-        setMatchList(prev => [...prev, ...data.data.list]);
+        const prevList = store.getState()[listName].list;
+        dispatch(action.setList([...prevList, ...data.data.list]));
       }
     } catch (error) {
       handleError(error);
     }
     setIsFocus(false);
-    setLoading(false);
-    setRefreshing(false);
+    dispatch(action.setRefreshing(false));
+    dispatch(action.setLoading(false));
   };
 
   const joinRequest = async () => {
@@ -205,62 +215,68 @@ function MatchingHistory({ route }) {
   const loadMoreProjects = () => {
     setTimeout(() => {
       if (!isLast) {
-        setPage(prevPage => prevPage + 1);
+        const prevPage = store.getState()[listName].page;
+        dispatch(action.setPage(prevPage + 1));
       }
     }, 0);
   };
 
   const onRefresh = async () => {
-    if (flatListRef.current) {
-      flatListRef.current.scrollToOffset({ animated: false, offset: 0 });
-    }
-    setLoading(true);
-    setPage(1);
-    setIsLast(false);
-    setMatchList([]);
-    setRefreshing(true);
+    // if (flatListRef.current) {
+    //   flatListRef.current.scrollToOffset({ animated: false, offset: 0 });
+    // }
+    dispatch(action.refresh());
   };
 
   const onFocus = () => {
+    if (!noParamReset) {
+      setIsFocus(true);
+      dispatch(action.reset());
+      NavigationService.replace(navName.matchingHistory, {
+        ...(route?.params || {}),
+        noParamReset: true,
+      });
+      return;
+    }
     getAcademyDetail();
     getMatchingSatistics();
+
     setIsFocus(false);
   };
 
   /**
    * useEffect
    */
-  useFocusEffect(
-    useCallback(() => {
-      onFocus();
-    }, []),
-  );
-
-  useFocusEffect(
-    useCallback(() => {
-      getUserInfo();
-    }, [refreshUserInfo]),
-  );
-
-  useFocusEffect(
-    useCallback(() => {
-      renderByJoinType();
-    }, [joinType]),
-  );
-
-  useFocusEffect(
-    useCallback(() => {
-      if (!isFocus) {
-        onRefresh();
-      }
-    }, [isFocus, refresh]),
-  );
 
   useEffect(() => {
-    if ((!isFocus && refreshing) || (!refreshing && page > 1)) {
-      getMatchingHistory();
+    onFocus();
+  }, [noParamReset]);
+
+  useEffect(() => {
+    if (noParamReset) {
+      getUserInfo();
     }
-  }, [page, isFocus, refreshing]);
+  }, [refreshUserInfo, noParamReset]);
+
+  useEffect(() => {
+    if (noParamReset) {
+      renderByJoinType();
+    }
+  }, [joinType, noParamReset]);
+
+  useEffect(() => {
+    if (!isFocus && noParamReset) {
+      onRefresh();
+    }
+  }, [isFocus, refresh, noParamReset]);
+
+  useEffect(() => {
+    if (noParamReset) {
+      if ((!isFocus && refreshing) || (!refreshing && page > 1)) {
+        getMatchingHistory();
+      }
+    }
+  }, [page, isFocus, refreshing, noParamReset]);
 
   const renderMatchItem = ({ item, index }) => (
     <View style={styles.contentItem}>

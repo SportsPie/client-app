@@ -1,6 +1,5 @@
-import { useFocusEffect } from '@react-navigation/native';
 import moment from 'moment';
-import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
+import React, { memo, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -31,11 +30,26 @@ import { IS_YN } from '../../common/constants/isYN';
 import fontStyles from '../../styles/fontStyles';
 import SPIcons from '../../assets/icon';
 import GeoLocationUtils from '../../utils/GeoLocationUtils';
+import { useDispatch, useSelector } from 'react-redux';
+import { academyRecruitmentListAction } from '../../redux/reducers/list/academyRecruitmentListSlice';
+import { store } from '../../redux/store';
 
 function AcademyRecruitment({ route }) {
+  const dispatch = useDispatch();
   /**
    * state
    */
+  const listName = 'academyRecruitmentList';
+  const {
+    page,
+    list: academyRecruitList,
+    refreshing,
+    loading,
+    isLast,
+  } = useSelector(selector => selector[listName]);
+  const action = academyRecruitmentListAction;
+  const noParamReset = route?.params?.noParamReset;
+
   const pageType = route.params?.pageType; // ALL, ACADEMY, MANAGEMENT
   const academyIdx = route.params?.academyIdx;
 
@@ -51,13 +65,7 @@ function AcademyRecruitment({ route }) {
   const [itemsToDisplay, setItemsToDisplay] = useState([]);
 
   const flatListRef = useRef();
-  const [page, setPage] = useState(1);
   const [size, setSize] = useState(30);
-  const [loading, setLoading] = useState(true);
-  const [totalCnt, setTotalCnt] = useState(0);
-  const [isLast, setIsLast] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
-  const [academyRecruitList, setAcademyRecruitList] = useState([]);
   const [selectedCity, setSelectedCity] = useState(null);
   const [selectedGu, setSelectedGu] = useState(null);
 
@@ -112,18 +120,19 @@ function AcademyRecruitment({ route }) {
         default:
           break;
       }
-      setTotalCnt(data.data.totalCnt);
-      setIsLast(data.data.isLast);
+      dispatch(action.setTotalCnt(data.data.totalCnt));
+      dispatch(action.setIsLast(data.data.isLast));
       if (page === 1) {
-        setAcademyRecruitList(data.data.list);
+        dispatch(action.setList(data.data.list));
       } else {
-        setAcademyRecruitList(prev => [...prev, ...data.data.list]);
+        const prevList = store.getState()[listName].list;
+        dispatch(action.setList([...prevList, ...data.data.list]));
       }
     } catch (error) {
       handleError(error);
     }
-    setRefreshing(false);
-    setLoading(false);
+    dispatch(action.setRefreshing(false));
+    dispatch(action.setLoading(false));
   };
 
   const getCityList = async () => {
@@ -201,20 +210,17 @@ function AcademyRecruitment({ route }) {
   const loadMoreProjects = () => {
     setTimeout(() => {
       if (!isLast) {
-        setPage(prevPage => prevPage + 1);
+        const prevPage = store.getState()[listName].page;
+        dispatch(action.setPage(prevPage + 1));
       }
     }, 0);
   };
 
   const onRefresh = async () => {
-    if (flatListRef.current) {
-      flatListRef.current.scrollToOffset({ animated: false, offset: 0 });
-    }
-    setLoading(true);
-    setAcademyRecruitList([]);
-    setPage(1);
-    setIsLast(false);
-    setRefreshing(true);
+    // if (flatListRef.current) {
+    //   flatListRef.current.scrollToOffset({ animated: false, offset: 0 });
+    // }
+    dispatch(action.refresh());
   };
 
   const getLocation = async () => {
@@ -237,11 +243,19 @@ function AcademyRecruitment({ route }) {
 
   const onFocus = async () => {
     try {
-      if (pageType === RECRUIT_PAGE_TYPE.ALL) {
-        await getLocation();
-        await getCityList();
+      if (!noParamReset) {
+        dispatch(action.reset());
+        NavigationService.replace(navName.academyRecruitment, {
+          ...(route?.params ?? {}),
+          noParamReset: true,
+        });
+      } else {
+        if (pageType === RECRUIT_PAGE_TYPE.ALL) {
+          await getLocation();
+          await getCityList();
+        }
+        onRefresh();
       }
-      onRefresh();
     } catch (error) {
       handleError(error);
     }
@@ -250,29 +264,26 @@ function AcademyRecruitment({ route }) {
   /**
    * useEffect
    */
-  useFocusEffect(
-    useCallback(() => {
-      onFocus();
-      return () => {
-        setPage(1);
-        setRefreshing(true);
-      };
-    }, []),
-  );
 
-  useFocusEffect(
-    useCallback(() => {
+  useEffect(() => {
+    onFocus();
+  }, [noParamReset]);
+
+  useEffect(() => {
+    if (noParamReset) {
       if (refreshing || (!refreshing && page > 1)) {
         getRecruitList();
       }
-    }, [page, refreshing]),
-  );
+    }
+  }, [page, refreshing]);
 
   useEffect(() => {
-    if (pageType === RECRUIT_PAGE_TYPE.ALL && selectedCity) {
-      getGuList(selectedCity);
+    if (noParamReset) {
+      if (pageType === RECRUIT_PAGE_TYPE.ALL && selectedCity) {
+        getGuList(selectedCity);
+      }
     }
-  }, [selectedCity]);
+  }, [selectedCity, noParamReset]);
 
   return (
     <SafeAreaView style={styles.container}>

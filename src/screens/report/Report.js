@@ -20,12 +20,19 @@ import fontStyles from '../../styles/fontStyles';
 import { handleError } from '../../utils/HandleError';
 import Utils from '../../utils/Utils';
 import SPModal from '../../components/SPModal';
+import { useDispatch } from 'react-redux';
+import { communityListAction } from '../../redux/reducers/list/communityListSlice';
+import { academyCommunityListAction } from '../../redux/reducers/list/academyCommunityListSlice';
+import { moreCommunityListAction } from '../../redux/reducers/list/moreCommunityListSlice';
+import { communityCommentListAction } from '../../redux/reducers/list/communityCommentListSlice';
+import { academyCommunityCommentListAction } from '../../redux/reducers/list/academyCommunityCommentListSlice';
 
 function Report({ route }) {
   const reasonRef = useRef();
   /**
    * state
    */
+  const dispatch = useDispatch();
   const reportIdx = route?.params?.reportIdx;
   const reportType = route?.params?.reportType; // REPORT_TYPE
   const isReportUser = route?.params?.isReportUser;
@@ -162,7 +169,17 @@ function Report({ route }) {
           await apiReportChallenge(params);
           break;
         // (아카데미)커뮤니티 > 커뮤니티 신고하기
-        case REPORT_TYPE.FEED:
+        case REPORT_TYPE.FEED: {
+          if (isReportUser) {
+            setUserReportParam(params);
+            setShowUserReportCheckModal(true);
+          } else {
+            await apiPostCommunityReport(params);
+          }
+          dispatch(communityListAction.refresh());
+          dispatch(academyCommunityListAction.refresh());
+          break;
+        }
         case REPORT_TYPE.FEED_COMMENT:
           if (isReportUser) {
             setUserReportParam(params);
@@ -170,6 +187,8 @@ function Report({ route }) {
           } else {
             await apiPostCommunityReport(params);
           }
+          // dispatch(communityCommentListAction.refresh());
+          // dispatch(academyCommunityCommentListAction.refresh());
           break;
         // 채팅
         case REPORT_TYPE.CHAT:
@@ -207,6 +226,8 @@ function Report({ route }) {
     try {
       await apiPostCommunityReport(params);
       setShowUserReportCheckModal(false);
+      dispatch(communityListAction.refresh());
+      dispatch(academyCommunityListAction.refresh());
       setTimeout(() => {
         Utils.openModal({
           title: '신고 완료',

@@ -5,6 +5,7 @@ import React, {
   useState,
   useEffect,
   useRef,
+  Fragment,
 } from 'react';
 import {
   Image,
@@ -41,6 +42,7 @@ import SPMoreModal, {
   MODAL_MORE_TYPE,
 } from '../../components/SPMoreModal';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import SPLoading from '../../components/SPLoading';
 
 function TournamentDetail({ route }) {
   const { isLogin, userIdx } = useSelector(selector => selector.auth);
@@ -56,6 +58,7 @@ function TournamentDetail({ route }) {
   const [posterImageSize, setPosterImageSize] = useState({});
   const [tournamentImageSize, setTournamentImageSize] = useState({});
   const [refresh, setRefresh] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   // --------------------------------------------------
   // [ Api ]
@@ -76,6 +79,7 @@ function TournamentDetail({ route }) {
     } catch (error) {
       handleError(error);
     }
+    setLoading(false);
   };
 
   const applyTournamentDetail = async () => {
@@ -309,16 +313,14 @@ function TournamentDetail({ route }) {
           <View style={styles.labeledValue}>
             <Text style={styles.labelText}>모집팀 수</Text>
             <Text style={styles.valueText}>
-              {tournamentInfo.recruitCnt
-                ? `${tournamentInfo.recruitCnt}팀`
-                : '-'}
+              {tournamentInfo.recruitCnt ? `${tournamentInfo.recruitCnt}` : '-'}
             </Text>
           </View>
 
           <View style={styles.labeledValue}>
             <Text style={styles.labelText}>참가연령</Text>
             <Text style={styles.valueText}>
-              {tournamentInfo.entryAge ? `${tournamentInfo.entryAge}대` : '-'}
+              {tournamentInfo.entryAge ? `${tournamentInfo.entryAge}` : '-'}
             </Text>
           </View>
 
@@ -326,7 +328,7 @@ function TournamentDetail({ route }) {
             <Text style={styles.labelText}>참가비</Text>
             <Text style={styles.valueText}>
               {tournamentInfo.entryFee
-                ? `${Utils.changeNumberComma(tournamentInfo.entryFee)}원`
+                ? `${Utils.changeNumberComma(tournamentInfo.entryFee)}`
                 : '-'}
             </Text>
           </View>
@@ -387,6 +389,7 @@ function TournamentDetail({ route }) {
 
     return '';
   }, [tournamentStatus, tournamentInfo]);
+  if (loading) return <SPLoading />;
 
   return (
     <SafeAreaView style={styles.container}>
@@ -421,7 +424,6 @@ function TournamentDetail({ route }) {
             />
           )}
       </View>
-
       <SPMoreModal
         visible={showShareModal}
         onClose={() => {

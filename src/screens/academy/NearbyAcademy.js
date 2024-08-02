@@ -28,18 +28,31 @@ import NavigationService from '../../navigation/NavigationService';
 import { COLORS } from '../../styles/colors';
 import GeoLocationUtils from '../../utils/GeoLocationUtils';
 import { handleError } from '../../utils/HandleError';
+import { useDispatch, useSelector } from 'react-redux';
+import { communityListAction } from '../../redux/reducers/list/communityListSlice';
+import { store } from '../../redux/store';
+import { nearbyAcademyListAction } from '../../redux/reducers/list/nearbyAcademyListSlice';
 
-function NearbyAcademy() {
+function NearbyAcademy({ route }) {
+  const dispatch = useDispatch();
   /**
    * state
    */
+  const {
+    page,
+    list: academyList,
+    refreshing,
+    loading,
+    isLast,
+  } = useSelector(selector => selector.nearbyAcademyList);
+  const action = nearbyAcademyListAction;
+  const noParamReset = route?.params?.noParamReset;
   const flatListRef = useRef();
   const insets = useSafeAreaInsets();
   const [orderType, setOrderType] = useState(ORDER_TYPE.RATING_DESC);
   const [address, setAddress] = useState('');
   const [latitude, setLatitude] = useState();
   const [longitude, setLongitude] = useState();
-  const [nearbyAcademy, nearbyAcademyDetail] = useState({});
 
   // 클래스
   const [classTypeList, setClassTypeList] = useState([]);
@@ -59,14 +72,8 @@ function NearbyAcademy() {
   const [filters, setFilters] = useState([]);
 
   // list
-  const [size, setSize] = useState(10);
-  const [page, setPage] = useState(1);
-  const [loading, setLoading] = useState(true);
-  const [totalCnt, setTotalCnt] = useState(0);
-  const [isLast, setIsLast] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
+  const [size, setSize] = useState(30);
   const [isFocus, setIsFocus] = useState(true);
-  const [academyList, setAcademyList] = useState([]);
 
   // 필터 모달
   const [showModal, setShowModal] = useState(false);
@@ -125,18 +132,20 @@ function NearbyAcademy() {
         filters,
       };
       const { data } = await apiGetAcademyNearby(params);
-      setTotalCnt(data.data.totalCnt);
-      setIsLast(data.data.isLast);
+      dispatch(action.setTotalCnt(data.data.totalCnt));
+      dispatch(action.setIsLast(data.data.isLast));
       if (page === 1) {
-        setAcademyList(data.data.list);
+        dispatch(action.setList(data.data.list));
       } else {
-        setAcademyList(prev => [...prev, ...data.data.list]);
+        const prevList = store.getState().nearbyAcademyList.list;
+        dispatch(action.setList([...prevList, ...data.data.list]));
       }
     } catch (error) {
       handleError(error);
     }
     setIsFocus(false);
-    setLoading(false);
+    dispatch(action.setRefreshing(false));
+    dispatch(action.setLoading(false));
   };
 
   /**
@@ -191,33 +200,40 @@ function NearbyAcademy() {
   const loadMoreProjects = () => {
     setTimeout(() => {
       if (!isLast) {
-        setPage(prevPage => prevPage + 1);
+        const prevPage = store.getState().nearbyAcademyList.page;
+        dispatch(action.setPage(prevPage + 1));
       }
     }, 0);
   };
 
   const onRefresh = async () => {
-    if (flatListRef.current) {
-      flatListRef.current.scrollToOffset({ animated: false, offset: 0 });
-    }
-    setLoading(true);
-    setPage(1);
-    setIsLast(false);
-    setAcademyList([]);
-    setRefreshing(true);
+    // if (flatListRef.current) {
+    //   flatListRef.current.scrollToOffset({ animated: false, offset: 0 });
+    // }
+    dispatch(action.refresh());
   };
 
   const onFocus = async () => {
     try {
+      if (!noParamReset) {
+        dispatch(action.reset());
+        setLatitude();
+        setLongitude();
+        setIsFocus(true);
+        NavigationService.replace(navName.nearbyAcademy, {
+          noParamReset: true,
+        });
+        return;
+      }
       const { latitude: lat, longitude: lng } =
         await GeoLocationUtils.getLocation();
       setLatitude(lat); // 35.179805
       setLongitude(lng); // 129.083557
       await getAcademyFilterList();
-      setIsFocus(false);
     } catch (error) {
       handleError(error);
     }
+    setIsFocus(false);
   };
 
   /**
@@ -227,24 +243,23 @@ function NearbyAcademy() {
     useCallback(() => {
       onFocus();
       return () => {};
-    }, []),
-  );
-
-  useFocusEffect(
-    useCallback(() => {
-      if (!isFocus) {
-        setFilterList();
-        onRefresh();
-      }
-    }, [searched, orderType, isFocus]),
+    }, [noParamReset]),
   );
 
   useEffect(() => {
-    if ((!isFocus && refreshing) || (!refreshing && page > 1)) {
-      setRefreshing(false);
-      getNearbyAcademy();
+    if (!isFocus && noParamReset) {
+      setFilterList();
+      onRefresh();
     }
-  }, [page, isFocus, refreshing]);
+  }, [searched, orderType, isFocus]);
+
+  useEffect(() => {
+    if (noParamReset) {
+      if ((!isFocus && refreshing) || (!refreshing && page > 1)) {
+        getNearbyAcademy();
+      }
+    }
+  }, [page, isFocus, refreshing, noParamReset]);
 
   return (
     <SafeAreaView style={styles.container}>

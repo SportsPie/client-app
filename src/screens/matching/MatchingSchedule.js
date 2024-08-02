@@ -311,6 +311,7 @@ function MatchingSchedule({ route }) {
       setSelectedGender(null);
       setSelectedMethod(null);
       matchingFilterRef?.current?.reset();
+      setIsGetAddr(false);
       setFstCall(false);
       NavigationService.navigate(navName.matchingSchedule, {
         activeTab: route?.params.activeTab || '매칭',
@@ -607,12 +608,13 @@ function MatchingSchedule({ route }) {
     }, [paramReset]),
   );
 
-  useFocusEffect(
-    useCallback(() => {
-      getCityList();
-      getUserAddr();
-    }, []),
-  );
+  useEffect(() => {
+    if (paramReset) getCityList();
+  }, [paramReset]);
+
+  useEffect(() => {
+    getUserAddr();
+  }, [isGetAddr]);
 
   useEffect(() => {
     if (

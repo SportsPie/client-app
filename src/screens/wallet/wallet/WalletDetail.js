@@ -292,9 +292,15 @@ function WalletDetail() {
               <Text
                 style={[
                   fontStyles.fontSize14_Semibold,
-                  { color: COLORS.orange },
+                  {
+                    color:
+                      item?.coinExchangeType === 'D'
+                        ? COLORS.orange
+                        : COLORS.labelAlternative,
+                  },
                 ]}>
-                {Utils.changeNumberComma(item?.amount)}
+                {item?.coinExchangeType === 'D' ? '+' : '-'}
+                {Utils.changeNumberComma(item?.amount)} PIE
               </Text>
             </View>
 

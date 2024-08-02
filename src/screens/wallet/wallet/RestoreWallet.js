@@ -50,6 +50,12 @@ function RestoreWallet() {
           WalletUtils.saveWalletMnemonnic(auth, null);
         }
 
+        let walletCreated = false;
+        while (walletCreated) {
+          // eslint-disable-next-line no-await-in-loop
+          walletCreated = await WalletUtils.getWalletAddress();
+        }
+
         navigation.reset({
           index: 3,
           routes: [

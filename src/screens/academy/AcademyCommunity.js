@@ -14,7 +14,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import Carousel from 'react-native-snap-carousel';
 import { useFocusEffect } from '@react-navigation/native';
 import SPMoreModal, {
@@ -44,6 +44,10 @@ import {
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
 import Header from '../../components/header';
+import { communityCommentListAction } from '../../redux/reducers/list/communityCommentListSlice';
+import { academyCommunityListAction } from '../../redux/reducers/list/academyCommunityListSlice';
+import { store } from '../../redux/store';
+import { academyRecruitmentListAction } from '../../redux/reducers/list/academyRecruitmentListSlice';
 
 // 커뮤니티 이미지 슬라이드
 function CarouselSection({ challengeData, openImageModal, setSelectedImage }) {
@@ -85,9 +89,21 @@ function CarouselSection({ challengeData, openImageModal, setSelectedImage }) {
 }
 
 function AcademyCommunity({ route }) {
+  const dispatch = useDispatch();
   /**
    * state
    */
+  const listName = 'academyCommunityList';
+  const {
+    page,
+    list: feedList,
+    refreshing,
+    loading,
+    isLast,
+    listParamReset,
+  } = useSelector(selector => selector[listName]);
+  const noParamReset = route?.params?.noParamReset;
+  const action = academyCommunityListAction;
 
   const flatListRef = useRef();
   const insets = useSafeAreaInsets();
@@ -104,12 +120,6 @@ function AcademyCommunity({ route }) {
 
   // list
   const [size, setSize] = useState(30);
-  const [page, setPage] = useState(1);
-  const [loading, setLoading] = useState(true);
-  const [totalCnt, setTotalCnt] = useState(0);
-  const [isLast, setIsLast] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
-  const [feedList, setFeedList] = useState([]);
 
   const [filterList, setFilterList] = useState([]);
   const [selectedFilter, setSelectedFilter] = useState();
@@ -208,19 +218,20 @@ function AcademyCommunity({ route }) {
       };
 
       const { data } = await apiGetCommunityOpen(params);
-      setTotalCnt(data.data.totalCnt);
-      setIsLast(data.data.isLast);
+      dispatch(action.setTotalCnt(data.data.totalCnt));
+      dispatch(action.setIsLast(data.data.isLast));
       if (page === 1) {
-        setFeedList(data.data.list);
+        dispatch(action.setList(data.data.list));
       } else {
-        setFeedList(prev => [...prev, ...data.data.list]);
+        const prevList = store.getState()[listName].list;
+        dispatch(action.setList([...prevList, ...data.data.list]));
       }
     } catch (error) {
       handleError(error);
     }
     setIsFocus(false);
-    setLoading(false);
-    setRefreshing(false);
+    dispatch(action.setRefreshing(false));
+    dispatch(action.setLoading(false));
   };
 
   const changeLike = async item => {
@@ -244,7 +255,13 @@ function AcademyCommunity({ route }) {
     }
     // eslint-disable-next-line no-param-reassign
     item.isLike = !item.isLike;
-    setFeedList(prev => [...prev]);
+    dispatch(
+      academyRecruitmentListAction.modifyItem({
+        idxName: 'feedIdx',
+        idx: item.feedIdx,
+        item,
+      }),
+    );
   };
 
   /**
@@ -269,7 +286,8 @@ function AcademyCommunity({ route }) {
   const loadMoreProjects = () => {
     setTimeout(() => {
       if (!isLast) {
-        setPage(prevPage => prevPage + 1);
+        const prevPage = store.getState()[listName].page;
+        dispatch(action.setPage(prevPage + 1));
       }
     }, 0);
   };
@@ -281,20 +299,32 @@ function AcademyCommunity({ route }) {
 
   // refresh & focus
   const onRefresh = async () => {
-    if (flatListRef.current) {
-      flatListRef.current.scrollToOffset({ animated: false, offset: 0 });
-    }
-    setLoading(true);
-    setPage(1);
-    setFeedList([]);
-    setIsLast(false);
-    setRefreshing(true);
+    // if (flatListRef.current) {
+    //   flatListRef.current.scrollToOffset({ animated: false, offset: 0 });
+    // }
+    dispatch(action.refresh());
   };
 
   const onFocus = async () => {
     try {
-      await getFilterList();
-      setIsFocus(false);
+      if (!noParamReset || listParamReset) {
+        setIsFocus(true);
+        dispatch(action.reset());
+        setIsInit(true);
+        setSelectedFilter();
+        setSearched();
+        setSearchedKeyword();
+        setKeyword();
+        setIsJoined(false);
+        setIsInit(true);
+        NavigationService.replace(navName.academyCommunity, {
+          ...(route?.params || {}),
+          noParamReset: true,
+        });
+      } else {
+        await getFilterList();
+        setIsFocus(false);
+      }
     } catch (error) {
       handleError(error);
     }
@@ -303,45 +333,48 @@ function AcademyCommunity({ route }) {
   /**
    * useEffect
    */
-  useFocusEffect(
-    useCallback(() => {
-      onFocus();
-      return () => {
-        setLoading(true);
-        setIsFocus(true);
-        setFeedList([]);
-        setIsLast(false);
-      };
-    }, []),
-  );
-
-  useFocusEffect(
-    useCallback(() => {
-      if (!isFocus) {
-        getUserInfo();
-      }
-    }, [isFocus, isJoined]),
-  );
-
-  useFocusEffect(
-    useCallback(() => {
-      if (!isInit) {
-        onRefresh();
-      }
-    }, [searched, selectedFilter, isInit, changeEvent]),
-  );
 
   useEffect(() => {
-    if (filterList && filterList.length > 0) {
+    onFocus();
+  }, [noParamReset, listParamReset]);
+
+  useEffect(() => {
+    if (!isFocus && noParamReset && !listParamReset) {
+      getUserInfo();
+    }
+  }, [isFocus, isJoined, noParamReset, listParamReset]);
+
+  useEffect(() => {
+    if (!isInit && noParamReset && !listParamReset) {
+      onRefresh();
+    }
+  }, [
+    searched,
+    selectedFilter,
+    isInit,
+    changeEvent,
+    noParamReset,
+    listParamReset,
+  ]);
+
+  useEffect(() => {
+    if (
+      noParamReset &&
+      !listParamReset &&
+      filterList &&
+      filterList.length > 0
+    ) {
       setSelectedFilter(selectedFilter || filterList?.[0].value);
     }
-  }, [filterList]);
+  }, [filterList, noParamReset, listParamReset]);
 
   useEffect(() => {
-    if ((!isInit && refreshing) || (!refreshing && page > 1)) {
-      getFeedList();
+    if (noParamReset && !listParamReset) {
+      if ((!isInit && refreshing) || (!refreshing && page > 1)) {
+        getFeedList();
+      }
     }
-  }, [page, isInit, refreshing]);
+  }, [page, isInit, refreshing, noParamReset, listParamReset]);
 
   return (
     <DismissKeyboard>
@@ -596,6 +629,9 @@ function AcademyCommunity({ route }) {
             type={MODAL_MORE_TYPE.FEED}
             idx={selectedItem?.feedIdx}
             targetUserIdx={selectedItem?.userIdx}
+            onDelete={() => {
+              dispatch(action.refresh());
+            }}
             onConfirm={() => {
               setChangeEvent(prev => !prev);
             }}
@@ -722,7 +758,7 @@ const styles = {
   buttonBox: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 14,
+    gap: 8,
     paddingHorizontal: 16,
     paddingVertical: 8,
     marginBottom: 24,

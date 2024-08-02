@@ -199,9 +199,11 @@ function AcademyPlayerDetail({ route }) {
               )}
             </View>
             <View style={styles.topBox}>
-              <View style={styles.number}>
-                <Text style={styles.numberText}>{player.backNo}</Text>
-              </View>
+              {player.backNo && (
+                <View style={styles.number}>
+                  <Text style={styles.numberText}>{player.backNo}</Text>
+                </View>
+              )}
               <Text style={styles.nameText}>{player.playerName}</Text>
             </View>
           </View>
@@ -212,12 +214,14 @@ function AcademyPlayerDetail({ route }) {
             <View style={styles.contentsItem}>
               <View style={styles.contentsBox}>
                 <Text style={styles.titleText}>포지션</Text>
-                <Text style={styles.infoText}>{player.position}</Text>
+                <Text style={styles.infoText}>{player.position || '-'}</Text>
               </View>
               <View style={styles.contentsBox}>
                 <Text style={styles.titleText}>지역</Text>
                 <Text style={styles.infoText}>
-                  {player.playerRegion} {player.playerRegionSub}
+                  {player.playerRegion || player.playerRegionSub
+                    ? `${player.playerRegion} ${player.playerRegionSub}`
+                    : '-'}
                 </Text>
               </View>
             </View>
@@ -225,15 +229,19 @@ function AcademyPlayerDetail({ route }) {
               <View style={styles.contentsBox}>
                 <Text style={styles.titleText}>성별</Text>
                 <Text style={styles.infoText}>
-                  {GENDER[player.playerGender]?.desc}
+                  {GENDER[player.playerGender]?.desc || '-'}
                 </Text>
               </View>
               <View style={styles.contentsBox}>
                 <Text style={styles.titleText}>나이</Text>
                 <View style={styles.infoTextBox}>
-                  <Text style={styles.infoText}>{player.playerAge}세</Text>
+                  <Text style={styles.infoText}>
+                    {player.playerAge ? `${player.playerAge}세` : '-'}
+                  </Text>
                   <Text style={styles.infoSubText}>
-                    {moment(player.playerBirth).format('YYYY.MM.DD')}
+                    {player.playerBirth
+                      ? moment(player.playerBirth).format('YYYY.MM.DD')
+                      : ''}
                   </Text>
                 </View>
               </View>
@@ -242,39 +250,49 @@ function AcademyPlayerDetail({ route }) {
               <View style={styles.contentsBox}>
                 <Text style={styles.titleText}>주 발</Text>
                 <Text style={styles.infoText}>
-                  {MAIN_FOOT_TYPE[player.mainFoot]?.desc}
+                  {MAIN_FOOT_TYPE[player.mainFoot]?.desc || '-'}
                 </Text>
               </View>
               <View style={styles.contentsBox}>
                 <Text style={styles.titleText}>키</Text>
-                <Text style={styles.infoText}>{player.height}cm</Text>
+                <Text style={styles.infoText}>
+                  {player.height ? `${player.height}cm` : '-'}
+                </Text>
               </View>
             </View>
             <View style={styles.contentsItem}>
               <View style={styles.contentsBox}>
                 <Text style={styles.titleText}>발사이즈</Text>
-                <Text style={styles.infoText}>{player.shoeSize}mm</Text>
+                <Text style={styles.infoText}>
+                  {player.shoeSize ? `${player.shoeSize}mm` : '-'}
+                </Text>
               </View>
               <View style={styles.contentsBox}>
                 <Text style={styles.titleText}>몸무게</Text>
-                <Text style={styles.infoText}>{player.weight}kg</Text>
+                <Text style={styles.infoText}>
+                  {player.weight ? `${player.weight}kg` : '-'}
+                </Text>
               </View>
             </View>
             <View style={styles.contentsItem}>
               <View style={styles.contentsBox}>
                 <Text style={styles.titleText}>선수경력</Text>
                 <View style={styles.infoBox}>
-                  {careerList.map((level, index) => (
-                    // eslint-disable-next-line react/no-array-index-key
-                    <React.Fragment key={index}>
-                      <Text style={styles.infoText}>
-                        {CAREER_TYPE[level]?.desc}
-                      </Text>
-                      {index < careerList.length - 1 && (
-                        <View style={styles.circle} />
-                      )}
-                    </React.Fragment>
-                  ))}
+                  {careerList && careerList.length > 0 ? (
+                    careerList.map((level, index) => (
+                      // eslint-disable-next-line react/no-array-index-key
+                      <React.Fragment key={index}>
+                        <Text style={styles.infoText}>
+                          {CAREER_TYPE[level]?.desc}
+                        </Text>
+                        {index < careerList.length - 1 && (
+                          <View style={styles.circle} />
+                        )}
+                      </React.Fragment>
+                    ))
+                  ) : (
+                    <Text style={styles.infoText}>-</Text>
+                  )}
                 </View>
               </View>
             </View>
@@ -433,10 +451,12 @@ const styles = {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+    minHeight: 96,
   },
   contentsBox: {
     flex: 1,
-    minHeight: 104,
+    // minHeight: 96,
+    height: '100%',
     backgroundColor: '#F1F5FF',
     borderRadius: 12,
     padding: 16,

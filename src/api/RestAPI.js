@@ -193,12 +193,12 @@ export const apiPostAcademyOpenRecruit = data => {
 };
 
 // SPIC_IF_214 :: 아카데미 회원 모집 상세 조회 (비회원)
-export const apiPostAcademyOpenRecruitByIdx = (recruitIdx, data) => {
+export const apiGetAcademyOpenRecruitByIdx = (recruitIdx, data) => {
   return api.get(`${API_ACADEMY}/open/recruit/${recruitIdx}`, { params: data });
 };
 
 // SPIC_IF_215 :: 아카데미 회원 모집 상세 조회 (회원)
-export const apiGetAcademyOpenRecruitByIdx = (recruitIdx, data) => {
+export const apiGetAcademyRecruitByIdx = (recruitIdx, data) => {
   return api.get(`${API_ACADEMY}/recruit/${recruitIdx}`, { params: data });
 };
 

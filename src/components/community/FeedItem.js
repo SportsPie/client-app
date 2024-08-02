@@ -32,7 +32,7 @@ import SPMoreModal, {
 import { MODAL_CLOSE_EVENT } from '../../common/constants/modalCloseEvent';
 import Swiper from 'react-native-swiper';
 
-function FeedItem({ item, onDelete, isLogin }) {
+function FeedItem({ item, onDelete, isLogin, onRefresh }) {
   const [isLike, setIsLike] = useState(item.isLike);
   const [cntLike, setCntLike] = useState(item.cntLike);
 
