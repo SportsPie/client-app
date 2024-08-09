@@ -40,7 +40,7 @@ const authPage = {
   academyPlayerDetail: 'academyPlayerDetail',
   academyPlayerProfileEdit: 'academyPlayerProfileEdit',
   academyGroupMove: 'academyGroupMove',
-  academyMachingRegistration: 'academyMachingRegistration',
+  academyMatchingRegistration: 'academyMatchingRegistration',
   matchingCancel: 'matchingCancel',
   matchingRegistReview: 'matchingRegistReview',
   matchingReject: 'matchingReject',

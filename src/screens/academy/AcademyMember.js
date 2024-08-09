@@ -47,6 +47,7 @@ import { IS_YN } from '../../common/constants/isYN';
 import fontStyles from '../../styles/fontStyles';
 import { ACTIVE_OPACITY } from '../../common/constants/constants';
 import { isBefore } from 'date-fns';
+import SPImages from '../../assets/images';
 
 // 경기 일정
 function MatchingBox({ data }) {
@@ -249,7 +250,6 @@ function Academy({ navigation }) {
       const {
         data: { data },
       } = academyMainData;
-      console.log(data);
       if (isLogin) {
         if (data?.isAcademyAdmin || data?.isAcademyCreator) {
           setAcademyMemberType(ACADEMY_MEMBER_TYPE.ADMIN);
@@ -514,7 +514,11 @@ function Academy({ navigation }) {
                           scrollEnabled={false}
                           renderItem={({ item, index }) => (
                             <ImageBackground
-                              source={{ uri: item.thumbPath }}
+                              source={
+                                item.thumbPath
+                                  ? { uri: item.thumbPath }
+                                  : SPImages.defaultAcademyThumb
+                              }
                               style={[
                                 styles.contentsBox,
                                 styles.homeContentsBox,
@@ -690,7 +694,11 @@ function Academy({ navigation }) {
                           scrollEnabled={false}
                           renderItem={({ item, index }) => (
                             <ImageBackground
-                              source={{ uri: item.thumbPath }}
+                              source={
+                                item.thumbPath
+                                  ? { uri: item.thumbPath }
+                                  : SPImages.defaultAcademyThumb
+                              }
                               style={[
                                 styles.contentsBox,
                                 styles.homeContentsBox,

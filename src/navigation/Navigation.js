@@ -71,7 +71,7 @@ import AcademyCompany from '../screens/academy/AcademyCompany';
 import AcademyCompanyManagement from '../screens/academy/AcademyCompanyManagement';
 import AcademyGroup from '../screens/academy/AcademyGroup';
 import AcademyGroupMove from '../screens/academy/AcademyGroupMove';
-import AcademyMachingRegistration from '../screens/academy/AcademyMachingRegistration';
+import AcademyMatchingRegistration from '../screens/academy/AcademyMatchingRegistration';
 import AcademyManagement from '../screens/academy/AcademyManagement';
 import AcademyPlayerDetail from '../screens/academy/AcademyPlayerDetail';
 import AcademyPlayerProfileEdit from '../screens/academy/AcademyPlayerProfileEdit';
@@ -291,8 +291,8 @@ export default function Navigation() {
         component={AcademyCompanyManagement}
       />
       <Stack.Screen
-        name={navName.academyMachingRegistration}
-        component={AcademyMachingRegistration}
+        name={navName.academyMatchingRegistration}
+        component={AcademyMatchingRegistration}
       />
       <Stack.Screen name={navName.academyCompany} component={AcademyCompany} />
       <Stack.Screen

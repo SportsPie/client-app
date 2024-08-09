@@ -1,12 +1,13 @@
 import { useRoute } from '@react-navigation/native';
 import moment from 'moment';
 import React, { memo, useMemo, useState, useEffect } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import WebView from 'react-native-webview';
 import BoxSelect from '../../components/BoxSelect';
 import Header from '../../components/header';
 import Utils from '../../utils/Utils';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import fontStyles from '../../styles/fontStyles';
 
 function MoreTermsService() {
   const route = useRoute();
@@ -37,7 +38,9 @@ function MoreTermsService() {
   }, [termsData]);
 
   const termContentValue = useMemo(() => {
-    return termsData?.find(item => item?.regDate === selectedDate)?.contents;
+    return Utils.htmlWrap(
+      termsData?.find(item => item?.regDate === selectedDate)?.contents,
+    );
   }, [selectedDate, termsData]);
 
   // 초기값 설정을 위한 useEffect 추가

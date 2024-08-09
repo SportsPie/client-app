@@ -23,7 +23,11 @@ const ListPlayer = memo(({ teamName, players }) => {
         {players?.map((player, index) => {
           return (
             <View style={styles.playerWrapper} key={index}>
-              <Avatar disableEditMode imageSize={24} />
+              <Avatar
+                imageURL={player.profilePath}
+                disableEditMode
+                imageSize={24}
+              />
               <View style={styles.scoreWrapper}>
                 <Text
                   style={[

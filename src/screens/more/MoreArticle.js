@@ -1,4 +1,3 @@
-import { useFocusEffect } from '@react-navigation/native';
 import React, { memo, useCallback, useEffect, useState } from 'react';
 import {
   FlatList,
@@ -18,55 +17,65 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import fontStyles from '../../styles/fontStyles';
 import { COLORS } from '../../styles/colors';
 import { navName } from '../../common/constants/navName';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import { moreArticleListAction } from '../../redux/reducers/list/moreArticleListSlice';
+import { store } from '../../redux/store';
 
-function MoreArticle() {
+function MoreArticle({ route }) {
+  const dispatch = useDispatch();
+  const listName = 'moreArticleList';
+  const {
+    page,
+    list: articles,
+    refreshing,
+    loading,
+    isLast,
+  } = useSelector(selector => selector[listName]);
+  const noParamReset = route?.params?.noParamReset;
+  const action = moreArticleListAction;
+
+  const [isFocus, setIsFocus] = useState(true);
+
   const { isLogin, userIdx } = useSelector(selector => selector.auth);
-  const [articles, setArticles] = useState([]);
-  const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 30;
-  const [refreshing, setRefreshing] = useState(false);
-  const [loading, setLoading] = useState(true); // 로딩 상태 추가
-  const [isLast, setIsLast] = useState(false);
 
   const getArticleList = async () => {
     const params = {
       size: pageSize,
-      page: currentPage,
+      page,
     };
     try {
       const { data } = await apiGetArticleList(params);
 
       if (Array.isArray(data.data.list)) {
-        const newList = data.data.list;
-        setIsLast(data.data.isLast);
-        setArticles(prevArticles =>
-          currentPage === 1 ? newList : [...prevArticles, ...newList],
-        );
+        dispatch(action.setTotalCnt(data.data.totalCnt));
+        dispatch(action.setIsLast(data.data.isLast));
+        if (page === 1) {
+          dispatch(action.setList(data.data.list));
+        } else {
+          const prevList = store.getState()[listName].list;
+          dispatch(action.setList([...prevList, ...data.data.list]));
+        }
       }
     } catch (error) {
-      setIsLast(true);
       handleError(error);
     } finally {
-      setLoading(false); // 로딩 완료 후 로딩 상태 false로 설정
-      setRefreshing(false);
+      dispatch(action.setRefreshing(false));
+      dispatch(action.setLoading(false));
     }
   };
 
   const handleEndReached = () => {
     if (!isLast) {
       setTimeout(() => {
-        setCurrentPage(prevPage => prevPage + 1);
+        const prevPage = store.getState()[listName].page;
+        dispatch(action.setPage(prevPage + 1));
       }, 0);
     }
   };
 
   const onRefresh = useCallback(async () => {
-    setLoading(true);
-    setArticles([]);
-    setCurrentPage(1);
-    setIsLast(false);
-    setRefreshing(true);
+    dispatch(action.refresh());
   }, []);
 
   const renderArticleItem = useCallback(({ item, index }) => {
@@ -80,17 +89,27 @@ function MoreArticle() {
     );
   }, []);
 
-  useFocusEffect(
-    useCallback(() => {
-      onRefresh();
-    }, []),
-  );
+  useEffect(() => {
+    if (!noParamReset) {
+      setIsFocus(true);
+      dispatch(action.reset());
+      NavigationService.replace(navName.moreArticle, {
+        ...(route?.params || {}),
+        noParamReset: true,
+      });
+      return;
+    }
+    dispatch(action.refresh());
+    setIsFocus(false);
+  }, [noParamReset]);
 
   useEffect(() => {
-    if (refreshing || (!refreshing && currentPage > 1)) {
-      getArticleList();
+    if (noParamReset) {
+      if ((!isFocus && refreshing) || (!refreshing && page > 1)) {
+        getArticleList();
+      }
     }
-  }, [currentPage, refreshing]);
+  }, [page, refreshing, isFocus, noParamReset]);
 
   const renderEmptyList = useCallback(() => {
     return <ListEmptyView text="아티클이 존재하지 않습니다." />;
@@ -121,9 +140,7 @@ function MoreArticle() {
           : {})}
       />
 
-      {loading ? (
-        <Loading />
-      ) : (
+      {articles && articles.length > 0 ? (
         <FlatList
           data={articles}
           numColumns={2}
@@ -136,6 +153,10 @@ function MoreArticle() {
           ListEmptyComponent={renderEmptyList}
           contentContainerStyle={styles.content}
         />
+      ) : loading ? (
+        <Loading />
+      ) : (
+        renderEmptyList()
       )}
     </SafeAreaView>
   );

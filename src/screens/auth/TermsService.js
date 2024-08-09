@@ -23,6 +23,7 @@ import {
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
 import { handleError } from '../../utils/HandleError';
+import Utils from '../../utils/Utils';
 
 function TermsService() {
   const insets = useSafeAreaInsets();
@@ -83,7 +84,7 @@ function TermsService() {
   const fetchTermsFromAPI = async type => {
     try {
       const response = await apiTermsType(type);
-      setTerms(response.data.data.contents);
+      setTerms(Utils.htmlWrap(response.data.data.contents));
     } catch (error) {
       handleError(error);
     }

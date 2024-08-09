@@ -1,78 +1,83 @@
-import moment from 'moment';
 import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { FlatList, RefreshControl, StyleSheet, View } from 'react-native';
 import { apiGetFeeds } from '../../api/RestAPI';
 import { handleError } from '../../utils/HandleError';
-import Utils from '../../utils/Utils';
 import ListEmptyView from '../ListEmptyView';
 import FeedItemCommunity from './FeedItemCommunity';
 import Loading from '../SPLoading';
-import { useFocusEffect } from '@react-navigation/native';
+import { useDispatch, useSelector } from 'react-redux';
+import { moreCommunityListAction } from '../../redux/reducers/list/moreCommunityListSlice';
+import { store } from '../../redux/store';
 
 function CommunityTab() {
-  const [feeds, setFeeds] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [isLast, setIsLast] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
+  const dispatch = useDispatch();
+  const listName = 'moreCommunityList';
+  const {
+    page,
+    list: feeds,
+    refreshing,
+    loading,
+    isLast,
+  } = useSelector(selector => selector[listName]);
+  const action = moreCommunityListAction;
+
   const [deleteEvent, setDeleteEvent] = useState(false);
-  const pageSize = 5;
+  const pageSize = 30;
   const flatListRef = useRef();
   const getFeeds = async () => {
     const params = {
       size: pageSize,
-      page: currentPage,
+      page,
     };
 
     try {
       const { data } = await apiGetFeeds(params);
       if (data && Array.isArray(data.data.list)) {
-        const newList = data.data.list;
-        setIsLast(data.data.isLast);
-        setFeeds(prevFeeds =>
-          currentPage === 1 ? newList : [...prevFeeds, ...newList],
-        );
+        dispatch(action.setTotalCnt(data.data.totalCnt));
+        dispatch(action.setIsLast(data.data.isLast));
+        if (page === 1) {
+          dispatch(action.setList(data.data.list));
+        } else {
+          const prevList = store.getState()[listName].list;
+          dispatch(action.setList([...prevList, ...data.data.list]));
+        }
       }
     } catch (error) {
-      setIsLast(true);
       handleError(error);
     } finally {
-      setRefreshing(false);
-      setLoading(false);
+      dispatch(action.setRefreshing(false));
+      dispatch(action.setLoading(false));
     }
   };
 
   const handleEndReached = () => {
     if (!isLast) {
-      setCurrentPage(prevPage => prevPage + 1);
+      const prevPage = store.getState()[listName].page;
+      dispatch(action.setPage(prevPage + 1));
     }
   };
 
   const onRefresh = useCallback(async () => {
-    setLoading(true);
-    setFeeds([]);
-    setCurrentPage(1);
-    setIsLast(false);
-    setRefreshing(true);
+    dispatch(action.refresh());
   }, []);
 
-  useFocusEffect(
-    useCallback(() => {
-      onRefresh();
-    }, [deleteEvent]),
-  );
+  useEffect(() => {
+    onRefresh();
+  }, [deleteEvent]);
 
   useEffect(() => {
-    if (refreshing || (!refreshing && currentPage > 1)) {
+    if (refreshing || (!refreshing && page > 1)) {
       getFeeds();
     }
-  }, [currentPage, refreshing]);
+  }, [page, refreshing]);
 
   const renderCommunityItem = ({ item }) => {
     return (
       <FeedItemCommunity
         item={item}
-        onDelete={() => setDeleteEvent(prev => !prev)}
+        onDelete={() => {
+          setDeleteEvent(prev => !prev);
+        }}
       />
     );
   };
@@ -82,10 +87,8 @@ function CommunityTab() {
   }, []);
 
   return (
-    <View>
-      {loading ? (
-        <Loading />
-      ) : (
+    <View style={{ flex: 1 }}>
+      {feeds?.length > 0 ? (
         <FlatList
           ref={flatListRef}
           style={styles.container}
@@ -97,8 +100,12 @@ function CommunityTab() {
           onEndReached={handleEndReached}
           onEndReachedThreshold={0.5}
           ListEmptyComponent={renderListEmpty}
-          keyExtractor={item => item?.id}
+          keyExtractor={item => item?.feedIdx}
         />
+      ) : loading ? (
+        <Loading />
+      ) : (
+        renderListEmpty()
       )}
     </View>
   );

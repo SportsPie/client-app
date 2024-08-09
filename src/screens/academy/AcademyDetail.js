@@ -11,7 +11,7 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import Swiper from 'react-native-swiper';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { apiGetAcademyDetail, apiGetMyInfo } from '../../api/RestAPI';
 import SPIcons from '../../assets/icon';
 import { IS_YN } from '../../common/constants/isYN';
@@ -29,6 +29,10 @@ import AcademyJoinModal from './AcademyJoinModal';
 import { JOIN_TYPE } from '../../common/constants/joinType';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ACTIVE_OPACITY } from '../../common/constants/constants';
+import SPLoading from '../../components/SPLoading';
+import { nearbyAcademyListAction } from '../../redux/reducers/list/nearbyAcademyListSlice';
+import { searchAcademyListAction } from '../../redux/reducers/list/searchAcademyListSlice';
+import SPImages from '../../assets/images';
 
 function AcademyDetail({
   navigation,
@@ -42,6 +46,7 @@ function AcademyDetail({
   /**
    * state
    */
+  const dispatch = useDispatch();
   const { isLogin, userIdx } = useSelector(selector => selector.auth);
   const academyIdx = route?.params?.academyIdx;
   const [isAdmin, setIsAdmin] = useState(false);
@@ -73,6 +78,20 @@ function AcademyDetail({
     try {
       const { data } = await apiGetAcademyDetail(academyIdx);
       setAcademyDetail(data.data.academy);
+      dispatch(
+        nearbyAcademyListAction.modifyItem({
+          idxName: 'academyIdx',
+          idx: data.data.academy.academyIdx,
+          item: data.data.academy,
+        }),
+      );
+      dispatch(
+        searchAcademyListAction.modifyItem({
+          idxName: 'academyIdx',
+          idx: data.data.academy.academyIdx,
+          item: data.data.academy,
+        }),
+      );
     } catch (error) {
       handleError(error);
     }
@@ -104,6 +123,9 @@ function AcademyDetail({
     }, [isJoined]),
   );
 
+  if (!academyDetail || Object.keys(academyDetail).length === 0) {
+    return <SPLoading />;
+  }
   return (
     <SafeAreaView edges={['top']} style={styles.container}>
       {showHeader && (
@@ -148,7 +170,7 @@ function AcademyDetail({
             isModal && { marginVertical: 24 },
             { height: imageHeight },
           ]}>
-          {academyDetail?.files?.length > 0 && (
+          {academyDetail?.files?.length > 0 ? (
             <Swiper
               style={{ height: imageHeight }}
               showsButtons={false}
@@ -191,6 +213,13 @@ function AcademyDetail({
                 </View>
               ))}
             </Swiper>
+          ) : (
+            <View style={[styles.slide, { height: imageHeight }]}>
+              <Image
+                source={SPImages.defaultAcademyThumb}
+                style={styles.image}
+              />
+            </View>
           )}
         </View>
         {/* 메뉴 리스트 */}

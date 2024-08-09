@@ -1,44 +1,25 @@
 import moment from 'moment';
-import React, { memo, useCallback, useEffect, useState } from 'react';
-import {
-  Image,
-  Modal,
-  Pressable,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import React, { memo, useCallback, useState } from 'react';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { SPSvgs } from '../../assets/svg';
 import { COLORS } from '../../styles/colors';
 import fontStyles from '../../styles/fontStyles';
 import NavigationService from '../../navigation/NavigationService';
 import { navName } from '../../common/constants/navName';
-import SPIcons from '../../assets/icon';
 import SPMoreModal, {
   MODAL_MORE_BUTTONS,
   MODAL_MORE_TYPE,
 } from '../SPMoreModal';
-import { IS_YN } from '../../common/constants/isYN';
 import { apiGetMyInfo } from '../../api/RestAPI';
 import { handleError } from '../../utils/HandleError';
 import { useFocusEffect } from '@react-navigation/native';
 
 function FeedItem({ item, onDelete }) {
-  const [modalShow, setModalShow] = useState(false);
-  const [deleteGroupModalShow, setDeleteGroupModalShow] = useState(false);
-  const [editGroupModalShow, setEditGroupModalShow] = useState(false);
-  const [isMyFeed, setIsMyFeed] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [changeEvent, setChangeEvent] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedItem, setSelectedItem] = useState({});
-  const [isAdminFeed, setIsAdminFeed] = useState(false);
   const [userInfo, setUserInfo] = useState(null);
 
   const openModal = modalItem => {
-    setIsMyFeed(true);
-    setIsAdminFeed(item.isAcademyCreator || item.isAcademyAdmin);
     setSelectedItem(modalItem);
     setModalVisible(true);
   };
@@ -70,12 +51,10 @@ function FeedItem({ item, onDelete }) {
             // `null`과 `undefined`를 동시에 체크
             NavigationService.navigate(navName.academyCommunityDetail, {
               academyIdx: item.academyIdx,
-              userIdx: item.userIdx,
               feedIdx: item.feedIdx,
             });
           } else {
             NavigationService.navigate(navName.communityDetails, {
-              userIdx: item.userIdx,
               feedIdx: item.feedIdx,
             });
           }
@@ -123,6 +102,11 @@ function FeedItem({ item, onDelete }) {
       </Pressable>
       <View style={[styles.itemWrapper]}>
         <View style={[styles.reactWrapper]}>
+          {/* {item.isLike ? ( */}
+          {/*  <SPSvgs.HeartFill width={20} height={20} /> */}
+          {/* ) : ( */}
+          {/*  <SPSvgs.HeartOutline width={20} height={20} /> */}
+          {/* )} */}
           <SPSvgs.HeartOutline width={20} height={20} />
           <Text
             style={[
@@ -154,31 +138,11 @@ function FeedItem({ item, onDelete }) {
             type={MODAL_MORE_TYPE.FEED}
             idx={selectedItem?.feedIdx}
             targetUserIdx={selectedItem?.userIdx}
-            onConfirm={() => {
-              onDelete(); // 상태 업데이트
-            }}
-            memberButtons={
-              isMyFeed
-                ? [MODAL_MORE_BUTTONS.EDIT, MODAL_MORE_BUTTONS.REMOVE]
-                : [MODAL_MORE_BUTTONS.REPORT]
-            }
+            onDelete={onDelete}
+            memberButtons={[MODAL_MORE_BUTTONS.EDIT, MODAL_MORE_BUTTONS.REMOVE]}
           />
         </View>
-        {item?.userIdx !== userInfo?.data.userIdx ? null : item?.academyName ? (
-          <Pressable
-            hitSlop={8}
-            style={[
-              styles.iconWrapper,
-              {
-                marginLeft: 'auto',
-              },
-            ]}
-            onPress={() => {
-              openModal(item);
-            }}>
-            <SPSvgs.EllipsesVertical width={20} height={20} />
-          </Pressable>
-        ) : (
+        {!item.isCommented && (
           <Pressable
             hitSlop={8}
             style={[

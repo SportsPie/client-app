@@ -1,11 +1,10 @@
-import React, { useCallback, useState, useRef, memo } from 'react';
-import { Text, View, ScrollView, TouchableOpacity, Image } from 'react-native';
+import React, { memo, useCallback, useRef, useState } from 'react';
+import { Image, Text, TouchableOpacity, View } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import SPIcons from '../../assets/icon';
 import { navName } from '../../common/constants/navName';
 import NavigationService from '../../navigation/NavigationService';
 import SPModal from '../../components/SPModal';
-import { RECRUIT_PAGE_TYPE } from '../../common/constants/recruitPageType';
 import Utils from '../../utils/Utils';
 import { handleError } from '../../utils/HandleError';
 import { MODAL_CLOSE_EVENT } from '../../common/constants/modalCloseEvent';
@@ -154,7 +153,7 @@ function AcademyManagement({ route }) {
         <TouchableOpacity
           style={styles.menuItem}
           onPress={() => {
-            NavigationService.navigate(navName.academyMachingRegistration, {
+            NavigationService.navigate(navName.academyMatchingRegistration, {
               academyIdx,
             });
           }}>

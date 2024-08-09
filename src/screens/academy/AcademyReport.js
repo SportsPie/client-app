@@ -1,25 +1,27 @@
-import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
+import React, { memo, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
+  Pressable,
   RefreshControl,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
-  Pressable,
 } from 'react-native';
 import { navName } from '../../common/constants/navName';
 import NavigationService from '../../navigation/NavigationService';
 import { handleError } from '../../utils/HandleError';
 import { apiGetAcademyConfigMngReports } from '../../api/RestAPI';
-import { useFocusEffect } from '@react-navigation/native';
 import SPLoading from '../../components/SPLoading';
 import { REPORT_STATE } from '../../common/constants/reportState';
 import { REPORT_TYPE } from '../../common/constants/reportType';
 import moment from 'moment/moment';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Header from '../../components/header';
+import { useDispatch, useSelector } from 'react-redux';
+import { academyReportListAction } from '../../redux/reducers/list/academyReportListSlice';
+import { store } from '../../redux/store';
 
 const tabs = {
   feed: {
@@ -55,6 +57,19 @@ function AcademyReport({ route }) {
   /**
    * state
    */
+  const dispatch = useDispatch();
+  const listName = 'academyReportList';
+  const {
+    page,
+    list: reportList,
+    refreshing,
+    loading,
+    isLast,
+    listParamReset,
+  } = useSelector(selector => selector[listName]);
+  const noParamReset = route?.params?.noParamReset;
+  const action = academyReportListAction;
+
   const flatListRef = useRef();
   const academyIdx = route?.params?.academyIdx;
   const [activeTab, setActiveTab] = useState(tabs.feed.value);
@@ -67,14 +82,8 @@ function AcademyReport({ route }) {
   const [selectedState, setSelectedState] = useState(buttons[0].value);
 
   // list
-  const [page, setPage] = useState(1);
-  const [size, setSize] = useState(30);
-  const [loading, setLoading] = useState(true);
-  const [totalCnt, setTotalCnt] = useState(0);
-  const [isLast, setIsLast] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
+  const [size, setSize] = useState(300);
   const [isFocus, setIsFocus] = useState(true);
-  const [reportList, setReportList] = useState([]);
 
   /**
    * api
@@ -90,19 +99,20 @@ function AcademyReport({ route }) {
         size,
       };
       const { data } = await apiGetAcademyConfigMngReports(params);
-      setTotalCnt(data.data.totalCnt);
-      setIsLast(data.data.isLast);
+      dispatch(action.setTotalCnt(data.data.totalCnt));
+      dispatch(action.setIsLast(data.data.isLast));
       if (page === 1) {
-        setReportList(data.data.list);
+        dispatch(action.setList(data.data.list));
       } else {
-        setReportList(prev => [...prev, ...data.data.list]);
+        const prevList = store.getState()[listName].list;
+        dispatch(action.setList([...prevList, ...data.data.list]));
       }
     } catch (error) {
       handleError(error);
     }
     setIsFocus(false);
-    setLoading(false);
-    setRefreshing(false);
+    dispatch(action.setRefreshing(false));
+    dispatch(action.setLoading(false));
   };
 
   /**
@@ -112,68 +122,60 @@ function AcademyReport({ route }) {
   const loadMoreProjects = () => {
     setTimeout(() => {
       if (!isLast) {
-        setPage(prevPage => prevPage + 1);
+        const prevPage = store.getState()[listName].page;
+        dispatch(action.setPage(prevPage + 1));
       }
     }, 0);
   };
 
   const onRefresh = async () => {
-    if (flatListRef.current) {
-      flatListRef.current.scrollToOffset({ animated: false, offset: 0 });
-    }
-    setLoading(true);
-    setPage(1);
-    setIsLast(false);
-    setReportList([]);
-    setRefreshing(true);
+    // if (flatListRef.current) {
+    //   flatListRef.current.scrollToOffset({ animated: false, offset: 0 });
+    // }
+    dispatch(action.refresh());
   };
 
   const onFocus = async () => {
     try {
-      setIsFocus(false);
+      if (!noParamReset || listParamReset) {
+        setIsFocus(true);
+        setSelectedState(buttons[0].value);
+        dispatch(action.reset());
+        if (!listParamReset) {
+          NavigationService.replace(navName.academyReport, {
+            ...(route?.params || {}),
+            noParamReset: true,
+          });
+        }
+        return;
+      }
     } catch (error) {
       handleError(error);
     }
+    setIsFocus(false);
   };
 
   /**
    * useEffect
    */
 
-  useFocusEffect(
-    useCallback(() => {
-      onFocus();
-      return () => {
-        setPage(1);
-        setLoading(true);
-        setIsLast(false);
-        setRefreshing(false);
-        setReportList([]);
-      };
-    }, []),
-  );
-
-  useFocusEffect(
-    useCallback(() => {
-      if (!isFocus) {
-        onRefresh(true);
-      }
-    }, [activeTab]),
-  );
-
-  useFocusEffect(
-    useCallback(() => {
-      if (!isFocus) {
-        onRefresh();
-      }
-    }, [selectedState, isFocus]),
-  );
+  useEffect(() => {
+    onFocus();
+  }, [noParamReset, listParamReset]);
 
   useEffect(() => {
-    if ((!isFocus && refreshing) || (!refreshing && page > 1)) {
-      getReport();
+    if (!isFocus && noParamReset && !listParamReset) {
+      onRefresh();
     }
-  }, [page, isFocus, refreshing]);
+  }, [isFocus, activeTab, noParamReset, selectedState, listParamReset]);
+
+  useEffect(() => {
+    if (noParamReset && !listParamReset) {
+      if ((!isFocus && refreshing) || (!refreshing && page > 1)) {
+        getReport();
+      }
+    }
+  }, [page, isFocus, refreshing, noParamReset, listParamReset]);
 
   /**
    * render

@@ -95,6 +95,9 @@ function MatchingChatRoomScreen({ navigation }) {
       };
       const { data } = await apiGetChatChatRoomExtraData(params);
       const { academy, match, member, matchRequested } = data.data;
+      const currentDate = new Date();
+      const classEndDate = new Date(match.closeDate);
+
       if (academy) {
         setTargetAcademyDetail(academy);
       }
@@ -128,8 +131,13 @@ function MatchingChatRoomScreen({ navigation }) {
         } else {
           setShowMatchButton(false);
         }
-      }
 
+        if (match.closeDate) {
+          if (classEndDate < currentDate) {
+            setShowMatchButton(false);
+          }
+        }
+      }
       updateData(academy, match, member);
     } catch (error) {
       handleError(error);

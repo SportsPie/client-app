@@ -11,8 +11,8 @@ const initialState = {
   isLast: false,
 };
 
-export const moreCommunityListSlice = createSlice({
-  name: 'moreCommunityList',
+export const moreClassMaterVideoListSlice = createSlice({
+  name: 'moreClassMasterVideoList',
   initialState,
   reducers: {
     setList: (state, actions) => {
@@ -64,9 +64,10 @@ export const moreCommunityListSlice = createSlice({
         const { idxName, idx, item } = actions.payload;
         state.list = state.list.map(v => {
           if (Number(v[idxName]) === Number(idx)) {
-            item[idxName] =
+            const obj = { ...v, ...item };
+            obj[idxName] =
               typeof v[idxName] === 'string' ? Number(idx) : `${idx}`;
-            return { ...item, isCommented: v.isCommented };
+            return obj;
           }
           return v;
         });
@@ -74,6 +75,7 @@ export const moreCommunityListSlice = createSlice({
     },
   },
 });
-export const moreCommunityListAction = moreCommunityListSlice.actions;
+export const moreClassMaterVideoListAction =
+  moreClassMaterVideoListSlice.actions;
 
-export default moreCommunityListSlice.reducer;
+export default moreClassMaterVideoListSlice.reducer;

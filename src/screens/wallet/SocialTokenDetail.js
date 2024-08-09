@@ -31,8 +31,23 @@ import { handleError } from '../../utils/HandleError';
 import Utils from '../../utils/Utils';
 import Header from '../../components/header';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useDispatch, useSelector } from 'react-redux';
+import { socialTokenHistoryListAction } from '../../redux/reducers/list/socialTokenHistoryListSlice';
+import { store } from '../../redux/store';
 
-function SocialTokenDetail() {
+function SocialTokenDetail({ route }) {
+  const dispatch = useDispatch();
+  const listName = 'socialTokenHistoryList';
+  const {
+    page,
+    list: pointHistory,
+    refreshing,
+    loading,
+    isLast,
+  } = useSelector(selector => selector[listName]);
+  const noParamReset = route?.params?.noParamReset;
+  const action = socialTokenHistoryListAction;
+
   const flatListRef = useRef();
   const insets = useSafeAreaInsets();
   const searchTypes = Object.values(POINT_OPERATION).map(v => {
@@ -42,12 +57,7 @@ function SocialTokenDetail() {
     searchTypes[0]?.value,
   );
   const [point, setPoint] = useState(0);
-  const [page, setPage] = useState(1);
-  const [loading, setLoading] = useState(true);
-  const [isLast, setIsLast] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
   const [isFocus, setIsFocus] = useState(true);
-  const [pointHistory, setPointHistory] = useState([]);
 
   const getSocialTokenBalance = async () => {
     try {
@@ -61,46 +71,55 @@ function SocialTokenDetail() {
 
   const getPointHistoryList = async () => {
     try {
-      setLoading(true);
       const params = {
         page,
         size: 30,
         pointOperation: selectedSearchType,
       };
       const { data } = await apiGetSocialTokenHistoryList(params);
-      setIsLast(data.data.isLast);
+      dispatch(action.setTotalCnt(data.data.totalCnt));
+      dispatch(action.setIsLast(data.data.isLast));
       if (page === 1) {
-        setPointHistory(data.data.list);
+        dispatch(action.setList(data.data.list));
       } else {
-        setPointHistory(prevProjects => [...prevProjects, ...data.data.list]);
+        const prevList = store.getState()[listName].list;
+        dispatch(action.setList([...prevList, ...data.data.list]));
       }
     } catch (error) {
       handleError(error);
     } finally {
-      setRefreshing(false);
       setIsFocus(false);
-      setLoading(false);
+      dispatch(action.setRefreshing(false));
+      dispatch(action.setLoading(false));
     }
   };
 
   const loadMoreProjects = () => {
     setTimeout(() => {
       if (!isLast) {
-        setPage(prevPage => prevPage + 1);
+        const prevPage = store.getState()[listName].page;
+        dispatch(action.setPage(prevPage + 1));
       }
     }, 0);
   };
 
   const onRefresh = () => {
-    if (flatListRef.current) {
-      flatListRef.current.scrollToOffset({ animated: false, offset: 0 });
-    }
-    setPage(1);
-    setIsLast(false);
-    setRefreshing(true);
+    // if (flatListRef.current) {
+    //   flatListRef.current.scrollToOffset({ animated: false, offset: 0 });
+    // }
+    dispatch(action.refresh());
   };
 
   const onFocus = async () => {
+    if (!noParamReset) {
+      setIsFocus(true);
+      dispatch(action.reset());
+      NavigationService.replace(navName.socialTokenDetail, {
+        ...(route?.params || {}),
+        noParamReset: true,
+      });
+      return;
+    }
     await getSocialTokenBalance();
     setIsFocus(false);
   };
@@ -109,22 +128,24 @@ function SocialTokenDetail() {
     useCallback(() => {
       onFocus();
       return () => {};
-    }, []),
+    }, [noParamReset]),
   );
 
   useFocusEffect(
     useCallback(() => {
-      if (!isFocus) {
+      if (!isFocus && noParamReset) {
         onRefresh();
       }
-    }, [selectedSearchType, isFocus]),
+    }, [selectedSearchType, isFocus, noParamReset]),
   );
 
   useEffect(() => {
-    if ((!isFocus && refreshing) || (!refreshing && page > 1)) {
-      getPointHistoryList();
+    if (noParamReset) {
+      if ((!isFocus && refreshing) || (!refreshing && page > 1)) {
+        getPointHistoryList();
+      }
     }
-  }, [page, isFocus, refreshing]);
+  }, [page, isFocus, refreshing, noParamReset]);
 
   const renderHeader = useMemo(() => {
     return (

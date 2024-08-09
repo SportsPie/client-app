@@ -5,17 +5,26 @@ import { SPSvgs } from '../../assets/svg';
 import { COLORS } from '../../styles/colors';
 import fontStyles from '../../styles/fontStyles';
 import Avatar from '../Avatar';
+import SPIcons from '../../assets/icon';
 
 const TeamImageWidthBadge = memo(({ imageURL }) => {
   return (
     <View style={styles.imageWrapper}>
-      <Image
-        source={{
-          uri: imageURL,
-        }}
-        style={styles.image}
-        resizeMode="contain"
-      />
+      {imageURL ? (
+        <Image
+          source={{
+            uri: imageURL,
+          }}
+          style={styles.image}
+          resizeMode="contain"
+        />
+      ) : (
+        <Image
+          style={styles.image}
+          source={SPIcons.icDefaultAcademy}
+          resizeMode="contain"
+        />
+      )}
       <SPSvgs.CheckBadge style={styles.badgeStyle} width={10} height={10} />
     </View>
   );
@@ -28,7 +37,11 @@ function MVP({ matchInfo, soccerPlayer }) {
         {data?.map((scorer, index) => {
           return (
             <View style={styles.scorerWrapper} key={index}>
-              <Avatar disableEditMode imageSize={24} />
+              <Avatar
+                imageURL={scorer?.profilePath}
+                disableEditMode
+                imageSize={24}
+              />
               <View style={styles.scoreWrapper}>
                 <Text
                   style={[

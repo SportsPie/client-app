@@ -1,6 +1,6 @@
 import {
   BottomSheetModal,
-  BottomSheetView as View,
+  BottomSheetView as BottomView,
   WINDOW_HEIGHT,
 } from '@gorhom/bottom-sheet';
 import React, {
@@ -22,10 +22,11 @@ import {
   Text,
   TextInput,
   useWindowDimensions,
+  View,
 } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import {
   apiGetMyInfo,
   apiModifyChallengeVideoComment,
@@ -48,6 +49,10 @@ import CommentInputSection from './CommentInputSection';
 import CommentSectionItem from './CommentSectionItem';
 import { COLORS } from '../../../styles/colors';
 import { useFocusEffect } from '@react-navigation/native';
+import { store } from '../../../redux/store';
+import { moreChallengeVideoListAction } from '../../../redux/reducers/list/moreChallengeVideoListSlice';
+import { moreChallengeCommentListAction } from '../../../redux/reducers/list/moreChallengeCommentListSlice';
+import BackHandlerUtils from '../../../utils/BackHandlerUtils';
 
 const ChallengeCommentSection = forwardRef(
   (
@@ -61,6 +66,7 @@ const ChallengeCommentSection = forwardRef(
     },
     ref,
   ) => {
+    const dispatch = useDispatch();
     const isLogin = useSelector(selector => selector.auth)?.isLogin;
 
     const commentListRef = useRef();
@@ -78,10 +84,19 @@ const ChallengeCommentSection = forwardRef(
     }
 
     function show() {
+      BackHandlerUtils.remove();
+      BackHandlerUtils.add(() => {
+        if (bottomSheetRef.current) {
+          hide();
+          return true; // 뒤로가기 버튼의 기본 동작을 방지합니다.
+        }
+        return false; // 다른 곳에서 뒤로가기 버튼의 기본 동작을 수행합니다.
+      });
       bottomSheetRef?.current?.present();
     }
 
     function hide() {
+      BackHandlerUtils.addDefaultBackHandlerEvent();
       setCommentInput('');
       bottomSheetRef?.current?.close();
     }
@@ -187,6 +202,22 @@ const ChallengeCommentSection = forwardRef(
             animated: false,
             offset: 0,
           });
+          const findVideo = store
+            .getState()
+            .moreChallengeVideoList.list.find(
+              item => Number(item.videoIdx) === Number(videoIdx),
+            );
+          if (findVideo) {
+            findVideo.cntComment += 1;
+            dispatch(
+              moreChallengeVideoListAction.modifyItem({
+                idxName: 'videoIdx',
+                idx: videoIdx,
+                item: findVideo,
+              }),
+            );
+          }
+          dispatch(moreChallengeCommentListAction.refresh());
         }
       } catch (error) {
         handleError(error);
@@ -226,6 +257,15 @@ const ChallengeCommentSection = forwardRef(
             offset: 0,
           });
 
+          targetComment.comment = editCommentInput;
+          dispatch(
+            moreChallengeCommentListAction.modifyItem({
+              idxName: 'commentIdx',
+              idx: targetComment.idx,
+              item: targetComment,
+            }),
+          );
+
           SPToast.show({ text: '댓글을 수정했어요' });
         }
       } catch (error) {
@@ -258,6 +298,22 @@ const ChallengeCommentSection = forwardRef(
             title: '성공',
             body: '삭제되었습니다.',
           });
+          const findVideo = store
+            .getState()
+            .moreChallengeVideoList.list.find(
+              item => Number(item.videoIdx) === Number(videoIdx),
+            );
+          if (findVideo) {
+            findVideo.cntComment -= 1;
+            dispatch(
+              moreChallengeVideoListAction.modifyItem({
+                idxName: 'videoIdx',
+                idx: videoIdx,
+                item: findVideo,
+              }),
+            );
+          }
+          dispatch(moreChallengeCommentListAction.refresh());
         }
         trlRef.current.disabled = false;
       } catch (error) {
@@ -268,75 +324,76 @@ const ChallengeCommentSection = forwardRef(
 
     // [ return ]
     return (
-      <BottomSheetModal
-        keyboardBehavior="extend"
-        snapPoints={[bottomSheetInsets]}
-        index={0}
-        ref={bottomSheetRef}
-        style={{
-          shadowColor: COLORS.black,
-          shadowOffset: {
-            width: 0,
-            height: 2,
-          },
-          shadowOpacity: 0.25,
-          shadowRadius: 3.84,
-          elevation: 5,
-        }}
-        handleComponent={null}>
-        <View
-          style={[
-            styles.container,
-            {
-              paddingBottom: insets.bottom,
+      <View>
+        <BottomSheetModal
+          keyboardBehavior="extend"
+          snapPoints={[bottomSheetInsets]}
+          index={0}
+          ref={bottomSheetRef}
+          style={{
+            shadowColor: COLORS.black,
+            shadowOffset: {
+              width: 0,
+              height: 2,
             },
-          ]}>
-          <View style={styles.headerWrapper}>
-            <Text style={fontStyles.fontSize18_Semibold}>댓글</Text>
-            <Pressable
-              onPress={() => {
-                hide();
-              }}>
-              <SPSvgs.Close width={24} height={24} />
-            </Pressable>
-          </View>
+            shadowOpacity: 0.25,
+            shadowRadius: 3.84,
+            elevation: 5,
+          }}
+          handleComponent={null}>
+          <BottomView
+            style={[
+              styles.container,
+              {
+                paddingBottom: insets.bottom,
+              },
+            ]}>
+            <BottomView style={styles.headerWrapper}>
+              <Text style={fontStyles.fontSize18_Semibold}>댓글</Text>
+              <Pressable
+                onPress={() => {
+                  hide();
+                }}>
+                <SPSvgs.Close width={24} height={24} />
+              </Pressable>
+            </BottomView>
 
-          <FlatList
-            ref={commentListRef}
-            data={commentList}
-            renderItem={renderItem}
-            onEndReached={onEndReached}
-            ListFooterComponent={ListFooterComponent}
-            refreshControl={refreshControl}
+            <FlatList
+              ref={commentListRef}
+              data={commentList}
+              renderItem={renderItem}
+              onEndReached={onEndReached}
+              ListFooterComponent={ListFooterComponent}
+              refreshControl={refreshControl}
+            />
+
+            <CommentInputSection
+              onChangeText={text => setCommentInput(text)}
+              onSubmit={saveChallengeVideoComment}
+              maxLength={1000}
+              userInfo={userInfo}
+            />
+          </BottomView>
+
+          {/* 모달 > 댓글 더보기 */}
+          <SPMoreModal
+            transparent={true}
+            visible={showCommentMore}
+            onClose={closeCommentModal}
+            onReport={hide}
+            type={MODAL_MORE_TYPE.CHALLENGE_VIDEO_COMMENT}
+            idx={targetComment.idx}
+            targetUserIdx={targetComment.memberIdx}
+            onDelete={removeChallengeVideoComment}
+            onModify={openModifyCommentModal}
+            onConfirm={onSubmit}
+            memberButtons={
+              targetComment.isMine
+                ? [MODAL_MORE_BUTTONS.EDIT, MODAL_MORE_BUTTONS.REMOVE]
+                : [MODAL_MORE_BUTTONS.REPORT]
+            }
           />
-
-          <CommentInputSection
-            onChangeText={text => setCommentInput(text)}
-            onSubmit={saveChallengeVideoComment}
-            maxLength={1000}
-            userInfo={userInfo}
-          />
-        </View>
-
-        {/* 모달 > 댓글 더보기 */}
-        <SPMoreModal
-          transparent={true}
-          visible={showCommentMore}
-          onClose={closeCommentModal}
-          onReport={hide}
-          type={MODAL_MORE_TYPE.CHALLENGE_VIDEO_COMMENT}
-          idx={targetComment.idx}
-          targetUserIdx={targetComment.memberIdx}
-          onDelete={removeChallengeVideoComment}
-          onModify={openModifyCommentModal}
-          onConfirm={onSubmit}
-          memberButtons={
-            targetComment.isMine
-              ? [MODAL_MORE_BUTTONS.EDIT, MODAL_MORE_BUTTONS.REMOVE]
-              : [MODAL_MORE_BUTTONS.REPORT]
-          }
-        />
-
+        </BottomSheetModal>
         {/* 모달 > 댓글 수정 */}
         <Modal
           animationType="fade"
@@ -345,6 +402,7 @@ const ChallengeCommentSection = forwardRef(
           onRequestClose={closeModifyCommentModal}>
           <SafeAreaView style={{ flex: 1, paddingBottom: 24 }}>
             <SPHeader
+              noBackHandlerEvent
               title="댓글 수정"
               onPressLeftBtn={closeModifyCommentModal}
               rightCancelText
@@ -362,7 +420,7 @@ const ChallengeCommentSection = forwardRef(
             <View style={{ flex: 1, padding: 16 }}>
               <TextInput
                 style={styles.textInput}
-                defaultValue={editCommentInput}
+                value={editCommentInput}
                 onChangeText={text => {
                   if (text?.length > 1000) return;
                   setEditCommentInput(text);
@@ -381,12 +439,13 @@ const ChallengeCommentSection = forwardRef(
               style={{
                 ...fontStyles.fontSize14_Regular,
                 textAlign: 'right',
+                padding: 16,
               }}>
               {Utils.changeNumberComma(editCommentInput.length)}/1,000
             </Text>
           </SafeAreaView>
         </Modal>
-      </BottomSheetModal>
+      </View>
     );
   },
 );

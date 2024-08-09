@@ -8,59 +8,89 @@ import Loading from '../../components/SPLoading';
 import GameScheduleItem from '../../components/game-schedule/GameScheduleItem';
 import Header from '../../components/header';
 import { handleError } from '../../utils/HandleError';
+import { useDispatch, useSelector } from 'react-redux';
+import { moreGameScheduleListAction } from '../../redux/reducers/list/moreGameScheduleListSlice';
+import { store } from '../../redux/store';
+import NavigationService from '../../navigation/NavigationService';
+import { navName } from '../../common/constants/navName';
 
-function MoreGameSchedule() {
-  const [matches, setMatches] = useState([]);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [refreshing, setRefreshing] = useState(true);
-  const [loading, setLoading] = useState(true);
-  const [isLast, setIsLast] = useState(false);
+function MoreGameSchedule({ route }) {
+  const dispatch = useDispatch();
+  const listName = 'moreGameScheduleList';
+  const {
+    page,
+    list: matches,
+    refreshing,
+    loading,
+    isLast,
+  } = useSelector(selector => selector[listName]);
+  const noParamReset = route?.params?.noParamReset;
+  const action = moreGameScheduleListAction;
+
+  const [isFocus, setIsFocus] = useState(true);
+
   const flatListRef = useRef();
   const pageSize = 30;
 
   const handleEndReached = () => {
     if (!isLast) {
-      setCurrentPage(prevPage => prevPage + 1);
+      const prevPage = store.getState()[listName].page;
+      dispatch(action.setPage(prevPage + 1));
     }
   };
 
   const getMatchInfo = async () => {
     const params = {
       size: pageSize,
-      page: currentPage,
+      page,
     };
     try {
       const { data } = await apiGetMatches(params);
-      console.log(data.data.list);
       if (Array.isArray(data.data.list)) {
         const newList = data.data.list;
-        setIsLast(data.data.isLast);
-        setMatches(prevMatches =>
-          currentPage === 1 ? newList : [...prevMatches, ...newList],
-        );
+        dispatch(action.setTotalCnt(data.data.totalCnt));
+        dispatch(action.setIsLast(data.data.isLast));
+        if (page === 1) {
+          dispatch(action.setList(data.data.list));
+        } else {
+          const prevList = store.getState()[listName].list;
+          dispatch(action.setList([...prevList, ...data.data.list]));
+        }
       }
     } catch (error) {
       handleError(error);
     } finally {
-      setRefreshing(false);
-      setLoading(false); // 데이터 가져오기 완료 후 로딩 상태 false로 설정
+      dispatch(action.setRefreshing(false));
+      dispatch(action.setLoading(false));
     }
   };
 
   const onRefresh = useCallback(async () => {
-    setLoading(true);
-    setIsLast(false);
-    setCurrentPage(1);
-    setMatches([]);
-    setRefreshing(true);
+    dispatch(action.refresh());
   }, []);
+
+  useEffect(() => {
+    if (!noParamReset) {
+      setIsFocus(true);
+      dispatch(action.reset());
+      NavigationService.replace(navName.moreGameSchedule, {
+        ...(route?.params || {}),
+        noParamReset: true,
+      });
+      return;
+    }
+    dispatch(action.refresh());
+    setIsFocus(false);
+  }, [noParamReset]);
 
   useFocusEffect(
     useCallback(() => {
-      if (refreshing || (!refreshing && currentPage > 1)) {
-        getMatchInfo();
+      if (noParamReset) {
+        if ((!isFocus && refreshing) || (!refreshing && page > 1)) {
+          getMatchInfo();
+        }
       }
-    }, [currentPage, refreshing]),
+    }, [page, refreshing, isFocus, noParamReset]),
   );
 
   const renderMatchesItem = useCallback(
@@ -74,30 +104,32 @@ function MoreGameSchedule() {
     return <ListEmptyView text="경기내역이 존재하지 않습니다." />;
   }, []);
 
-  if (loading) {
-    return <Loading />;
-  }
-
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <Header title="경기내역" />
 
-      <FlatList
-        ref={flatListRef}
-        data={matches}
-        initialNumToRender={10}
-        maxToRenderPerBatch={10}
-        windowSize={10}
-        numColumns={1}
-        renderItem={renderMatchesItem}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
-        onEndReached={handleEndReached}
-        onEndReachedThreshold={0.5}
-        ListEmptyComponent={renderEmptyList}
-        contentContainerStyle={styles.container}
-      />
+      {matches && matches.length > 0 ? (
+        <FlatList
+          ref={flatListRef}
+          data={matches}
+          initialNumToRender={10}
+          maxToRenderPerBatch={10}
+          windowSize={10}
+          numColumns={1}
+          renderItem={renderMatchesItem}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
+          onEndReached={handleEndReached}
+          onEndReachedThreshold={0.5}
+          ListEmptyComponent={renderEmptyList}
+          contentContainerStyle={styles.container}
+        />
+      ) : loading ? (
+        <Loading />
+      ) : (
+        renderEmptyList()
+      )}
     </SafeAreaView>
   );
 }

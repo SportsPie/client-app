@@ -403,9 +403,7 @@ function MatchingSelectScorer({ route }) {
                     <Text style={styles.addNumberText}>{player.backNo}</Text>
                   </View>
                 )}
-                <Text style={styles.addNameText}>
-                  {player.playerName ? player.playerName : '김파이'}
-                </Text>
+                <Text style={styles.addNameText}>{player.playerName}</Text>
               </View>
             </View>
             <TouchableOpacity
@@ -489,7 +487,6 @@ const styles = {
     backgroundColor: '#FFF',
   },
   topBox: {
-    position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
@@ -531,7 +528,7 @@ const styles = {
     gap: 16,
     paddingHorizontal: 16,
     paddingVertical: 24,
-    paddingTop: 115,
+    paddingTop: 25,
   },
   contentItem: {
     flexDirection: 'column',

@@ -9,70 +9,95 @@ import fontStyles from '../../styles/fontStyles';
 import { handleError } from '../../utils/HandleError';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Header from '../../components/header';
+import { useDispatch, useSelector } from 'react-redux';
+import { matchingHistoryListAction } from '../../redux/reducers/list/matchingHistoryListSlice';
+import { moreNoticeListAction } from '../../redux/reducers/list/moreNoticeListSlice';
+import { store } from '../../redux/store';
+import NavigationService from '../../navigation/NavigationService';
+import { navName } from '../../common/constants/navName';
 
-function MoreNotice() {
-  const [notices, setNotices] = useState([]);
-  const [currentPage, setCurrentPage] = useState(1);
+function MoreNotice({ route }) {
+  const dispatch = useDispatch();
+  const listName = 'moreNoticeList';
+  const {
+    page,
+    list: notices,
+    refreshing,
+    loading,
+    isLast,
+  } = useSelector(selector => selector[listName]);
+  const noParamReset = route?.params?.noParamReset;
+  const action = moreNoticeListAction;
+
   const pageSize = 10;
-  const [refreshing, setRefreshing] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [isLast, setIsLast] = useState(false);
+
+  const [isFocus, setIsFocus] = useState(true);
 
   const getNoticeInfo = async () => {
     const params = {
       size: pageSize,
-      page: currentPage,
+      page,
     };
     try {
       const { data } = await apiGetNotices(params);
 
       if (Array.isArray(data.data.list)) {
         const newList = data.data.list;
-        setIsLast(data.data.isLast); // 현재 페이지가 마지막 페이지임을 설정
-        setNotices(prevNotices =>
-          currentPage === 1 ? newList : [...prevNotices, ...newList],
-        );
+        dispatch(action.setTotalCnt(data.data.totalCnt));
+        dispatch(action.setIsLast(data.data.isLast));
+        if (page === 1) {
+          dispatch(action.setList(data.data.list));
+        } else {
+          const prevList = store.getState()[listName].list;
+          dispatch(action.setList([...prevList, ...data.data.list]));
+        }
       }
     } catch (error) {
-      setIsLast(true);
       handleError(error);
     } finally {
-      setRefreshing(false);
-      setLoading(false); // 로딩 완료 후 로딩 상태 false로 설정
+      dispatch(action.setRefreshing(false));
+      dispatch(action.setLoading(false));
     }
   };
 
   const handleEndReached = () => {
     if (!isLast) {
       setTimeout(() => {
-        setCurrentPage(prevPage => prevPage + 1);
+        const prevPage = store.getState()[listName].page;
+        dispatch(action.setPage(prevPage + 1));
       }, 0);
     }
   };
 
   const onRefresh = useCallback(async () => {
-    setLoading(true);
-    setNotices([]);
-    setCurrentPage(1);
-    setIsLast(false);
-    setRefreshing(true);
+    dispatch(action.refresh());
   }, []);
 
   const renderNoticesItem = useCallback(({ item }) => {
     return <NoticeItem item={item} />;
   }, []);
 
-  useFocusEffect(
-    useCallback(() => {
-      onRefresh();
-    }, []),
-  );
+  useEffect(() => {
+    if (!noParamReset) {
+      setIsFocus(true);
+      dispatch(action.reset());
+      NavigationService.replace(navName.moreNotice, {
+        ...(route?.params || {}),
+        noParamReset: true,
+      });
+      return;
+    }
+    dispatch(action.refresh());
+    setIsFocus(false);
+  }, [noParamReset]);
 
   useEffect(() => {
-    if (refreshing || (!refreshing && currentPage > 1)) {
-      getNoticeInfo();
+    if (noParamReset) {
+      if ((!isFocus && refreshing) || (!refreshing && page > 1)) {
+        getNoticeInfo();
+      }
     }
-  }, [currentPage, refreshing]);
+  }, [page, refreshing, isFocus, noParamReset]);
 
   const renderEmptyList = useCallback(() => {
     return (

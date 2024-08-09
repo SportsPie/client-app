@@ -31,6 +31,7 @@ import { handleError } from '../../utils/HandleError';
 import Utils from '../../utils/Utils';
 import { communityListAction } from '../../redux/reducers/list/communityListSlice';
 import { academyCommunityListAction } from '../../redux/reducers/list/academyCommunityListSlice';
+import { moreCommunityListAction } from '../../redux/reducers/list/moreCommunityListSlice';
 
 // 커뮤니티 이미지 슬라이드
 function CarouselSection({
@@ -229,18 +230,15 @@ function CommunityEdit({ route }) {
 
       const { data } = await apiPutCommunity(formData);
       const detailResponse = await apiGetCommunityDetail(feedIdx);
+      dispatch(communityListAction.setListParamReset(true));
+      dispatch(academyCommunityListAction.setListParamReset(true));
+      const { data: communityDetail } = await apiGetCommunityDetail(feedIdx);
+      setCommunityDetail(communityDetail.data);
       dispatch(
-        communityListAction.modifyItem({
+        moreCommunityListAction.modifyItem({
           idxName: 'feedIdx',
-          idx: communityDetail.feedIdx,
-          item: detailResponse.data.data,
-        }),
-      );
-      dispatch(
-        academyCommunityListAction.modifyItem({
-          idxName: 'feedIdx',
-          idx: communityDetail.feedIdx,
-          item: detailResponse.data.data,
+          idx: feedIdx,
+          item: communityDetail.data,
         }),
       );
       Utils.openModal({

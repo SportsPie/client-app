@@ -32,6 +32,7 @@ import { MqttUtils } from './MqttUtils';
 import { USER_TYPE } from './chat/ChatMapper';
 import ChatUtils from './chat/ChatUtils';
 import SqlLite from './SqlLite/SqlLite';
+import quillCss from '../common/constants/quillCss';
 const emojiRegex = require('emoji-regex');
 const Utils = {
   // 이메일 체크
@@ -694,7 +695,9 @@ const Utils = {
     hours = hours % 12;
     hours = hours ? hours : 12;
 
-    return `${year}.${month}.${day}(${dayOfWeek}) ${ampm} ${hours}시`;
+    const minutes = date.getMinutes();
+
+    return `${year}.${month}.${day}(${dayOfWeek}) ${ampm} ${hours}시 ${minutes}분`;
   },
   getLocationDelta: (lat, long, accuracy) => {
     const oneDegreeOfLongitudeInMeters = 111.32 * 1000;
@@ -785,6 +788,22 @@ const Utils = {
         videoIdx: idx,
       });
     }
+  },
+  htmlWrap: contents => {
+    return `<html>
+    <head>
+      <style>
+      ${quillCss}
+      </style>
+    </head>
+    <body>
+    <div class="ql-container">
+      <div class="ql-editor ql-snow">
+        ${contents}
+      </div>
+    </div>
+    </body>
+    </html>`;
   },
 };
 

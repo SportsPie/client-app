@@ -132,8 +132,6 @@ function CommunityWrite({ route }) {
       const { data } = await apiPostCommunity(formData);
       dispatch(communityListAction.setListParamReset(true));
       dispatch(academyCommunityListAction.setListParamReset(true));
-      dispatch(communityListAction.refresh());
-      dispatch(academyCommunityListAction.refresh());
       Utils.openModal({
         title: '성공',
         body: '게시글 등록이 완료되었습니다.',

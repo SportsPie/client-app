@@ -36,13 +36,14 @@ import {
 import { handleError } from '../../utils/HandleError';
 import { TOURNAMENT_STATE } from '../../common/constants/tournamentState';
 import { useFocusEffect } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import SPMoreModal, {
   MODAL_MORE_BUTTONS,
   MODAL_MORE_TYPE,
 } from '../../components/SPMoreModal';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import SPLoading from '../../components/SPLoading';
+import { academyMatchingRegistrationListAction } from '../../redux/reducers/list/academyMatchingRegistrationListSlice';
 
 function TournamentDetail({ route }) {
   const { isLogin, userIdx } = useSelector(selector => selector.auth);
@@ -50,7 +51,9 @@ function TournamentDetail({ route }) {
   // --------------------------------------------------
   // [ State ]
   // --------------------------------------------------
+  const dispatch = useDispatch();
   const tournamentIdx = route?.params?.tournamentIdx;
+  const fromHistory = route?.params?.fromHistory;
   const [member, setMember] = useState({});
   const [tournamentInfo, setTournamentInfo] = useState({});
   const [tournamentStatus, setTournamentStatus] = useState({});
@@ -73,6 +76,13 @@ function TournamentDetail({ route }) {
       }
 
       if (data) {
+        dispatch(
+          academyMatchingRegistrationListAction.modifyItem({
+            idxName: 'tournamentIdx',
+            idx: data.data.data.trnIdx,
+            item: data.data.data,
+          }),
+        );
         setTournamentInfo(data.data.data);
         setTournamentStatus(getTournamentState(data.data.data));
       }
@@ -91,6 +101,14 @@ function TournamentDetail({ route }) {
       };
 
       const { data } = await apiApplyTournament(param);
+      const detailData = await apiGetTournamentDetailForMember(tournamentIdx);
+      dispatch(
+        academyMatchingRegistrationListAction.modifyItem({
+          idxName: 'tournamentIdx',
+          idx: detailData.data.data.trnIdx,
+          item: detailData.data.data,
+        }),
+      );
 
       if (data) {
         NavigationService.navigate(navName.tournamentApplyComplete, {
@@ -376,9 +394,7 @@ function TournamentDetail({ route }) {
 
   const handleRegister = useCallback(() => {
     if (tournamentInfo.isApply) {
-      NavigationService.navigate(navName.academyMachingRegistration, {
-        tournamentIdx,
-      });
+      NavigationService.navigate(navName.academyMatchingRegistration);
       return '';
     }
 
@@ -415,6 +431,7 @@ function TournamentDetail({ route }) {
           )}
 
         {member?.academyAdmin &&
+          (!tournamentInfo.isApply || !fromHistory) &&
           (tournamentStatus.code === TOURNAMENT_STATE.REGISTERING.code ||
             tournamentInfo.isApply) && (
             <PrimaryButton

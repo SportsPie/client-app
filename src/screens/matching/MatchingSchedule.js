@@ -53,6 +53,9 @@ import { handleError } from '../../utils/HandleError';
 import Utils from '../../utils/Utils';
 import chatMapper, { USER_TYPE } from '../../utils/chat/ChatMapper';
 import SPLoading from '../../components/SPLoading';
+import { matchingHistoryListAction } from '../../redux/reducers/list/matchingHistoryListSlice';
+import { matchingScheduleListAction } from '../../redux/reducers/list/matchingScheduleListSlice';
+import { store } from '../../redux/store';
 
 LocaleConfig.locales.fr = {
   monthNames: [
@@ -129,6 +132,17 @@ function MatchingSchedule({ route }) {
   // --------------------------------------------------
   // [ State ]
   // --------------------------------------------------
+  const listName = 'matchingScheduleList';
+  const {
+    page,
+    list: matchList,
+    refreshing,
+    loading,
+    isLast,
+    listParamReset,
+  } = useSelector(selector => selector[listName]);
+
+  const action = matchingScheduleListAction;
   const paramReset = route.params?.paramReset;
   const [fstCall, setFstCall] = useState(false);
   // 리스트 관련 State
@@ -136,17 +150,13 @@ function MatchingSchedule({ route }) {
   const [lat, setLat] = useState();
   const [lon, setLon] = useState();
   const [init, setInit] = useState(false);
-  const [page, setPage] = useState(1);
   const [tournamentPage, setTournamentPage] = useState(1);
   const [playgroundPage, setPlaygroundPage] = useState(1);
   const [tournamentIsLast, setTournamentIsLast] = useState(false);
   const [playgroundIsLast, setPlaygroundIsLast] = useState(false);
   const [member, setMember] = useState({});
   const [playgroundTotalCnt, setPlaygroundTotalCnt] = useState();
-  const [isLast, setIsLast] = useState(false);
-  const [refreshing, setRefreshing] = useState(true);
   const [activeTab, setActiveTab] = useState('매칭'); // 매칭 , 대회 , 구장
-  const [matchList, setMatchList] = useState([]);
   const [filteredMatchList, setFilteredMatchList] = useState([]);
   const [playgroundList, setPlaygroundList] = useState([]);
   const [tournamentList, setTournamentList] = useState([]);
@@ -287,20 +297,18 @@ function MatchingSchedule({ route }) {
   // };
 
   const onRefresh = async () => {
-    setIsLast(false);
     setTournamentIsLast(false);
     setPlaygroundIsLast(false);
     setPlaygroundTotalCnt();
-    setPage(1);
     setTournamentPage(1);
     setPlaygroundPage(1);
-    setRefreshing(true);
+    dispatch(action.refresh());
   };
 
   const onInit = async () => {
-    if (paramReset) {
+    if (paramReset || listParamReset) {
       setTimeout(() => {
-        setRefreshing(false);
+        dispatch(action.reset());
         setInit(false);
       }, 500);
       setSelectedCity('');
@@ -313,9 +321,11 @@ function MatchingSchedule({ route }) {
       matchingFilterRef?.current?.reset();
       setIsGetAddr(false);
       setFstCall(false);
-      NavigationService.navigate(navName.matchingSchedule, {
-        activeTab: route?.params.activeTab || '매칭',
-      });
+      if (!listParamReset) {
+        NavigationService.navigate(navName.matchingSchedule, {
+          activeTab: route?.params.activeTab || '매칭',
+        });
+      }
     } else {
       setTimeout(() => {
         setInit(true);
@@ -364,7 +374,7 @@ function MatchingSchedule({ route }) {
 
     setSelectedDate(format(newDate, 'yyyy-MM-dd'));
     setIsModalVisible(false);
-    setRefreshing(true);
+    dispatch(action.refresh());
   };
 
   // --------------------------------------------------
@@ -429,12 +439,12 @@ function MatchingSchedule({ route }) {
       const { data } = await apiGetMatchList(param);
 
       if (data) {
-        // setTotalCnt(data.data.totalCnt);
-        setIsLast(data.data.isLast);
+        dispatch(action.setTotalCnt(data.data.totalCnt));
+        dispatch(action.setIsLast(data.data.isLast));
         setSelectedDates(
           data.data.list ? data.data.list.map(item => item.matchDate) : [],
         );
-        setMatchList(data.data.list);
+        dispatch(action.setList(data.data.list));
       }
     } catch (error) {
       handleError(error);
@@ -445,7 +455,7 @@ function MatchingSchedule({ route }) {
     }, 400);
 
     setTimeout(() => {
-      setRefreshing(false);
+      dispatch(action.setRefreshing(false));
       setInit(false);
     }, 300);
   };
@@ -488,7 +498,7 @@ function MatchingSchedule({ route }) {
     }, 500);
 
     setTimeout(() => {
-      setRefreshing(false);
+      dispatch(action.setRefreshing(false));
       setInit(false);
     }, 500);
   };
@@ -519,7 +529,7 @@ function MatchingSchedule({ route }) {
       handleError(error);
     }
     setTimeout(() => {
-      setRefreshing(false);
+      dispatch(action.setRefreshing(false));
       setInit(false);
     }, 300);
   };
@@ -573,7 +583,8 @@ function MatchingSchedule({ route }) {
       switch (activeTab) {
         case '매칭':
           if (!isLast) {
-            setPage(prevPage => prevPage + 1);
+            const prevPage = store.getState().communityList.page;
+            dispatch(action.setPage(prevPage + 1));
           }
           break;
         case '대회':
@@ -602,15 +613,13 @@ function MatchingSchedule({ route }) {
     }, []),
   );
 
-  useFocusEffect(
-    useCallback(() => {
-      onInit();
-    }, [paramReset]),
-  );
+  useEffect(() => {
+    onInit();
+  }, [paramReset, listParamReset]);
 
   useEffect(() => {
-    if (paramReset) getCityList();
-  }, [paramReset]);
+    if (paramReset || listParamReset) getCityList();
+  }, [paramReset, listParamReset]);
 
   useEffect(() => {
     getUserAddr();
@@ -623,7 +632,7 @@ function MatchingSchedule({ route }) {
       selectedDate &&
       (refreshing || init)
     ) {
-      getMatchList();
+      if (!paramReset && !listParamReset) getMatchList();
     }
   }, [
     selectedCity,
@@ -634,18 +643,22 @@ function MatchingSchedule({ route }) {
     isGetAddr,
     init,
     matchList,
+    paramReset,
+    listParamReset,
   ]);
 
   useEffect(() => {
+    if (paramReset || listParamReset) return;
     if (
       activeTab === '구장' &&
       (refreshing || init || (!refreshing && playgroundPage > 1))
     ) {
       getPlaygroundList();
     }
-  }, [playgroundPage, activeTab, refreshing, init]);
+  }, [playgroundPage, activeTab, refreshing, init, paramReset, listParamReset]);
 
   useEffect(() => {
+    if (paramReset || listParamReset) return;
     if (
       activeTab === '대회' &&
       selectedDate &&
@@ -653,21 +666,24 @@ function MatchingSchedule({ route }) {
     ) {
       getTournamentList();
     }
-  }, [tournamentPage, activeTab, refreshing, init]);
+  }, [tournamentPage, activeTab, refreshing, init, paramReset, listParamReset]);
 
   useEffect(() => {
+    if (paramReset || listParamReset) return;
     if (selectedCity) {
       getGuList(selectedCity);
     }
-  }, [selectedCity]);
+  }, [selectedCity, paramReset, listParamReset]);
 
   useEffect(() => {
+    if (paramReset || listParamReset) return;
     handleFilterMatchList();
-  }, [matchList, selectedDate]);
+  }, [matchList, selectedDate, paramReset, listParamReset]);
 
   useEffect(() => {
+    if (paramReset || listParamReset) return;
     onRefresh();
-  }, [selectedDate, selectedCity, selectedGu]);
+  }, [selectedDate, selectedCity, selectedGu, paramReset, listParamReset]);
 
   const listCalendarHeader = () => {
     const calendarTheme = {
@@ -1092,6 +1108,7 @@ function MatchingSchedule({ route }) {
             <ScrollView showsVerticalScrollIndicator={false}>
               {itemsToDisplay.map((item, index) => (
                 <TouchableOpacity
+                  // eslint-disable-next-line react/no-array-index-key
                   key={index}
                   onPress={() => handleSelectGu(item.code)}>
                   <Text style={styles.modalText}>{item.label}</Text>
@@ -1165,6 +1182,7 @@ function MatchingSchedule({ route }) {
 
                 return (
                   <TouchableOpacity
+                    // eslint-disable-next-line react/no-array-index-key
                     key={index}
                     onPress={() => handleMonthPress(monthIndex)}
                     style={[

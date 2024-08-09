@@ -1,5 +1,13 @@
 import React, { memo, useCallback, useRef, useState } from 'react';
-import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+  Image,
+  Keyboard,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { BottomSheetTextInput } from '@gorhom/bottom-sheet';
 import { COLORS } from '../../../styles/colors';
 import fontStyles from '../../../styles/fontStyles';
@@ -29,6 +37,7 @@ function CommentInputSection({ onChangeText, onSubmit, userInfo }) {
       onSubmit(comment.trim()); // 댓글 제출 함수 호출
       setComment(''); // 입력 초기화
       inputRef.current.clear(); // TextInput 초기화
+      Keyboard.dismiss();
     }
   }, [comment, onSubmit]);
 

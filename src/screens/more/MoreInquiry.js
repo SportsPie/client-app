@@ -1,4 +1,3 @@
-import { useFocusEffect } from '@react-navigation/native';
 import moment from 'moment/moment';
 import React, { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import {
@@ -9,7 +8,7 @@ import {
   Text,
   View,
 } from 'react-native';
-import { apiGetQna, apiGetQnaDetail } from '../../api/RestAPI';
+import { apiGetQna } from '../../api/RestAPI';
 import { navName } from '../../common/constants/navName';
 import { PROGRESS_STATUS } from '../../common/constants/progressStatus';
 import { PrimaryButton } from '../../components/PrimaryButton';
@@ -21,57 +20,63 @@ import { handleError } from '../../utils/HandleError';
 import ListEmptyView from '../../components/ListEmptyView';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Header from '../../components/header';
+import { useDispatch, useSelector } from 'react-redux';
+import { store } from '../../redux/store';
+import { moreInquiryListAction } from '../../redux/reducers/list/moreInquiryListSlice';
 
-function MoreInquiry() {
+function MoreInquiry({ route }) {
+  const dispatch = useDispatch();
+  const listName = 'moreInquiryList';
+  const {
+    page,
+    list: inquiry,
+    refreshing,
+    loading,
+    isLast,
+  } = useSelector(selector => selector[listName]);
+  const noParamReset = route?.params?.noParamReset;
+  const action = moreInquiryListAction;
+
+  const [isFocus, setIsFocus] = useState(true);
+
   const pageSize = 6;
-  const [inquiry, setInquiry] = useState([]);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [refreshing, setRefreshing] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [isLast, setIsLast] = useState(false);
 
   const getInquiryInfo = async () => {
     const params = {
       size: pageSize,
-      page: currentPage,
+      page,
     };
     try {
       const { data } = await apiGetQna(params);
       if (Array.isArray(data.data.list)) {
-        const newList = data.data.list;
-        setIsLast(data.data.isLast); // 현재 페이지가 마지막 페이지임을 설정
-        setInquiry(prevInquiry =>
-          currentPage === 1 ? newList : [...prevInquiry, ...newList],
-        );
+        dispatch(action.setTotalCnt(data.data.totalCnt));
+        dispatch(action.setIsLast(data.data.isLast));
+        if (page === 1) {
+          dispatch(action.setList(data.data.list));
+        } else {
+          const prevList = store.getState()[listName].list;
+          dispatch(action.setList([...prevList, ...data.data.list]));
+        }
       }
     } catch (error) {
-      setIsLast(true);
       handleError(error);
     } finally {
-      setRefreshing(false);
-      setLoading(false);
+      dispatch(action.setRefreshing(false));
+      dispatch(action.setLoading(false));
     }
   };
 
   const handleEndReached = () => {
     if (!isLast) {
       setTimeout(() => {
-        setCurrentPage(prevPage => prevPage + 1);
+        const prevPage = store.getState()[listName].page;
+        dispatch(action.setPage(prevPage + 1));
       }, 0);
     }
   };
 
   const onRefresh = useCallback(async () => {
-    // setRefreshing(true); // 새로 고침을 시작함
-    // setCurrentPage(1); // 현재 페이지를 1로 설정
-    // setInquiry([]); // 기존의 목록 초기화
-    // await getInquiryInfo(); // 기사 정보 다시 가져오기
-    // setRefreshing(false); // 새로 고침 완료
-    setLoading(true);
-    setInquiry([]);
-    setCurrentPage(1);
-    setIsLast(false);
-    setRefreshing(true);
+    dispatch(action.refresh());
   }, []);
 
   const detailPage = async inquires => {
@@ -88,16 +93,27 @@ function MoreInquiry() {
     NavigationService.navigate(navName.moreInquiryRegist);
   };
 
-  useFocusEffect(
-    useCallback(() => {
-      onRefresh();
-    }, []),
-  );
   useEffect(() => {
-    if (refreshing || (!refreshing && currentPage > 1)) {
-      getInquiryInfo();
+    if (!noParamReset) {
+      setIsFocus(true);
+      dispatch(action.reset());
+      NavigationService.replace(navName.moreInquiry, {
+        ...(route?.params || {}),
+        noParamReset: true,
+      });
+      return;
     }
-  }, [currentPage, refreshing]);
+    dispatch(action.refresh());
+    setIsFocus(false);
+  }, [noParamReset]);
+
+  useEffect(() => {
+    if (noParamReset) {
+      if ((!isFocus && refreshing) || (!refreshing && page > 1)) {
+        getInquiryInfo();
+      }
+    }
+  }, [page, refreshing, isFocus, noParamReset]);
 
   const renderHeader = useMemo(() => {
     return (
@@ -192,7 +208,7 @@ function MoreInquiry() {
         ListEmptyComponent={renderListEmpty}
       />
     );
-  }, [inquiry, refreshing, loading, onRefresh]);
+  }, [inquiry, refreshing, loading, onRefresh, isFocus, noParamReset]);
 
   return (
     <SafeAreaView style={styles.container}>

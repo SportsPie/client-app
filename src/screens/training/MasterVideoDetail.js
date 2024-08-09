@@ -31,8 +31,11 @@ import { navName } from '../../common/constants/navName';
 import { COLORS } from '../../styles/colors';
 import { useFocusEffect } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useDispatch } from 'react-redux';
+import { moreClassMaterVideoListAction } from '../../redux/reducers/list/moreClassMasterVideoListSlice';
 
 function MasterVideoDetail({ route }) {
+  const dispatch = useDispatch();
   const { width } = useWindowDimensions();
   let imageHeight;
 
@@ -115,6 +118,13 @@ function MasterVideoDetail({ route }) {
       if (data) {
         setVideoDetail({ ...data.data });
         pageRef.current.scrollTo(0, 0);
+        dispatch(
+          moreClassMaterVideoListAction.modifyItem({
+            idxName: 'videoIdx',
+            idx: videoIdx,
+            item: data.data,
+          }),
+        );
       }
     } catch (error) {
       handleError(error);

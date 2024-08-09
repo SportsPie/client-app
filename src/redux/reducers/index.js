@@ -5,8 +5,10 @@ import chat from './chatSlice';
 import wifi from './wifiSlice';
 import nav from './navSlice';
 import socialTokenHistory from './list/socialTokenHistoryListSlice';
-import moreChallengeList from './list/moreChallengeListSlice';
-import moreClassMasterList from './list/moreClassMasterListSlice';
+import moreChallengeCommentList from './list/moreChallengeCommentListSlice';
+import moreChallengeVideoList from './list/moreChallengeVideoListSlice';
+import moreClassMasterCommentList from './list/moreClassMasterCommentListSlice';
+import moreClassMasterVideoList from './list/moreClassMasterVideoListSlice';
 import moreCommunityList from './list/moreCommunityListSlice';
 import academyCommunityList from './list/academyCommunityListSlice';
 import academyCommunityCommentList from './list/academyCommunityCommentListSlice';
@@ -28,7 +30,6 @@ import moreArticleBookmarksList from './list/moreArticleBookmarksListSlice';
 import moreGameScheduleList from './list/moreGameScheduleListSlice';
 import moreInquiryList from './list/moreInquiryListSlice';
 import moreNoticeList from './list/moreNoticeListSlice';
-import moreQuestionList from './list/moreQuestionListSlice';
 import walletHistoryList from './list/walletHistoryListSlice';
 
 export default {
@@ -38,8 +39,10 @@ export default {
   wifi,
   nav,
   socialTokenHistory,
-  moreChallengeList,
-  moreClassMasterList,
+  moreChallengeCommentList,
+  moreChallengeVideoList,
+  moreClassMasterCommentList,
+  moreClassMasterVideoList,
   moreCommunityList,
   academyCommunityList,
   academyCommunityCommentList,
@@ -61,6 +64,5 @@ export default {
   moreGameScheduleList,
   moreInquiryList,
   moreNoticeList,
-  moreQuestionList,
   walletHistoryList,
 };

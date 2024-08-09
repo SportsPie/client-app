@@ -27,6 +27,7 @@ import SPMoreModal, {
 import AcademyJoinModal from './AcademyJoinModal';
 import { JOIN_TYPE } from '../../common/constants/joinType';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import SPLoading from '../../components/SPLoading';
 
 // 경기일정 컴포넌트
 function MatchingBox({ data }) {
@@ -211,6 +212,10 @@ function AcademyIntroduction({ route }) {
       // };
     }, [isJoined]),
   );
+
+  if (!academyDetail || Object.keys(academyDetail).length === 0) {
+    return <SPLoading />;
+  }
 
   return (
     <SafeAreaView style={styles.container}>

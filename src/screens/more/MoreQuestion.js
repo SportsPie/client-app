@@ -65,7 +65,6 @@ function MoreQuestion() {
       setIsLast(true);
       handleError(error);
     } finally {
-      setRefreshing(false);
       setLoading(false); // 로딩 완료 후 로딩 상태 false로 설정
     }
   };
@@ -87,19 +86,24 @@ function MoreQuestion() {
   }, []);
 
   const selectCategory = codeSub => {
+    // 이미 선택된 카테고리와 동일하면 아무 작업도 하지 않음
+    if (codeSub === selectedCategory) {
+      return;
+    }
     setSelectedCategory(codeSub); // 선택된 카테고리의 codeSub 값을 설정
     setCurrentPage(1); // 현재 페이지를 1로 설정
-    setDisplayedQuestions([]); // 모든 질문 내용 숨김
     setFaqData([]); // faqData 초기화
+    setIsLast(false); // 마지막 페이지 상태 초기화
   };
-
   const renderFaqItem = useCallback(({ item }) => {
     return <QNAItem item={item} />;
   }, []);
 
   useFocusEffect(
     useCallback(() => {
-      onRefresh();
+      if (selectedCategory) {
+        onRefresh();
+      }
     }, [selectedCategory]),
   );
 
@@ -109,6 +113,7 @@ function MoreQuestion() {
 
   useEffect(() => {
     if (refreshing || (!refreshing && currentPage > 1)) {
+      setRefreshing(false);
       getFaqData();
     }
   }, [currentPage, refreshing]);

@@ -101,7 +101,11 @@ export default function AcademyJoinModal({
         Utils.chkEmail(data.data.academy.academyCreatorId),
       );
     } catch (error) {
-      handleError(error);
+      if (error.code === 9999) {
+        setShowJoinModalButton(false);
+      } else {
+        handleError(error);
+      }
     }
   };
 

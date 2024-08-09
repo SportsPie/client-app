@@ -1,16 +1,19 @@
 import React, { memo, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { SPSvgs } from '../assets/svg';
 import fontStyles from '../styles/fontStyles';
 import { COLORS } from '../styles/colors';
 import { apiLikeChallenge, apiUnlikeChallenge } from '../api/RestAPI';
 import { handleError } from '../utils/HandleError';
-import { TouchableOpacity } from 'react-native-gesture-handler';
 import Utils from '../utils/Utils';
 import { SPToast } from './SPToast';
+import { store } from '../redux/store';
+import { moreClassMaterVideoListAction } from '../redux/reducers/list/moreClassMasterVideoListSlice';
+import { moreChallengeVideoListAction } from '../redux/reducers/list/moreChallengeVideoListSlice';
 
 function HeartCounter({ heartNum = 0, videoIdx = '', isLike = false }) {
+  const dispatch = useDispatch();
   const isLogin = useSelector(selector => selector.auth)?.isLogin;
 
   // [ state ] 다중 클릭 방지
@@ -47,6 +50,38 @@ function HeartCounter({ heartNum = 0, videoIdx = '', isLike = false }) {
         setCntLike(prev => prev + 1);
         setIsLiked(true);
         trlRef.current.disabled = false;
+
+        const findMasterVideo = store
+          .getState()
+          .moreClassMasterVideoList.list.find(
+            item => Number(item.videoIdx) === Number(videoIdx),
+          );
+        if (findMasterVideo) {
+          findMasterVideo.cntLike += 1;
+          dispatch(
+            moreClassMaterVideoListAction.modifyItem({
+              idxName: 'videoIdx',
+              idx: videoIdx,
+              item: findMasterVideo,
+            }),
+          );
+        }
+
+        const findChallengeVideo = store
+          .getState()
+          .moreChallengeVideoList.list.find(
+            item => Number(item.videoIdx) === Number(videoIdx),
+          );
+        if (findChallengeVideo) {
+          findChallengeVideo.cntLike += 1;
+          dispatch(
+            moreChallengeVideoListAction.modifyItem({
+              idxName: 'videoIdx',
+              idx: videoIdx,
+              item: findChallengeVideo,
+            }),
+          );
+        }
       }
     } catch (error) {
       handleError(error);
@@ -63,6 +98,38 @@ function HeartCounter({ heartNum = 0, videoIdx = '', isLike = false }) {
         setCntLike(prev => prev - 1);
         setIsLiked(false);
         trlRef.current.disabled = false;
+
+        const findMasterVideo = store
+          .getState()
+          .moreClassMasterVideoList.list.find(
+            item => Number(item.videoIdx) === Number(videoIdx),
+          );
+        if (findMasterVideo) {
+          findMasterVideo.cntLike -= 1;
+          dispatch(
+            moreClassMaterVideoListAction.modifyItem({
+              idxName: 'videoIdx',
+              idx: videoIdx,
+              item: findMasterVideo,
+            }),
+          );
+        }
+
+        const findChallengeVideo = store
+          .getState()
+          .moreChallengeVideoList.list.find(
+            item => Number(item.videoIdx) === Number(videoIdx),
+          );
+        if (findChallengeVideo) {
+          findChallengeVideo.cntLike -= 1;
+          dispatch(
+            moreChallengeVideoListAction.modifyItem({
+              idxName: 'videoIdx',
+              idx: videoIdx,
+              item: findChallengeVideo,
+            }),
+          );
+        }
       }
     } catch (error) {
       handleError(error);

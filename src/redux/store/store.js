@@ -1,13 +1,13 @@
 import { combineReducers, configureStore } from '@reduxjs/toolkit';
 import {
-  persistStore,
-  persistReducer,
   FLUSH,
-  REHYDRATE,
   PAUSE,
   PERSIST,
+  persistReducer,
+  persistStore,
   PURGE,
   REGISTER,
+  REHYDRATE,
 } from 'redux-persist';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -23,8 +23,10 @@ const persistConfig = {
     'wifi',
     'communityList',
     'socialTokenHistory',
-    'moreChallengeList',
-    'moreClassMasterList',
+    'moreChallengeCommentList',
+    'moreChallengeVideoList',
+    'moreClassMasterCommentList',
+    'moreClassMasterVideoList',
     'moreCommunityList',
     'academyCommunityList',
     'academyCommunityCommentList',
@@ -46,7 +48,6 @@ const persistConfig = {
     'moreGameScheduleList',
     'moreInquiryList',
     'moreNoticeList',
-    'moreQuestionList',
     'walletHistoryList',
   ],
 };

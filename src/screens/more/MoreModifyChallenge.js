@@ -6,12 +6,15 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  View,
   useWindowDimensions,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { apiPutModifyChallengeVideo } from '../../api/RestAPI';
-import { navName } from '../../common/constants/navName';
+import {
+  apiGetChallengeDetail,
+  apiGetMasterVideoDetail,
+  apiPutModifyChallengeVideo,
+} from '../../api/RestAPI';
 import Checkbox from '../../components/Checkbox';
 import CustomSwitch from '../../components/CustomSwitch';
 import DismissKeyboard from '../../components/DismissKeyboard';
@@ -22,13 +25,18 @@ import NavigationService from '../../navigation/NavigationService';
 import { COLORS } from '../../styles/colors';
 import fontStyles from '../../styles/fontStyles';
 import { handleError } from '../../utils/HandleError';
+import { useDispatch } from 'react-redux';
+import { moreClassMaterVideoListAction } from '../../redux/reducers/list/moreClassMasterVideoListSlice';
+import { moreChallengeVideoListAction } from '../../redux/reducers/list/moreChallengeVideoListSlice';
 
 function MoreModifyChallenge() {
+  const dispatch = useDispatch();
   let imageHeight;
   const { width } = useWindowDimensions();
   const route = useRoute();
-  const { videoIdx, videoTitle, videoContents, thumbPath } = route.params;
-  const [isVideoPublic, setIsVideoPublic] = useState(false);
+  const { videoIdx, videoTitle, videoContents, thumbPath, type, showYn } =
+    route.params;
+  const [isVideoPublic, setIsVideoPublic] = useState(showYn === 'Y');
   const [title, setTitle] = useState(videoTitle);
   const [contents, setContents] = useState(videoContents);
   const [isChecked, setIsChecked] = useState(false);
@@ -54,8 +62,27 @@ function MoreModifyChallenge() {
       };
 
       const response = await apiPutModifyChallengeVideo(data);
-
-      NavigationService.navigate(navName.moreActiveHistory);
+      if (type === 'master') {
+        const { data: videoData } = await apiGetMasterVideoDetail(videoIdx);
+        dispatch(
+          moreClassMaterVideoListAction.modifyItem({
+            idxName: 'videoIdx',
+            idx: videoIdx,
+            item: videoData.data,
+          }),
+        );
+      } else {
+        const { data: videoData } = await apiGetChallengeDetail(videoIdx);
+        dispatch(
+          moreChallengeVideoListAction.modifyItem({
+            idxName: 'videoIdx',
+            idx: videoIdx,
+            item: videoData.data,
+          }),
+        );
+      }
+      // NavigationService.navigate(navName.moreActiveHistory);
+      NavigationService.goBack();
     } catch (error) {
       handleError(error);
     } finally {

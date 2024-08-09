@@ -670,12 +670,6 @@ function Home() {
                             </LinearGradient>
                           </ImageBackground>
                         </View>
-                        <Text
-                          style={styles.magazineText}
-                          numberOfLines={2}
-                          ellipsizeMode="tail">
-                          {item.contents}
-                        </Text>
                       </Pressable>
                     )}
                   </View>

@@ -31,6 +31,8 @@ import { COLORS } from '../../styles/colors';
 import fontStyles, { FONTS } from '../../styles/fontStyles';
 import { handleError } from '../../utils/HandleError';
 import Utils from '../../utils/Utils';
+import { matchingScheduleListAction } from '../../redux/reducers/list/matchingScheduleListSlice';
+import { useDispatch } from 'react-redux';
 
 const MODAL_TYPE_MATCH_DATE = 'MODAL_TYPE_MATCH_DATE';
 const MODAL_TYPE_CLOSE_DATE = 'MODAL_TYPE_CLOSE_DATE';
@@ -41,6 +43,7 @@ function MatchingRegist() {
   // --------------------------------------------------
   // [ State ]
   // --------------------------------------------------
+  const dispatch = useDispatch();
   const [now] = useState(new Date());
   const trlRef = useRef({ current: { disabled: false } });
 
@@ -132,6 +135,7 @@ function MatchingRegist() {
       };
 
       const { data } = await apiSaveMatch(param);
+      dispatch(matchingScheduleListAction.setListParamReset(true));
       if (data) {
         handleSubmit();
       }

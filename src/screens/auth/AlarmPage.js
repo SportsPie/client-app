@@ -1,14 +1,18 @@
 import { useFocusEffect } from '@react-navigation/native';
-import React, { memo, useCallback, useRef, useState } from 'react';
+import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, FlatList, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import AlertItem from '../../components/alert-page/AlertItem';
 import Header from '../../components/header';
 import { COLORS } from '../../styles/colors';
 import { handleError } from '../../utils/HandleError';
 import notificationMapper from '../../utils/notification/NotificationMapper';
 import notificationUtils from '../../utils/notification/NotificationUtils';
+import { alarmListAction } from '../../redux/reducers/list/alarmListSlice';
+import { store } from '../../redux/store';
+import NavigationService from '../../navigation/NavigationService';
+import { navName } from '../../common/constants/navName';
 
 export const NOTI_TYPE = {
   TRAINING: 'TRAINING',
@@ -20,19 +24,26 @@ export const NOTI_TYPE = {
   POINT: 'POINT',
   WALLET: 'WALLET',
 };
-function AlarmPage() {
+function AlarmPage({ route }) {
   /**
    * state
    */
+  const dispatch = useDispatch();
+  const listName = 'alarmList';
+  const {
+    page,
+    list: notiList,
+    refreshing,
+    loading,
+    isLast,
+  } = useSelector(selector => selector[listName]);
+  const noParamReset = route?.params?.noParamReset;
+  const action = alarmListAction;
+
   const flatListRef = useRef();
 
   const { isLogin, userIdx } = useSelector(selector => selector.auth);
-  const [page, setPage] = useState(1);
   const [size, setSize] = useState(30);
-  const [loading, setLoading] = useState(true);
-  const [isLast, setIsLast] = useState(false);
-  const [refreshing, setRefreshing] = useState(true);
-  const [notiList, setNotiList] = useState([]);
 
   /**
    * sql lite
@@ -45,24 +56,26 @@ function AlarmPage() {
         page,
         size,
       });
-      setIsLast(list.length < size);
+      dispatch(action.setIsLast(list.length < size));
       if (page === 1) {
-        setNotiList(list);
+        dispatch(action.setList(list));
       } else {
-        setNotiList(prevProjects => [...prevProjects, ...list]);
+        const prevList = store.getState()[listName].list;
+        dispatch(action.setList([...prevList, ...list]));
       }
     } catch (error) {
       handleError(error);
     } finally {
-      setRefreshing(false);
-      setLoading(false);
+      dispatch(action.setRefreshing(false));
+      dispatch(action.setLoading(false));
     }
   };
 
   const loadMoreProjects = () => {
     setTimeout(() => {
       if (!isLast) {
-        setPage(prevPage => prevPage + 1);
+        const prevPage = store.getState()[listName].page;
+        dispatch(action.setPage(prevPage + 1));
       }
     }, 0);
   };
@@ -71,9 +84,7 @@ function AlarmPage() {
     if (flatListRef.current) {
       flatListRef.current.scrollToOffset({ animated: false, offset: 0 });
     }
-    setPage(1);
-    setIsLast(false);
-    setRefreshing(true);
+    dispatch(action.refresh());
   };
 
   /**
@@ -87,13 +98,23 @@ function AlarmPage() {
     }, []),
   );
 
-  useFocusEffect(
-    useCallback(() => {
+  useEffect(() => {
+    if (!noParamReset) {
+      dispatch(action.reset());
+      NavigationService.replace(navName.alarmPage, {
+        ...(route?.params || {}),
+        noParamReset: true,
+      });
+    }
+  }, [noParamReset]);
+
+  useEffect(() => {
+    if (noParamReset) {
       if (refreshing || (!refreshing && page > 1)) {
         getNotiList();
       }
-    }, [page, refreshing]),
-  );
+    }
+  }, [page, refreshing, noParamReset]);
 
   /**
    * render

@@ -26,14 +26,14 @@ import {
 import { SPToast } from '../SPToast';
 import { handleError } from '../../utils/HandleError';
 import SPHeader from '../SPHeader';
+import SPModal from '../SPModal';
 
-function FeedItem({ item, onDelete }) {
+function FeedItem({ item, onDelete, onModify }) {
   const [modalShow, setModalShow] = useState(false);
-  const [deleteGroupModalShow, setDeleteGroupModalShow] = useState(false);
-  const [editGroupModalShow, setEditGroupModalShow] = useState(false);
   const trlRef = useRef({ current: { disabled: false } });
   const [showCommentModify, setShowCommentModify] = useState(false);
   const [editCommentInput, setEditCommentInput] = useState('');
+  const [showRemoveCheckModal, setShowRemoveCheckModal] = useState(false);
 
   const closeModal = () => {
     setModalShow(false);
@@ -68,9 +68,7 @@ function FeedItem({ item, onDelete }) {
         trlRef.current.disabled = false;
 
         SPToast.show({ text: '댓글을 수정했어요' });
-        if (onDelete) {
-          onDelete(item.commentIdx, editCommentInput);
-        }
+        if (onModify) onModify(item.commentIdx, editCommentInput);
       }
     } catch (error) {
       handleError(error);
@@ -99,9 +97,7 @@ function FeedItem({ item, onDelete }) {
           title: '성공',
           body: '삭제되었습니다.',
         });
-        if (onDelete) {
-          onDelete(item.commentIdx, editCommentInput);
-        }
+        if (onDelete) onDelete();
       }
       trlRef.current.disabled = false;
     } catch (error) {
@@ -220,7 +216,7 @@ function FeedItem({ item, onDelete }) {
                   style={styles.button}
                   onPress={() => {
                     setModalShow(false);
-                    removeChallengeVideoComment();
+                    setShowRemoveCheckModal(true);
                   }}>
                   <View style={styles.modalBox}>
                     <Image source={SPIcons.icDelete} />
@@ -295,6 +291,20 @@ function FeedItem({ item, onDelete }) {
           </Text>
         </SafeAreaView>
       </Modal>
+      <SPModal
+        title="댓글 삭제"
+        contents="댓글을 삭제할까요?"
+        visible={showRemoveCheckModal}
+        onConfirm={() => {
+          removeChallengeVideoComment();
+        }}
+        onCancel={() => {
+          setShowRemoveCheckModal(false);
+        }}
+        onClose={() => {
+          setShowRemoveCheckModal(false);
+        }}
+      />
     </View>
   );
 }

@@ -1,13 +1,5 @@
 import React, { memo, useCallback, useMemo, useState } from 'react';
-import {
-  ScrollView,
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Pressable,
-  Keyboard,
-} from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useFocusEffect, useRoute } from '@react-navigation/native';
 import moment from 'moment';
 import { PROGRESS_STATUS } from '../../common/constants/progressStatus';
@@ -21,25 +13,32 @@ import { navName } from '../../common/constants/navName';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { handleError } from '../../utils/HandleError';
 import { apiGetQnaDetail } from '../../api/RestAPI';
+import { useDispatch } from 'react-redux';
+import { moreInquiryListAction } from '../../redux/reducers/list/moreInquiryListSlice';
 
 function MoreInquiryDetail() {
+  const dispatch = useDispatch();
   const route = useRoute();
   const [inquiryDetail, setInquiryDetail] = useState(null);
   const { qnaIdx } = route.params;
-  const detailPage = async () => {
+  const getQnaDetail = async () => {
     try {
       const response = await apiGetQnaDetail(qnaIdx);
-      setInquiryDetail(response.data);
-      NavigationService.navigate(navName.moreInquiryDetail, {
-        inquiryDetail,
-      });
+      setInquiryDetail(response.data.data);
+      dispatch(
+        moreInquiryListAction.modifyItem({
+          idxName: 'qnaIdx',
+          idx: response.data.data.qnaIdx,
+          item: response.data.data,
+        }),
+      );
     } catch (error) {
       handleError(error);
     }
   };
   useFocusEffect(
     useCallback(() => {
-      detailPage();
+      getQnaDetail();
     }, []),
   );
 
@@ -48,17 +47,16 @@ function MoreInquiryDetail() {
       <Header
         title="내 문의 상세"
         rightContent={
-          PROGRESS_STATUS?.[inquiryDetail?.data?.qnaState]?.value !==
-          'COMPLETE' ? (
+          PROGRESS_STATUS?.[inquiryDetail?.qnaState]?.value !== 'COMPLETE' ? (
             <Pressable
               style={{ padding: 10 }}
               onPress={() => {
                 NavigationService.navigate(navName.moreInquiryRegist, {
                   inquiryData: {
-                    title: inquiryDetail?.data?.title,
-                    question: inquiryDetail?.data?.question,
-                    qnaState: inquiryDetail?.data?.qnaState,
-                    qnaIdx: inquiryDetail?.data?.qnaIdx,
+                    title: inquiryDetail?.title,
+                    question: inquiryDetail?.question,
+                    qnaState: inquiryDetail?.qnaState,
+                    qnaIdx: inquiryDetail?.qnaIdx,
                   },
                 });
               }}>
@@ -77,10 +75,10 @@ function MoreInquiryDetail() {
         }
       />
     );
-  }, [inquiryDetail?.data]);
+  }, [inquiryDetail]);
 
   const statusTextValue = useMemo(() => {
-    switch (inquiryDetail?.data?.qnaState) {
+    switch (inquiryDetail?.qnaState) {
       case PROGRESS_STATUS?.COMPLETE?.value:
         return '답변완료';
 
@@ -88,9 +86,9 @@ function MoreInquiryDetail() {
         return '답변대기';
 
       default:
-        return PROGRESS_STATUS?.[inquiryDetail?.data?.qnaState]?.value ?? '';
+        return PROGRESS_STATUS?.[inquiryDetail?.qnaState]?.value ?? '';
     }
-  }, [inquiryDetail?.data?.qnaState]);
+  }, [inquiryDetail?.qnaState]);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -102,7 +100,7 @@ function MoreInquiryDetail() {
         <View style={{ rowGap: 8, paddingHorizontal: 16 }}>
           <View style={styles.dateWrapper}>
             <Text style={styles.timeText}>
-              {moment(inquiryDetail?.data?.regDate)?.format('YYYY.MM.DD')}
+              {moment(inquiryDetail?.regDate)?.format('YYYY.MM.DD')}
             </Text>
             <View style={styles.statusWrapperBox}>
               <Text
@@ -110,13 +108,13 @@ function MoreInquiryDetail() {
                   styles.statusWrapper,
                   {
                     backgroundColor:
-                      PROGRESS_STATUS?.[inquiryDetail?.data?.qnaState]
-                        ?.value === 'WAIT'
+                      PROGRESS_STATUS?.[inquiryDetail?.qnaState]?.value ===
+                      'WAIT'
                         ? COLORS.peach
                         : `${COLORS.darkBlue}10`,
                     color:
-                      PROGRESS_STATUS?.[inquiryDetail?.data?.qnaState]
-                        ?.value === 'WAIT'
+                      PROGRESS_STATUS?.[inquiryDetail?.qnaState]?.value ===
+                      'WAIT'
                         ? COLORS.orange
                         : COLORS.darkBlue,
                   },
@@ -126,25 +124,21 @@ function MoreInquiryDetail() {
             </View>
           </View>
 
-          <Text style={styles.titleText}>{inquiryDetail?.data?.title}</Text>
+          <Text style={styles.titleText}>{inquiryDetail?.title}</Text>
         </View>
 
         <Divider />
 
         <View style={styles.itemWrapper}>
-          <Text style={styles.contentText}>
-            {inquiryDetail?.data?.question}
-          </Text>
+          <Text style={styles.contentText}>{inquiryDetail?.question}</Text>
         </View>
 
         <Divider />
 
-        {inquiryDetail?.data?.answer && (
+        {inquiryDetail?.answer && (
           <View style={styles.itemWrapper}>
             <SPSvgs.LetterA />
-            <Text style={styles.contentText}>
-              {inquiryDetail?.data?.answer}
-            </Text>
+            <Text style={styles.contentText}>{inquiryDetail?.answer}</Text>
           </View>
         )}
       </ScrollView>

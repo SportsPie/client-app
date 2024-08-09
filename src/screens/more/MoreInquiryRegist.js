@@ -1,5 +1,5 @@
 import React, { memo, useRef, useState } from 'react';
-import { StyleSheet, View, Text } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { apiPostQnaInsert, apiPutQnaModify } from '../../api/RestAPI';
 import { MODAL_CLOSE_EVENT } from '../../common/constants/modalCloseEvent';
@@ -11,8 +11,11 @@ import Header from '../../components/header';
 import { handleError } from '../../utils/HandleError';
 import Utils from '../../utils/Utils';
 import fontStyles from '../../styles/fontStyles';
+import { useDispatch } from 'react-redux';
+import { moreInquiryListAction } from '../../redux/reducers/list/moreInquiryListSlice';
 
 function MoreInquiryRegist({ route }) {
+  const dispatch = useDispatch();
   const inquiryData = route?.params?.inquiryData;
   const [title, setTitle] = useState(inquiryData?.title ?? '');
   const [content, setContent] = useState(inquiryData?.question ?? '');
@@ -64,6 +67,7 @@ function MoreInquiryRegist({ route }) {
         question: content,
       };
       const { data } = await apiPostQnaInsert(params);
+      dispatch(moreInquiryListAction.refresh());
       Utils.openModal({
         title: '성공',
         body: '문의가 저장되었습니다.',
@@ -87,6 +91,7 @@ function MoreInquiryRegist({ route }) {
         qnaIdx: inquiryData.qnaIdx,
       };
       const { data } = await apiPutQnaModify(params);
+      // dispatch(moreInquiryListAction.refresh());
       Utils.openModal({
         title: '성공',
         body: '문의가 수정되었습니다.',

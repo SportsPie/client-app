@@ -6,16 +6,16 @@ import {
   Image,
   Keyboard,
   Modal,
-  SafeAreaView,
   ScrollView,
   Text,
   TextInput,
+  SafeAreaView,
   TouchableOpacity,
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Carousel from 'react-native-snap-carousel';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import {
   apiGetCommunityCommentList,
   apiGetCommunityDetail,
@@ -47,12 +47,6 @@ import { COLORS } from '../../styles/colors';
 import fontStyles from '../../styles/fontStyles';
 import { handleError } from '../../utils/HandleError';
 import Utils from '../../utils/Utils';
-import AcademyJoinModal from './AcademyJoinModal';
-import { academyCommunityCommentListAction } from '../../redux/reducers/list/academyCommunityCommentListSlice';
-import { store } from '../../redux/store';
-import { academyCommunityListAction } from '../../redux/reducers/list/academyCommunityListSlice';
-import { navName } from '../../common/constants/navName';
-import { moreCommunityListAction } from '../../redux/reducers/list/moreCommunityListSlice';
 
 // 커뮤니티 이미지 슬라이드
 function CarouselSection({ data, openFileterModal, setSelectedImage }) {
@@ -94,21 +88,10 @@ function CarouselSection({ data, openFileterModal, setSelectedImage }) {
   );
 }
 
-function AcademyCommunityDetail({ route }) {
+function AcademyCommunityDetailModal({ route, type = REPORT_TYPE.FEED, idx }) {
   /**
    * state
    */
-  const listName = 'academyCommunityCommentList';
-  const {
-    page,
-    list: commentList,
-    refreshing,
-    loading,
-    isLast,
-  } = useSelector(selector => selector[listName]);
-  const dispatch = useDispatch();
-  const noParamReset = route?.params?.noParamReset;
-  const action = academyCommunityCommentListAction;
 
   const scrollRef = useRef();
   const targetRef = useRef();
@@ -129,8 +112,14 @@ function AcademyCommunityDetail({ route }) {
   const [showOptionButton, setShowOptionButton] = useState(false);
 
   // list
+  const [page, setPage] = useState(1);
   const [size, setSize] = useState(30);
+  const [loading, setLoading] = useState(true);
+  const [totalCnt, setTotalCnt] = useState(0);
+  const [isLast, setIsLast] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const [isFocus, setIsFocus] = useState(true);
+  const [commentList, setCommentList] = useState([]);
 
   // modal
   const [modalVisible, setModalVisible] = useState(false);
@@ -149,8 +138,6 @@ function AcademyCommunityDetail({ route }) {
   const [selectedImage, setSelectedImage] = useState(null);
 
   const trlRef = useRef({ current: { disabled: false } });
-  const [keyboardAvoidingViewRefresh, setKeyboardAvoidingViewRefresh] =
-    useState(false);
 
   /**
    * api
@@ -190,14 +177,24 @@ function AcademyCommunityDetail({ route }) {
   const getDetail = async () => {
     try {
       let response = null;
-      if (isLogin) {
-        response = await apiGetCommunityDetail(contentsIdx);
-      } else {
-        response = await apiGetCommunityOpenDetail(contentsIdx);
+      switch (type) {
+        case REPORT_TYPE.FEED: {
+          if (isLogin) {
+            response = await apiGetCommunityDetail(contentsIdx);
+          } else {
+            response = await apiGetCommunityOpenDetail(contentsIdx);
+          }
+          break;
+        }
+        case REPORT_TYPE.FEED_COMMENT: {
+          response = await apiGetCommunityFindFeed(contentsIdx);
+          break;
+        }
+        default:
+          break;
       }
       const detail = response?.data?.data;
       setFeedDetail(detail || {});
-
       if (detail) {
         setIsMyFeed(detail.isMine);
         setIsAdminFeed(detail.isAcademyCreator || detail.isAcademyAdmin);
@@ -223,36 +220,20 @@ function AcademyCommunityDetail({ route }) {
           params,
         );
       }
-      const data = response?.data;
-      dispatch(action.setTotalCnt(data.data.totalCnt));
-      dispatch(action.setIsLast(data.data.isLast));
+      const data = response?.data?.data;
+      setTotalCnt(data.totalCnt);
+      setIsLast(data.isLast);
       if (page === 1) {
-        dispatch(action.setList(data.data.list));
+        setCommentList(data.list);
       } else {
-        const prevList = store.getState()[listName].list;
-        dispatch(action.setList([...prevList, ...data.data.list]));
+        setCommentList(prev => [...prev, ...data.list]);
       }
-      feedDetail.cntComment = data.data.totalCnt;
-      dispatch(
-        academyCommunityListAction.modifyItem({
-          idxName: 'feedIdx',
-          idx: feedDetail.feedIdx,
-          item: feedDetail,
-        }),
-      );
-      dispatch(
-        moreCommunityListAction.modifyItem({
-          idxName: 'feedIdx',
-          idx: feedDetail.feedIdx,
-          item: feedDetail,
-        }),
-      );
     } catch (error) {
       handleError(error);
     }
     setIsFocus(false);
-    dispatch(action.setRefreshing(false));
-    dispatch(action.setLoading(false));
+    setLoading(false);
+    setRefreshing(false);
   };
 
   const changeLike = async () => {
@@ -279,20 +260,6 @@ function AcademyCommunityDetail({ route }) {
     setFeedDetail(prev => {
       return { ...prev };
     });
-    dispatch(
-      academyCommunityListAction.modifyItem({
-        idxName: 'feedIdx',
-        idx: feedDetail.feedIdx,
-        item: feedDetail,
-      }),
-    );
-    dispatch(
-      moreCommunityListAction.modifyItem({
-        idxName: 'feedIdx',
-        idx: feedDetail.feedIdx,
-        item: feedDetail,
-      }),
-    );
   };
 
   const registComment = async () => {
@@ -316,22 +283,8 @@ function AcademyCommunityDetail({ route }) {
       const { data } = await apiPostCommunityComment(params);
       feedDetail.cntComment += 1;
       setFeedDetail(prev => prev);
+      setCommentList(prev => [data.data, ...prev]);
       Keyboard.dismiss();
-      dispatch(
-        academyCommunityListAction.modifyItem({
-          idxName: 'feedIdx',
-          idx: feedDetail.feedIdx,
-          item: feedDetail,
-        }),
-      );
-      dispatch(
-        moreCommunityListAction.modifyItem({
-          idxName: 'feedIdx',
-          idx: feedDetail.feedIdx,
-          item: feedDetail,
-        }),
-      );
-      dispatch(action.refresh());
 
       setTimeout(() => {
         handleScrollToElement();
@@ -353,13 +306,7 @@ function AcademyCommunityDetail({ route }) {
       };
       const { data } = await apiPutCommunityComment(params);
       selectedComment.comment = modifyComment;
-      dispatch(
-        action.modifyItem({
-          idxName: 'commentIdx',
-          idx: selectedComment.commentIdx,
-          item: selectedComment,
-        }),
-      );
+      setCommentList(prev => [...prev]);
       Keyboard.dismiss();
       closeModifyCommentModal();
       SPToast.show({ text: '댓글을 수정했어요' });
@@ -422,76 +369,63 @@ function AcademyCommunityDetail({ route }) {
   const loadMoreProjects = () => {
     setTimeout(() => {
       if (!isLast) {
-        const prevPage = store.getState()[listName].page;
-        dispatch(action.setPage(prevPage + 1));
+        setPage(prevPage => prevPage + 1);
       }
     }, 0);
   };
 
-  const onRefresh = async noLoading => {
-    dispatch(action.refresh(noLoading));
+  const onRefresh = async () => {
+    setLoading(true);
+    setPage(1);
+    setIsLast(false);
+    setCommentList([]);
+    setRefreshing(true);
   };
 
   const onFocus = async () => {
     try {
-      if (!noParamReset) {
-        dispatch(action.reset());
-        setIsFocus(true);
-        setIsJoined(false);
-        setSelectedComment({});
-        setModifyComment({});
-        setSelectedImage();
-        NavigationService.replace(navName.academyCommunityDetail, {
-          ...(route?.params || {}),
-          noParamReset: true,
-        });
-        return;
-      }
       await getUserInfo();
       await getDetail();
     } catch (error) {
       handleError(error);
     }
-    setKeyboardAvoidingViewRefresh(prev => !prev);
     setIsFocus(false);
   };
 
   /**
    * useEffect
    */
-  // useEffect(() => {
-  //   onFocus();
-  // }, [noParamReset]);
   useFocusEffect(
     useCallback(() => {
       onFocus();
-    }, [noParamReset]),
+    }, []),
+  );
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!isFocus) {
+        getUserInfo();
+      }
+    }, [isJoined]),
+  );
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!isFocus) {
+        onRefresh();
+      }
+    }, [isFocus, changeEvent]),
   );
 
   useEffect(() => {
-    if (!isFocus && noParamReset) {
-      getUserInfo();
+    if ((!isFocus && refreshing) || (!refreshing && page > 1)) {
+      getCommentList();
     }
-  }, [isJoined, noParamReset]);
-
-  useEffect(() => {
-    if (!isFocus && noParamReset) {
-      onRefresh();
-    }
-  }, [isFocus, changeEvent, noParamReset]);
-
-  useEffect(() => {
-    if (noParamReset) {
-      if ((!isFocus && refreshing) || (!refreshing && page > 1)) {
-        getCommentList();
-      }
-    }
-  }, [page, isFocus, refreshing, noParamReset]);
+  }, [page, isFocus, refreshing]);
 
   return (
     <DismissKeyboard>
       <SPKeyboardAvoidingView
-        key={keyboardAvoidingViewRefresh ? 'key1' : 'key2'}
         behavior="padding"
         isResize
         keyboardVerticalOffset={0}
@@ -499,17 +433,6 @@ function AcademyCommunityDetail({ route }) {
           flex: 1,
         }}>
         <SafeAreaView style={styles.container}>
-          <SPHeader
-            noLeftLogo
-            {...((showOptionButton &&
-              !(feedDetail.topYn !== IS_YN.N && !isAdmin)) ||
-            isMyFeed
-              ? {
-                  rightBasicButton: SPIcons.icOptionsVertical,
-                  onPressRightIcon: openModal,
-                }
-              : {})}
-          />
           <View style={styles.communityContainer}>
             <ScrollView
               showsVerticalScrollIndicator={false}
@@ -582,7 +505,8 @@ function AcademyCommunityDetail({ route }) {
                 <View style={styles.bottomBox}>
                   <TouchableOpacity
                     style={styles.bottomBtn}
-                    onPress={changeLike}>
+                    onPress={changeLike}
+                    disabled={true}>
                     <View>
                       <Image
                         source={
@@ -651,17 +575,6 @@ function AcademyCommunityDetail({ route }) {
                                 </Text>
                               </View>
                             </View>
-                            {isLogin && (
-                              <TouchableOpacity
-                                onPress={() => {
-                                  openCommentModal(item);
-                                }}>
-                                <Image
-                                  source={SPIcons.icOptionsVertical}
-                                  style={{ width: 24, height: 24 }}
-                                />
-                              </TouchableOpacity>
-                            )}
                           </View>
                           <View style={styles.replySubBox}>
                             <Text style={styles.replySubText}>
@@ -686,61 +599,6 @@ function AcademyCommunityDetail({ route }) {
               </View>
             </ScrollView>
 
-            {/* 댓글창부분 */}
-            <View style={styles.inputBox}>
-              <Avatar
-                disableEditMode
-                imageURL={userInfo?.userProfilePath}
-                imageSize={24}
-              />
-              <TextInput
-                style={styles.textInput}
-                value={comment}
-                onChangeText={e => {
-                  if (e?.length > 1000) return;
-                  setComment(e);
-                }}
-                multiline={true}
-                placeholder="댓글을 남겨보세요.(최대 1000자)"
-                placeholderTextColor="rgba(46, 49, 53, 0.60)"
-                autoCorrect={false}
-                autoCapitalize="none"
-                numberOfLines={comment?.split('\n').length || 1}
-                textAlignVertical="center"
-                retrunKeyType="next"
-              />
-              <View
-                style={{
-                  flexDirection: 'column',
-                  alignItems: 'flex-start',
-                }}>
-                <View
-                  style={{ justifyContent: 'center', alignItems: 'center' }}>
-                  <TouchableOpacity disabled={!comment} onPress={registComment}>
-                    <Image
-                      source={SPIcons.icSend}
-                      style={{ width: 40, height: 28 }}
-                    />
-                  </TouchableOpacity>
-                  <Text
-                    style={{
-                      ...fontStyles.fontSize11_Regular,
-                      width: 57.1,
-                      textAlign: 'center',
-                      height: 14,
-                      marginTop: 5,
-                    }}>
-                    {Utils.changeNumberComma(comment.length)}/1,000
-                  </Text>
-                </View>
-              </View>
-            </View>
-
-            <AcademyJoinModal
-              academyIdx={academyIdx}
-              setIsJoined={setIsJoined}
-            />
-
             {/* 더보기 모달 :: 게시글 */}
             <SPMoreModal
               visible={modalVisible}
@@ -749,10 +607,6 @@ function AcademyCommunityDetail({ route }) {
               type={MODAL_MORE_TYPE.FEED}
               idx={contentsIdx}
               targetUserIdx={feedDetail?.userIdx}
-              onDelete={() => {
-                dispatch(academyCommunityListAction.refresh());
-                dispatch(moreCommunityListAction.refresh());
-              }}
               onConfirm={() => {
                 NavigationService.goBack();
               }}
@@ -787,9 +641,6 @@ function AcademyCommunityDetail({ route }) {
               idx={selectedComment?.commentIdx}
               targetUserIdx={selectedComment?.userIdx}
               onModify={openModifyCommentModal}
-              onDelete={() => {
-                dispatch(moreCommunityListAction.refresh());
-              }}
               onConfirm={() => {
                 setChangeEvent(prev => !prev);
               }}
@@ -857,7 +708,7 @@ function AcademyCommunityDetail({ route }) {
             transparent={false}
             visible={modifyCommentModalVisible}
             onRequestClose={closeModifyCommentModal}>
-            <SafeAreaView style={{ flex: 1, paddingTop: insets.top }}>
+            <SafeAreaView style={{ flex: 1 }}>
               <SPHeader
                 title="댓글 수정"
                 onPressLeftBtn={closeModifyCommentModal}
@@ -884,7 +735,7 @@ function AcademyCommunityDetail({ route }) {
               />
               <View style={{ flex: 1, padding: 16 }}>
                 <TextInput
-                  // style={styles.textInput}
+                  style={styles.textInput}
                   defaultValue={modifyComment}
                   onChangeText={e => {
                     if (e?.length > 1000) return;
@@ -904,7 +755,6 @@ function AcademyCommunityDetail({ route }) {
                 style={{
                   ...fontStyles.fontSize14_Regular,
                   textAlign: 'right',
-                  padding: 16,
                 }}>
                 {Utils.changeNumberComma(modifyComment.length)}/1,000
               </Text>
@@ -916,7 +766,7 @@ function AcademyCommunityDetail({ route }) {
   );
 }
 
-export default memo(AcademyCommunityDetail);
+export default memo(AcademyCommunityDetailModal);
 
 const styles = {
   container: {

@@ -1,7 +1,11 @@
 import React, { memo, useEffect, useState } from 'react';
 import { Image, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import 'moment/locale/ko';
-import { apiCancelMatch, apiMatchCancelReason } from '../../api/RestAPI';
+import {
+  apiCancelMatch,
+  apiGetMatchDetail,
+  apiMatchCancelReason,
+} from '../../api/RestAPI';
 import NavigationService from '../../navigation/NavigationService';
 import { navName } from '../../common/constants/navName';
 import { handleError } from '../../utils/HandleError';
@@ -11,12 +15,15 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Header from '../../components/header';
 import DismissKeyboard from '../../components/DismissKeyboard';
 import SPKeyboardAvoidingView from '../../components/SPKeyboardAvoidingView';
+import { matchingScheduleListAction } from '../../redux/reducers/list/matchingScheduleListSlice';
+import { useDispatch } from 'react-redux';
 
 const MC_CANCEL = 'MC_CANCEL';
 const MC_REAPPLY = 'MC_REAPPLY';
 const MC_ETC = 'MC_ETC';
 
 function MatchingCancel({ route }) {
+  const dispatch = useDispatch();
   // --------------------------------------------------
   // [ State ]
   // --------------------------------------------------
@@ -38,6 +45,15 @@ function MatchingCancel({ route }) {
       };
 
       const { data } = await apiCancelMatch(param);
+
+      const { data: matchDetail } = await apiGetMatchDetail(matchIdx);
+      dispatch(
+        matchingScheduleListAction.modifyItem({
+          idxName: 'matchIdx',
+          idx: matchDetail.data.matchInfo.matchIdx,
+          item: matchDetail.data.matchInfo,
+        }),
+      );
 
       if (data) {
         switch (type) {
@@ -112,8 +128,10 @@ function MatchingCancel({ route }) {
         <Header closeIcon />
 
         <View style={styles.radioBox}>
-          {cancelReason.map(item => (
+          {cancelReason.map((item, index) => (
             <TouchableOpacity
+              // eslint-disable-next-line react/no-array-index-key
+              key={index}
               style={styles.radioWrapper}
               onPress={() => handleSelect(item)}>
               <Image

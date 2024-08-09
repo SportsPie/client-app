@@ -11,8 +11,8 @@ const initialState = {
   isLast: false,
 };
 
-export const moreChallengeListSlice = createSlice({
-  name: 'moreChallengeList',
+export const moreClassMaterCommentListSlice = createSlice({
+  name: 'moreClassMasterCommentList',
   initialState,
   reducers: {
     setList: (state, actions) => {
@@ -74,6 +74,7 @@ export const moreChallengeListSlice = createSlice({
     },
   },
 });
-export const moreChallengeListAction = moreChallengeListSlice.actions;
+export const moreClassMaterCommentListAction =
+  moreClassMaterCommentListSlice.actions;
 
-export default moreChallengeListSlice.reducer;
+export default moreClassMaterCommentListSlice.reducer;

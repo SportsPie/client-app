@@ -1,5 +1,5 @@
 import moment from 'moment';
-import React, { memo, useCallback, useRef, useState } from 'react';
+import React, { memo, useCallback, useMemo, useRef, useState } from 'react';
 import {
   Image,
   Pressable,
@@ -22,9 +22,14 @@ import {
   apiPostArticleBookmark,
 } from '../../api/RestAPI';
 import { SPSvgs } from '../../assets/svg';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import { moreArticleListAction } from '../../redux/reducers/list/moreArticleListSlice';
+import { moreArticleBookmarksListAction } from '../../redux/reducers/list/moreArticleBookmarksListSlice';
+import WebView from 'react-native-webview';
+import Utils from '../../utils/Utils';
 
 function MoreArticleDetail({ route }) {
+  const dispatch = useDispatch();
   const boardIdx = route?.params?.boardIdx;
   const { isLogin, userIdx } = useSelector(selector => selector.auth);
   const trlRef = useRef({ current: { disabled: false } });
@@ -51,6 +56,20 @@ function MoreArticleDetail({ route }) {
         articleData = data;
       }
       setArticleDetail(articleData.data);
+      dispatch(
+        moreArticleListAction.modifyItem({
+          idxName: 'boardIdx',
+          idx: articleData.data.boardIdx,
+          item: articleData.data,
+        }),
+      );
+      dispatch(
+        moreArticleBookmarksListAction.modifyItem({
+          idxName: 'boardIdx',
+          idx: articleData.data.boardIdx,
+          item: articleData.data,
+        }),
+      );
     } catch (error) {
       handleError(error);
     }
@@ -61,6 +80,7 @@ function MoreArticleDetail({ route }) {
       if (trlRef.current.disabled) return;
       trlRef.current.disabled = true;
       const { data } = await apiPostArticleBookmark(boardIdx);
+      dispatch(moreArticleBookmarksListAction.refresh());
       setRefresh(prev => !prev);
     } catch (error) {
       handleError(error);
@@ -73,6 +93,7 @@ function MoreArticleDetail({ route }) {
       if (trlRef.current.disabled) return;
       trlRef.current.disabled = true;
       const { data } = await apiDeleteArticleBookmark(boardIdx);
+      dispatch(moreArticleBookmarksListAction.refresh());
       setRefresh(prev => !prev);
     } catch (error) {
       handleError(error);
@@ -86,6 +107,9 @@ function MoreArticleDetail({ route }) {
     }, [boardIdx, refresh]),
   );
 
+  const mainContents = useMemo(() => {
+    return Utils.htmlWrap(articleDetail?.contents);
+  }, [articleDetail?.contents]);
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <Header
@@ -112,7 +136,8 @@ function MoreArticleDetail({ route }) {
           : {})}
       />
 
-      <ScrollView
+      <View
+        style={styles.container}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.container}>
         <View style={{ rowGap: 8 }}>
@@ -126,29 +151,17 @@ function MoreArticleDetail({ route }) {
             ]}>
             {moment(articleDetail?.regDate).format('YYYY-MM-DD')}
           </Text>
-          {articleDetail?.files?.length > 0 && (
-            <Image
-              style={[
-                styles.image,
-                {
-                  height: imageHeight,
-                },
-              ]}
-              source={{ uri: articleDetail.files[0].fileUrl }}
-            />
-          )}
         </View>
-
-        <Text
-          style={[
-            fontStyles.fontSize14_Medium,
-            {
-              color: COLORS.labelNormal,
-            },
-          ]}>
-          {articleDetail?.contents}
-        </Text>
-      </ScrollView>
+        <WebView
+          source={{
+            html: mainContents,
+          }}
+          style={{
+            flex: 1,
+          }}
+          textZoom={200}
+        />
+      </View>
     </SafeAreaView>
   );
 }
@@ -160,6 +173,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 16,
     rowGap: 16,
+    flex: 1,
   },
   image: {
     width: '100%',

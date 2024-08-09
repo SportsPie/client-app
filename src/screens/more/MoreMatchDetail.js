@@ -9,21 +9,34 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Header from '../../components/header';
 import { handleError } from '../../utils/HandleError';
 import { apiGetMatchesDetail, apiGetMngPlayers } from '../../api/RestAPI';
+import { useDispatch } from 'react-redux';
+import { moreGameScheduleListAction } from '../../redux/reducers/list/moreGameScheduleListSlice';
+import SPLoading from '../../components/SPLoading';
 
 function MoreMatchDetail() {
+  const dispatch = useDispatch();
   const route = useRoute();
   const [matchDetail, setMatchDetail] = useState({});
   const [matchInfo, setMatchInfo] = useState({});
   const matchIdx = route.params?.matchIdx;
+  const [loading, setLoading] = useState(true);
 
   const getMatchDetail = async () => {
     try {
       const matchResponse = await apiGetMatchesDetail(matchIdx);
       setMatchDetail(matchResponse.data.data);
       setMatchInfo(matchResponse.data.data?.matchInfo);
+      dispatch(
+        moreGameScheduleListAction.modifyItem({
+          idxName: 'matchIdx',
+          idx: matchResponse.data.data?.matchInfo?.matchIdx,
+          item: matchResponse.data.data?.matchInfo,
+        }),
+      );
     } catch (error) {
       handleError(error);
     }
+    setLoading(false);
   };
 
   const renderMatchInfo = useMemo(() => {
@@ -51,13 +64,17 @@ function MoreMatchDetail() {
       <Header />
 
       <View style={styles.container}>
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.content}>
-          {renderMatchInfo}
-          {renderMVP}
-          {renderParticipatingPayer}
-        </ScrollView>
+        {loading ? (
+          <SPLoading />
+        ) : (
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.content}>
+            {renderMatchInfo}
+            {renderMVP}
+            {renderParticipatingPayer}
+          </ScrollView>
+        )}
       </View>
     </SafeAreaView>
   );

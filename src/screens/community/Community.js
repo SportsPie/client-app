@@ -68,7 +68,7 @@ function Community({ route }) {
   const [isFocus, setIsFocus] = useState(true);
 
   // list
-  const [size, setSize] = useState(30);
+  const [size, setSize] = useState(300);
 
   const [filterList, setFilterList] = useState([]);
   const [selectedFilter, setSelectedFilter] = useState();
@@ -186,7 +186,9 @@ function Community({ route }) {
         setSearchedKeyword();
         setKeyword();
         dispatch(action.setListParamReset(false));
-        NavigationService.navigate(navName.community);
+        if (!listParamReset) {
+          NavigationService.navigate(navName.community);
+        }
       } else {
         await getFilterList();
         setIsFocus(false);

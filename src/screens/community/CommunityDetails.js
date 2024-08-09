@@ -63,6 +63,7 @@ import { communityListAction } from '../../redux/reducers/list/communityListSlic
 import { communityCommentListAction } from '../../redux/reducers/list/communityCommentListSlice';
 import { store } from '../../redux/store';
 import { navName } from '../../common/constants/navName';
+import { moreCommunityListAction } from '../../redux/reducers/list/moreCommunityListSlice';
 
 function CommunityDetails({
   route,
@@ -204,6 +205,13 @@ function CommunityDetails({
           item: feedDetail,
         }),
       );
+      dispatch(
+        moreCommunityListAction.modifyItem({
+          idxName: 'feedIdx',
+          idx: feedDetail.feedIdx,
+          item: feedDetail,
+        }),
+      );
     } catch (error) {
       handleError(error);
     }
@@ -234,6 +242,13 @@ function CommunityDetails({
         item: feedDetail,
       }),
     );
+    dispatch(
+      moreCommunityListAction.modifyItem({
+        idxName: 'feedIdx',
+        idx: feedDetail.feedIdx,
+        item: feedDetail,
+      }),
+    );
   };
 
   const registComment = async () => {
@@ -251,6 +266,13 @@ function CommunityDetails({
       Keyboard.dismiss();
       dispatch(
         communityListAction.modifyItem({
+          idxName: 'feedIdx',
+          idx: feedDetail.feedIdx,
+          item: feedDetail,
+        }),
+      );
+      dispatch(
+        moreCommunityListAction.modifyItem({
           idxName: 'feedIdx',
           idx: feedDetail.feedIdx,
           item: feedDetail,
@@ -487,20 +509,19 @@ function CommunityDetails({
               </View>
             ))}
         </View>
-
-        <TouchableOpacity
-          onPress={() => {
-            changeLike();
-          }}>
-          <View style={styles.likeWrapper}>
+        <View style={styles.likeWrapper}>
+          <TouchableOpacity
+            onPress={() => {
+              changeLike();
+            }}>
             {feedDetail?.isLike ? (
               <SPSvgs.HeartFill width={20} height={20} />
             ) : (
               <SPSvgs.HeartOutline width={20} height={20} />
             )}
-            <Text style={styles.reactCountText}>{feedDetail?.cntLike}</Text>
-          </View>
-        </TouchableOpacity>
+          </TouchableOpacity>
+          <Text style={styles.reactCountText}>{feedDetail?.cntLike}</Text>
+        </View>
       </View>
     );
   }, [feedDetail]);
@@ -664,6 +685,7 @@ function CommunityDetails({
         targetUserIdx={feedDetail?.userIdx}
         onDelete={() => {
           dispatch(communityListAction.refresh());
+          dispatch(moreCommunityListAction.refresh());
         }}
         onConfirm={() => {
           NavigationService.goBack();
@@ -684,6 +706,9 @@ function CommunityDetails({
         idx={selectedComment?.commentIdx}
         targetUserIdx={selectedComment?.userIdx}
         onModify={openModifyCommentModal}
+        onDelete={() => {
+          dispatch(moreCommunityListAction.refresh());
+        }}
         onConfirm={() => {
           setChangeEvent(prev => !prev);
           getDetail();

@@ -39,12 +39,13 @@ import SPMoreModal, {
 } from '../../components/SPMoreModal';
 import { TEAM_TYPE } from '../../common/constants/teamType';
 import { useFocusEffect } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ACTIVE_OPACITY } from '../../common/constants/constants';
 import { isBefore } from 'date-fns';
 import SPLoading from '../../components/SPLoading';
 import { JOIN_TYPE } from '../../common/constants/joinType';
+import { matchingScheduleListAction } from '../../redux/reducers/list/matchingScheduleListSlice';
 
 function BlurWrapper({ onJoinPress, joinType }) {
   return (
@@ -87,6 +88,7 @@ function BlurWrapper({ onJoinPress, joinType }) {
 }
 
 function MatchingDetail({ route }) {
+  const dispatch = useDispatch();
   const matchIdx = route?.params?.matchIdx;
   const { width, height } = useWindowDimensions();
   const [isAdmin, setIsAdmin] = useState(false);
@@ -367,6 +369,13 @@ function MatchingDetail({ route }) {
       const { data } = await apiGetMatchDetail(matchIdx);
 
       if (data) {
+        dispatch(
+          matchingScheduleListAction.modifyItem({
+            idxName: 'matchIdx',
+            idx: data.data.matchInfo.matchIdx,
+            item: data.data.matchInfo,
+          }),
+        );
         setMatchInfo(data.data.matchInfo);
         setMatchApplies(data.data.matchApplies);
         setScorers(data.data.scorers);
@@ -773,8 +782,7 @@ function MatchingDetail({ route }) {
                             )
                             .map(item => (
                               <Text style={styles.scoreText}>
-                                {item.score}{' '}
-                                {item.playerName ? item.playerName : '김파이'}
+                                {item.score} {item.playerName}
                               </Text>
                             ))}
                         </View>

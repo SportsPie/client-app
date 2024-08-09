@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
+import React, { memo, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -10,7 +10,6 @@ import {
 } from 'react-native';
 import { navName } from '../../common/constants/navName';
 import NavigationService from '../../navigation/NavigationService';
-import { useFocusEffect } from '@react-navigation/native';
 import { apiGetMngTournament } from '../../api/RestAPI';
 import { handleError } from '../../utils/HandleError';
 import SPLoading from '../../components/SPLoading';
@@ -18,23 +17,32 @@ import { PROGRESS_STATUS } from '../../common/constants/progressStatus';
 import moment from 'moment';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Header from '../../components/header';
+import { useDispatch, useSelector } from 'react-redux';
+import { academyMatchingRegistrationListAction } from '../../redux/reducers/list/academyMatchingRegistrationListSlice';
+import { store } from '../../redux/store';
 
-function AcademyMachingRegistration({ route }) {
+function AcademyMatchingRegistration({ route }) {
   /**
    * state
    */
+  const dispatch = useDispatch();
+  const listName = 'academyMatchingRegistrationList';
+  const {
+    page,
+    list: competitionRegistrationList,
+    refreshing,
+    loading,
+    isLast,
+    totalCnt,
+  } = useSelector(selector => selector[listName]);
+  const noParamReset = route?.params?.noParamReset;
+  const action = academyMatchingRegistrationListAction;
+
   const academyIdx = route?.params?.academyIdx;
   const flatListRef = useRef();
 
   // list
-  const [page, setPage] = useState(1);
   const [size, setSize] = useState(30);
-  const [loading, setLoading] = useState(true);
-  const [totalCnt, setTotalCnt] = useState(0);
-  const [isLast, setIsLast] = useState(false);
-  const [refreshing, setRefreshing] = useState(true);
-  const [competitionRegistrationList, setCompetitionRegistrationList] =
-    useState([]);
 
   /**
    * api
@@ -46,18 +54,19 @@ function AcademyMachingRegistration({ route }) {
         size,
       };
       const { data } = await apiGetMngTournament(params);
-      setTotalCnt(data.data.totalCnt);
-      setIsLast(data.data.isLast);
+      dispatch(action.setTotalCnt(data.data.totalCnt));
+      dispatch(action.setIsLast(data.data.isLast));
       if (page === 1) {
-        setCompetitionRegistrationList(data.data.list);
+        dispatch(action.setList(data.data.list));
       } else {
-        setCompetitionRegistrationList(prev => [...prev, ...data.data.list]);
+        const prevList = store.getState()[listName].list;
+        dispatch(action.setList([...prevList, ...data.data.list]));
       }
     } catch (error) {
       handleError(error);
     }
-    setLoading(false);
-    setRefreshing(false);
+    dispatch(action.setRefreshing(false));
+    dispatch(action.setLoading(false));
   };
 
   /**
@@ -66,20 +75,17 @@ function AcademyMachingRegistration({ route }) {
   const loadMoreProjects = () => {
     setTimeout(() => {
       if (!isLast) {
-        setPage(prevPage => prevPage + 1);
+        const prevPage = store.getState()[listName].page;
+        dispatch(action.setPage(prevPage + 1));
       }
     }, 0);
   };
 
   const onRefresh = async () => {
-    if (flatListRef.current) {
-      flatListRef.current.scrollToOffset({ animated: false, offset: 0 });
-    }
-    setLoading(true);
-    setPage(1);
-    setIsLast(false);
-    setCompetitionRegistrationList([]);
-    setRefreshing(true);
+    // if (flatListRef.current) {
+    //   flatListRef.current.scrollToOffset({ animated: false, offset: 0 });
+    // }
+    dispatch(action.refresh());
   };
 
   const getStatusStyles = status => {
@@ -111,23 +117,23 @@ function AcademyMachingRegistration({ route }) {
    * useEffect
    */
 
-  useFocusEffect(
-    useCallback(() => {
-      // return () => {
-      //   setPage(1);
-      //   setLoading(true);
-      //   setIsLast(false);
-      //   setRefreshing(true);
-      //   setCompetitionRegistrationList([]);
-      // };
-    }, []),
-  );
+  useEffect(() => {
+    if (!noParamReset) {
+      dispatch(action.refresh());
+      NavigationService.replace(navName.academyMatchingRegistration, {
+        ...(route?.params || {}),
+        noParamReset: true,
+      });
+    }
+  }, [noParamReset]);
 
   useEffect(() => {
-    if (refreshing || (!refreshing && page > 1)) {
-      getCompetionRegistrationList();
+    if (noParamReset) {
+      if (refreshing || (!refreshing && page > 1)) {
+        getCompetionRegistrationList();
+      }
     }
-  }, [page, refreshing]);
+  }, [page, refreshing, noParamReset]);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -164,8 +170,9 @@ function AcademyMachingRegistration({ route }) {
                   <View>
                     <TouchableOpacity
                       onPress={() => {
-                        NavigationService.navigate(navName.tournamentDetail, {
+                        NavigationService.push(navName.tournamentDetail, {
                           tournamentIdx: item.tournamentIdx,
+                          fromHistory: true,
                         });
                       }}>
                       <View style={styles.contentBox}>
@@ -225,7 +232,7 @@ function AcademyMachingRegistration({ route }) {
   );
 }
 
-export default memo(AcademyMachingRegistration);
+export default memo(AcademyMatchingRegistration);
 
 const styles = StyleSheet.create({
   container: {

@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
+import React, { memo, useCallback, useRef, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { PrimaryButton } from '../../components/PrimaryButton';
 import Header from '../../components/header';
@@ -24,9 +24,12 @@ import { SPSvgs } from '../../assets/svg';
 import SPSingleVideo from '../../components/SPSingleVideo';
 import { useFocusEffect } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useDispatch } from 'react-redux';
+import { moreChallengeVideoListAction } from '../../redux/reducers/list/moreChallengeVideoListSlice';
 
 // 챌린지 영상 상세
 export function ChallengeDetail({ route }) {
+  const dispatch = useDispatch();
   // 페이지 파라미터 > 접근 제한
   const { videoIdx } = route?.params || { videoIdx: '' };
   if (!videoIdx) {
@@ -189,6 +192,13 @@ export function ChallengeDetail({ route }) {
 
       if (data) {
         setVideoDetail({ ...data.data });
+        dispatch(
+          moreChallengeVideoListAction.modifyItem({
+            idxName: 'videoIdx',
+            idx: videoIdx,
+            item: data.data,
+          }),
+        );
       }
 
       setLoading(false);

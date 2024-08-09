@@ -27,11 +27,15 @@ import { handleError } from '../../utils/HandleError';
 import Utils from '../../utils/Utils';
 import AcademyCommunityDetail from './AcademyCommunityDetail';
 import Header from '../../components/header';
+import AcademyCommunityDetailModal from '../report/AcademyCommunityDetailModal';
+import { academyReportListAction } from '../../redux/reducers/list/academyReportListSlice';
+import { useDispatch } from 'react-redux';
 
 function AcademyReportDetailsView({ route }) {
   /**
    * state
    */
+  const dispatch = useDispatch();
   const reportType = route?.params?.reportType;
   const reportIdx = route?.params?.reportIdx;
   const [reportDetail, setReportDetail] = useState({});
@@ -67,6 +71,15 @@ function AcademyReportDetailsView({ route }) {
         reportIdx,
       );
       setReportDetail(data.data);
+      setTimeout(() => {
+        dispatch(
+          academyReportListAction.modifyItem({
+            idxName: 'reportIdx',
+            idx: reportIdx,
+            item: data.data,
+          }),
+        );
+      }, 0);
     } catch (error) {
       handleError(error);
     }
@@ -101,6 +114,7 @@ function AcademyReportDetailsView({ route }) {
         reportType,
         reportIdx,
       );
+      dispatch(academyReportListAction.setListParamReset(true));
       Utils.openModal({
         title: '성공',
         body: '신고글이 완료처리 되었습니다.',
@@ -207,15 +221,16 @@ function AcademyReportDetailsView({ route }) {
               </View>
             </View>
             {/* 신고글 비공개 */}
-            {reportDetail.state === REPORT_STATE.WAIT.code && (
-              <TouchableOpacity
-                style={styles.privateBtn}
-                onPress={() => {
-                  setChangePrivateModalShow();
-                }}>
-                <Text style={styles.privateBtnText}>신고글 비공개</Text>
-              </TouchableOpacity>
-            )}
+            {reportDetail.state &&
+              reportDetail.state === REPORT_STATE.WAIT.code && (
+                <TouchableOpacity
+                  style={styles.privateBtn}
+                  onPress={() => {
+                    setChangePrivateModalShow();
+                  }}>
+                  <Text style={styles.privateBtnText}>신고글 비공개</Text>
+                </TouchableOpacity>
+              )}
           </View>
         </View>
       </ScrollView>
@@ -230,7 +245,8 @@ function AcademyReportDetailsView({ route }) {
           />
         </TouchableOpacity>
         {/* 처리완료 */}
-        {reportDetail.state !== REPORT_STATE.FINISH.code &&
+        {reportDetail.state &&
+          reportDetail.state !== REPORT_STATE.FINISH.code &&
           reportDetail.state !== REPORT_STATE.FINISH_DEL.code && (
             <TouchableOpacity
               style={styles.clearBtn}
@@ -297,13 +313,10 @@ function AcademyReportDetailsView({ route }) {
               />
             </TouchableOpacity>
           </View>
-          <AcademyCommunityDetail
-            showHeader={false}
-            showInputBox={false}
+          <AcademyCommunityDetailModal
             showApplyButton={false}
             type={reportDetail.reportType}
             idx={reportDetail.contentsIdx}
-            fromReport={true}
           />
         </SafeAreaView>
       </Modal>

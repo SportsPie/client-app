@@ -7,6 +7,7 @@ import { COLORS } from '../../styles/colors';
 import fontStyles from '../../styles/fontStyles';
 import Utils from '../../utils/Utils';
 import SPIcons from '../../assets/icon';
+import SPImages from '../../assets/images';
 
 function AcademyItem({ item, containerStyle }) {
   return (
@@ -17,12 +18,16 @@ function AcademyItem({ item, containerStyle }) {
         });
       }}
       style={[styles.containerStyle, containerStyle]}>
-      <Image
-        source={{
-          uri: item?.thumbPath,
-        }}
-        style={styles.image}
-      />
+      {item?.thumbPath ? (
+        <Image
+          source={{
+            uri: item?.thumbPath,
+          }}
+          style={styles.image}
+        />
+      ) : (
+        <Image source={SPImages.defaultAcademyThumb} style={styles.image} />
+      )}
       <View style={{ flex: 1 }}>
         <View style={styles.academyNameWrapper}>
           {/* <SPSvgs.Academic /> */}

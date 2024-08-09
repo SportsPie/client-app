@@ -52,42 +52,47 @@ export default function SPHeader({
   isTitleCentered,
   titleColor = 'black',
   leftButtonIcon,
+  noBackHandlerEvent,
   ...props
 }) {
-  headerProps = {
-    title,
-    navigation,
-    moveName,
-    noLeftLogo,
-    noLeftButton,
-    leftCancleButton,
-    leftButtonMoveName,
-    leftButtonMoveParam,
-    rightCancelButton,
-    rightButtonMoveName,
-    rightButtonMoveParam,
-    rightCancelText,
-    rightTextMoveName,
-    rightTextMoveParam,
-    addRightCancelButton,
-    addRightButtonIcon,
-    containerStyle,
-    rightButtonIcon,
-    rightIconStyle,
-    rightText,
-    rightTextStyle,
-    titleStyle,
-    onPressRightIcon,
-    onPressAddRightIcon,
-    onPressRightText,
-    leftIconStyles,
-    onPressLeftBtn,
-    leftButtonIcon,
-    ...props,
-  };
+  if (!noBackHandlerEvent) {
+    headerProps = {
+      title,
+      navigation,
+      moveName,
+      noLeftLogo,
+      noLeftButton,
+      leftCancleButton,
+      leftButtonMoveName,
+      leftButtonMoveParam,
+      rightCancelButton,
+      rightButtonMoveName,
+      rightButtonMoveParam,
+      rightCancelText,
+      rightTextMoveName,
+      rightTextMoveParam,
+      addRightCancelButton,
+      addRightButtonIcon,
+      containerStyle,
+      rightButtonIcon,
+      rightIconStyle,
+      rightText,
+      rightTextStyle,
+      titleStyle,
+      onPressRightIcon,
+      onPressAddRightIcon,
+      onPressRightText,
+      leftIconStyles,
+      onPressLeftBtn,
+      leftButtonIcon,
+      ...props,
+    };
+  }
 
   useEffect(() => {
-    BackHandlerUtils.addDefaultBackHandlerEvent();
+    if (!noBackHandlerEvent) {
+      BackHandlerUtils.addDefaultBackHandlerEvent();
+    }
   }, []);
 
   const titleContainerStyle = {

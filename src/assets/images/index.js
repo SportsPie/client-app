@@ -44,6 +44,7 @@ const SPImages = {
   clickedMapBadge18: require('./clicked_map_badge-18.png'),
   multipleBadge: require('./multiple_badge.png'),
   clickedMultipleBadge: require('./clicked_multiple_badge.png'),
+  defaultAcademyThumb: require('./default_academy_thumb.png'),
 };
 
 export default SPImages;

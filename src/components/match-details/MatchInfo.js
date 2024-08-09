@@ -25,50 +25,66 @@ function MatchInfo({ matchInfo, soccerPlayer }) {
         ]}>
         <View style={{ flexDirection: 'row' }}>
           <View style={styles.teamWrapper}>
-            <Image
-              source={{
-                uri: matchInfo?.homeLogoPath,
-              }}
-              style={styles.teamImage}
-              resizeMode="contain"
-            />
+            {matchInfo?.homeLogoPath ? (
+              <Image
+                source={{
+                  uri: matchInfo?.homeLogoPath,
+                }}
+                style={styles.teamImage}
+                resizeMode="contain"
+              />
+            ) : (
+              <Image
+                style={styles.teamImage}
+                source={SPIcons.icDefaultAcademy}
+              />
+            )}
 
             <Text style={styles.teamNameText}>{matchInfo?.academyName}</Text>
           </View>
-          <View style={styles.teamValueWrapper}>
-            <Text
-              style={[
-                styles.valueText,
-                {
-                  color:
-                    matchInfo?.hostScore > matchInfo?.participantScore
-                      ? COLORS.textDefault
-                      : COLORS.labelAssistive,
-                  fontFamily: FONTS.RobotoCondensedBold,
-                },
-              ]}>
-              {matchInfo?.hostScore}
-            </Text>
-          </View>
+          <View
+            style={{
+              flexDirection: 'row',
+              justifyContent: 'space-evenly',
+              minWidth: 80,
+            }}>
+            <View style={styles.teamValueWrapper}>
+              <Text
+                style={[
+                  styles.valueText,
+                  {
+                    color:
+                      matchInfo?.hostScore > matchInfo?.participantScore
+                        ? COLORS.textDefault
+                        : COLORS.labelAssistive,
+                    fontFamily: FONTS.RobotoCondensedBold,
+                    // width: 30,
+                  },
+                ]}>
+                {matchInfo?.hostScore}
+              </Text>
+            </View>
 
-          {/* away */}
-          <View style={styles.teamValueWrapper}>
-            <Text style={styles.valueText}>:</Text>
-          </View>
-          <View style={styles.teamValueWrapper}>
-            <Text
-              style={[
-                styles.valueText,
-                {
-                  color:
-                    matchInfo?.hostScore < matchInfo?.participantScore
-                      ? COLORS.textDefault
-                      : COLORS.labelAssistive,
-                  fontFamily: FONTS.RobotoCondensedBold,
-                },
-              ]}>
-              {matchInfo?.participantScore}
-            </Text>
+            {/* away */}
+            <View>
+              <Text style={styles.valueText}>:</Text>
+            </View>
+            <View style={styles.teamValueWrapper}>
+              <Text
+                style={[
+                  styles.valueText,
+                  {
+                    color:
+                      matchInfo?.hostScore < matchInfo?.participantScore
+                        ? COLORS.textDefault
+                        : COLORS.labelAssistive,
+                    fontFamily: FONTS.RobotoCondensedBold,
+                    // width: 30,
+                  },
+                ]}>
+                {matchInfo?.participantScore}
+              </Text>
+            </View>
           </View>
           <View style={styles.teamWrapper}>
             <Image
@@ -89,7 +105,7 @@ function MatchInfo({ matchInfo, soccerPlayer }) {
             style={{
               flex: 1,
               alignItems: 'flex-end',
-              flexDirection: 'row',
+              flexDirection: 'column',
               justifyContent: 'flex-end',
             }}>
             {soccerPlayer?.homePlayers
@@ -112,7 +128,11 @@ function MatchInfo({ matchInfo, soccerPlayer }) {
             />
           </View>
           <View
-            style={{ flex: 1, alignItems: 'flex-start', flexDirection: 'row' }}>
+            style={{
+              flex: 1,
+              alignItems: 'flex-start',
+              flexDirection: 'column',
+            }}>
             {soccerPlayer?.awayPlayers
               ?.filter(player => player.score !== 0)
               .map(player => (
@@ -169,7 +189,6 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
   },
   teamValueWrapper: {
-    flex: 1,
     alignItems: 'center',
   },
   valueText: {

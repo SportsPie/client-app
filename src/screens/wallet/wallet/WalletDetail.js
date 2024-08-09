@@ -33,24 +33,32 @@ import fontStyles from '../../../styles/fontStyles';
 import { handleError } from '../../../utils/HandleError';
 import Utils from '../../../utils/Utils';
 import WalletUtils from '../../../utils/WalletUtils';
+import { useDispatch, useSelector } from 'react-redux';
+import { walletHistoryListAction } from '../../../redux/reducers/list/walletHistoryListSlice';
+import { store } from '../../../redux/store';
 
-function WalletDetail() {
+function WalletDetail({ route }) {
   /**
    * state
    */
+  const dispatch = useDispatch();
+  const listName = 'walletHistoryList';
+  const {
+    page,
+    list: tokenHistoryList,
+    refreshing,
+    loading,
+    isLast,
+  } = useSelector(selector => selector[listName]);
+  const noParamReset = route?.params?.noParamReset;
+  const action = walletHistoryListAction;
   const flatListRef = useRef();
   const insets = useSafeAreaInsets();
   const [address, setAddress] = useState('');
   const [balance, setBalance] = useState(0);
   const [point, setPoint] = useState(0);
   const trlRef = useRef({ current: { disabled: false } });
-
-  const [page, setPage] = useState(1);
-  const [loading, setLoading] = useState(true);
-  const [isLast, setIsLast] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
   const [isFocus, setIsFocus] = useState(true);
-  const [tokenHistoryList, setTokenHistoryList] = useState([]);
 
   /**
    * api
@@ -72,28 +80,26 @@ function WalletDetail() {
 
   const getTokenHistoryList = async () => {
     try {
-      setLoading(true);
       const params = {
         walletAddr: address,
         page,
         size: 100,
       };
       const { data } = await apiGetMoreWalletPieTokenHistoryList(params);
-      setIsLast(data.data.isLast);
+      dispatch(action.setTotalCnt(data.data.totalCnt));
+      dispatch(action.setIsLast(data.data.isLast));
       if (page === 1) {
-        setTokenHistoryList(data.data.list);
+        dispatch(action.setList(data.data.list));
       } else {
-        setTokenHistoryList(prevProjects => [
-          ...prevProjects,
-          ...data.data.list,
-        ]);
+        const prevList = store.getState()[listName].list;
+        dispatch(action.setList([...prevList, ...data.data.list]));
       }
     } catch (error) {
       handleError(error);
     } finally {
-      setRefreshing(false);
       setIsFocus(false);
-      setLoading(false);
+      dispatch(action.setRefreshing(false));
+      dispatch(action.setLoading(false));
     }
   };
 
@@ -104,18 +110,17 @@ function WalletDetail() {
   const loadMoreProjects = () => {
     setTimeout(() => {
       if (!isLast) {
-        setPage(prevPage => prevPage + 1);
+        const prevPage = store.getState()[listName].page;
+        dispatch(action.setPage(prevPage + 1));
       }
     }, 0);
   };
 
   const onRefresh = () => {
-    if (flatListRef.current) {
-      flatListRef.current.scrollToOffset({ animated: false, offset: 0 });
-    }
-    setPage(1);
-    setIsLast(false);
-    setRefreshing(true);
+    // if (flatListRef.current) {
+    //   flatListRef.current.scrollToOffset({ animated: false, offset: 0 });
+    // }
+    dispatch(action.refresh());
   };
 
   const canSendCheck = async () => {
@@ -139,6 +144,15 @@ function WalletDetail() {
 
   const onFocus = async () => {
     try {
+      if (!noParamReset) {
+        setIsFocus(true);
+        dispatch(action.reset());
+        NavigationService.replace(navName.walletDetail, {
+          ...(route?.params || {}),
+          noParamReset: true,
+        });
+        return;
+      }
       await getWalletBalance();
     } catch (error) {
       handleError(error);
@@ -155,22 +169,24 @@ function WalletDetail() {
       return () => {
         setIsFocus(true);
       };
-    }, []),
+    }, [noParamReset]),
   );
 
   useFocusEffect(
     useCallback(() => {
-      if (!isFocus) {
+      if (!isFocus && noParamReset) {
         onRefresh();
       }
-    }, [isFocus]),
+    }, [isFocus, noParamReset]),
   );
 
   useEffect(() => {
-    if ((!isFocus && refreshing) || (!refreshing && page > 1)) {
-      getTokenHistoryList();
+    if (noParamReset) {
+      if ((!isFocus && refreshing) || (!refreshing && page > 1)) {
+        getTokenHistoryList();
+      }
     }
-  }, [page, isFocus, refreshing]);
+  }, [page, isFocus, refreshing, noParamReset]);
 
   const renderHeader = useMemo(() => {
     return (

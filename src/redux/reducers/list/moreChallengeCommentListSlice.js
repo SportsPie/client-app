@@ -11,8 +11,8 @@ const initialState = {
   isLast: false,
 };
 
-export const moreQuestionListSlice = createSlice({
-  name: 'moreQuestionList',
+export const moreChallengeCommentListSlice = createSlice({
+  name: 'moreChallengeCommentList',
   initialState,
   reducers: {
     setList: (state, actions) => {
@@ -64,9 +64,10 @@ export const moreQuestionListSlice = createSlice({
         const { idxName, idx, item } = actions.payload;
         state.list = state.list.map(v => {
           if (Number(v[idxName]) === Number(idx)) {
-            item[idxName] =
+            const obj = { ...v, ...item };
+            obj[idxName] =
               typeof v[idxName] === 'string' ? Number(idx) : `${idx}`;
-            return item;
+            return obj;
           }
           return v;
         });
@@ -74,6 +75,7 @@ export const moreQuestionListSlice = createSlice({
     },
   },
 });
-export const moreQuestionListAction = moreQuestionListSlice.actions;
+export const moreChallengeCommentListAction =
+  moreChallengeCommentListSlice.actions;
 
-export default moreQuestionListSlice.reducer;
+export default moreChallengeCommentListSlice.reducer;

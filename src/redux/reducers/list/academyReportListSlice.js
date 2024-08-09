@@ -9,6 +9,7 @@ const initialState = {
   refreshing: false,
   loading: true,
   isLast: false,
+  listParamReset: false,
 };
 
 export const academyReportListSlice = createSlice({
@@ -33,6 +34,9 @@ export const academyReportListSlice = createSlice({
     setIsLast: (state, actions) => {
       state.isLast = actions.payload;
     },
+    setListParamReset: (state, actions) => {
+      state.listParamReset = actions.payload;
+    },
     refresh: (state, actions) => {
       if (actions.payload) {
         state.loading = !actions.payload;
@@ -52,6 +56,7 @@ export const academyReportListSlice = createSlice({
       state.isLast = false;
       state.list = [];
       state.refreshing = false;
+      state.listParamReset = false;
     },
     removeItem: (state, actions) => {
       if (state.list && state.list.length > 0) {

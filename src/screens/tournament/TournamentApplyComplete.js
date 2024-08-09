@@ -25,6 +25,7 @@ function TournamentApplyComplete({ route }) {
 
       if (data) {
         setTournamentInfo(data.data);
+        console.log(data.data);
       }
     } catch (error) {
       handleError(error);
@@ -62,9 +63,7 @@ function TournamentApplyComplete({ route }) {
           <View style={styles.labelContentWrapper}>
             <Text style={styles.labelText}>이체금액</Text>
             <Text style={styles.valueText}>
-              {tournamentInfo.entryFee
-                ? `${Utils.changeNumberComma(tournamentInfo.entryFee)}원`
-                : '-'}
+              {tournamentInfo.entryFee ? tournamentInfo.entryFee : '-'}
             </Text>
           </View>
           <View style={styles.labelContentWrapper}>
