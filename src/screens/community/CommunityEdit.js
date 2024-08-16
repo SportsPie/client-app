@@ -585,13 +585,13 @@ const styles = {
   button: {
     paddingHorizontal: 7,
     paddingVertical: 3,
-    backgroundColor: '#D6D7E4',
+    backgroundColor: '#E6E9F1',
     borderRadius: 16,
   },
   buttonText: {
     fontSize: 12,
     fontWeight: 500,
-    color: '#313779',
+    color: '#002672',
     lineHeight: 16,
   },
   activeButton: {

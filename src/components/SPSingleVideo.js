@@ -76,8 +76,6 @@ const SPSingleVideo = forwardRef(
 
     // [ util ] 동영상 로드 완료
     const onVideoLoad = e => {
-      if (onLoad) onLoad();
-
       // 동영상 높이 조정
       const {
         width: widthNumber,
@@ -129,6 +127,12 @@ const SPSingleVideo = forwardRef(
         videoRef.current.methods.toggleControls();
       }
     }, [pause]);
+
+    useEffect(() => {
+      if (isVideoLoaded && onLoad) {
+        onLoad();
+      }
+    }, [isVideoLoaded]);
 
     // [ return ]
     return (

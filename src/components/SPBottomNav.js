@@ -96,7 +96,7 @@ export default function SPBottomNav({
                   style={{
                     fontSize: 11,
                     fontWeight: 500,
-                    color: checkActive(item.navName) ? '#FF671F' : '#ADABA7',
+                    color: checkActive(item.navName) ? '#FF7C10' : '#ADABA7',
                     lineHeight: 14,
                     letterSpacing: 0.342,
                   }}>

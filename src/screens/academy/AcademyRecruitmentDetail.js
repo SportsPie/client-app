@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import moment from 'moment/moment';
 import { ScrollView } from 'react-native-gesture-handler';
 import SPIcons from '../../assets/icon';
+import { SPSvgs } from '../../assets/svg';
 import AcademyJoinModal from './AcademyJoinModal';
 import NavigationService from '../../navigation/NavigationService';
 import { navName } from '../../common/constants/navName';
@@ -307,7 +308,7 @@ function AcademyRecruitmentDetail({ route, type }) {
                       borderRightColor: 'rgba(135, 141, 150, 0.22)',
                     },
                   ]}>
-                  <Image
+                  {/* <Image
                     source={SPIcons.icGender}
                     style={{
                       width: 30,
@@ -315,11 +316,12 @@ function AcademyRecruitmentDetail({ route, type }) {
                       borderRadius: 15,
                       overflow: 'hidden',
                     }}
-                  />
+                  /> */}
+                  <SPSvgs.Gender />
                   <Text style={styles.subText}>{recruitDetail.genderKo}</Text>
                 </View>
                 <View style={styles.recruitmentItem}>
-                  <Image
+                  {/* <Image
                     source={SPIcons.icClassRoom}
                     style={{
                       width: 30,
@@ -327,7 +329,8 @@ function AcademyRecruitmentDetail({ route, type }) {
                       borderRadius: 15,
                       overflow: 'hidden',
                     }}
-                  />
+                  /> */}
+                  <SPSvgs.ClassRoom />
                   <Text style={styles.subText}>
                     {recruitDetail?.classTypeList &&
                     recruitDetail?.classTypeList.length > 0
@@ -401,7 +404,7 @@ function AcademyRecruitmentDetail({ route, type }) {
               <View style={styles.joinList}>
                 <View style={styles.joinListTop}>
                   <Text style={styles.joinListTitle}>가입 신청 리스트</Text>
-                  <Text style={[styles.joinListTitle, { color: '#FF671F' }]}>
+                  <Text style={[styles.joinListTitle, { color: '#FF7C10' }]}>
                     {waitList?.length}
                   </Text>
                 </View>
@@ -513,7 +516,7 @@ function AcademyRecruitmentDetail({ route, type }) {
               <View style={styles.joinList}>
                 <View style={styles.joinListTop}>
                   <Text style={styles.joinListTitle}>가입확정</Text>
-                  <Text style={[styles.joinListTitle, { color: '#FF671F' }]}>
+                  <Text style={[styles.joinListTitle, { color: '#FF7C10' }]}>
                     {confirmList?.length}
                   </Text>
                 </View>
@@ -742,7 +745,7 @@ const styles = {
     flexShrink: 1,
   },
   noMemberBtn: {
-    backgroundColor: '#FF671F',
+    backgroundColor: '#FF7C10',
     borderRadius: 10,
     paddingHorizontal: 28,
     paddingVertical: 12,
@@ -827,7 +830,7 @@ const styles = {
     letterSpacing: 0.342,
   },
   joinDeadlineBtn: {
-    backgroundColor: '#FF671F',
+    backgroundColor: '#FF7C10',
     borderRadius: 10,
     paddingHorizontal: 28,
     paddingVertical: 12,
@@ -866,7 +869,7 @@ const styles = {
   subApprovalBtn: {
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#FF671F',
+    backgroundColor: '#FF7C10',
     height: 32,
     borderRadius: 6,
     paddingHorizontal: 14,
@@ -900,7 +903,7 @@ const styles = {
   },
   recruitingBox: {
     borderWidth: 1,
-    backgroundColor: 'rgba(255, 103, 31, 0.08)',
+    backgroundColor: 'rgba(255, 124, 16, 0.15)',
     borderColor: 'transparent',
     borderRadius: 4,
     paddingHorizontal: 4,
@@ -908,6 +911,6 @@ const styles = {
   },
   recruitingText: {
     ...fontStyles.fontSize11_Semibold,
-    color: '#FF671F',
+    color: '#FF7C10',
   },
 };

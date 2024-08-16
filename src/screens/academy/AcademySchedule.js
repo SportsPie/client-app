@@ -29,6 +29,7 @@ import AcademyJoinModal from './AcademyJoinModal';
 import { matchingReviewListAction } from '../../redux/reducers/list/matchingReviewListSlice';
 import { academyScheduleListAction } from '../../redux/reducers/list/academyScheduleListSlice';
 import { store } from '../../redux/store';
+import { COLORS } from '../../styles/colors';
 
 function AcademySchedule({ route }) {
   /**
@@ -350,7 +351,7 @@ const styles = {
     letterSpacing: 0.203,
   },
   applyBtn: {
-    backgroundColor: '#FF671F',
+    backgroundColor: '#FF7C10',
     borderRadius: 10,
     paddingHorizontal: 28,
     paddingVertical: 12,
@@ -365,23 +366,37 @@ const styles = {
     letterSpacing: 0.091,
     textAlign: 'center',
   },
+  // wrtieBtn: {
+  //   position: 'absolute',
+  //   right: 16,
+  //   bottom: 16,
+  //   backgroundColor: 'white', // 배경색 지정
+  //   borderRadius: 50,
+  //   ...Platform.select({
+  //     ios: {
+  //       shadowColor: '#000',
+  //       shadowOffset: { width: 0, height: 2 },
+  //       shadowOpacity: 0.3,
+  //       shadowRadius: 4,
+  //     },
+  //     android: {
+  //       elevation: 4,
+  //     },
+  //   }),
+  // },
   wrtieBtn: {
     position: 'absolute',
-    right: 16,
+    zIndex: 999,
     bottom: 16,
-    backgroundColor: 'white', // 배경색 지정
-    borderRadius: 50,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.3,
-        shadowRadius: 4,
-      },
-      android: {
-        elevation: 4,
-      },
-    }),
+    right: 16,
+    shadowColor: COLORS.black,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   noneText: {
     fontSize: 13,

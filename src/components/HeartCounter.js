@@ -1,4 +1,4 @@
-import React, { memo, useRef, useState } from 'react';
+import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { SPSvgs } from '../assets/svg';
@@ -11,6 +11,9 @@ import { SPToast } from './SPToast';
 import { store } from '../redux/store';
 import { moreClassMaterVideoListAction } from '../redux/reducers/list/moreClassMasterVideoListSlice';
 import { moreChallengeVideoListAction } from '../redux/reducers/list/moreChallengeVideoListSlice';
+import { challengeListAction } from '../redux/reducers/list/challengeListSlice';
+import { useFocusEffect } from '@react-navigation/native';
+import { challengeDetailAction } from '../redux/reducers/list/challengeDetailSlice';
 
 function HeartCounter({ heartNum = 0, videoIdx = '', isLike = false }) {
   const dispatch = useDispatch();
@@ -22,6 +25,18 @@ function HeartCounter({ heartNum = 0, videoIdx = '', isLike = false }) {
   // [ state ] 좋아요
   const [cntLike, setCntLike] = useState(heartNum);
   const [isLiked, setIsLiked] = useState(isLike);
+
+  useFocusEffect(
+    useCallback(() => {
+      setIsLiked(isLike);
+    }, [isLike]),
+  );
+
+  useFocusEffect(
+    useCallback(() => {
+      setCntLike(heartNum);
+    }, [heartNum]),
+  );
 
   // [ util ] 좋아요 등록/취소
   const touchLikeHandler = e => {
@@ -51,34 +66,56 @@ function HeartCounter({ heartNum = 0, videoIdx = '', isLike = false }) {
         setIsLiked(true);
         trlRef.current.disabled = false;
 
-        const findMasterVideo = store
-          .getState()
-          .moreClassMasterVideoList.list.find(
-            item => Number(item.videoIdx) === Number(videoIdx),
-          );
-        if (findMasterVideo) {
-          findMasterVideo.cntLike += 1;
-          dispatch(
-            moreClassMaterVideoListAction.modifyItem({
-              idxName: 'videoIdx',
-              idx: videoIdx,
-              item: findMasterVideo,
-            }),
-          );
-        }
-
         const findChallengeVideo = store
           .getState()
-          .moreChallengeVideoList.list.find(
+          .challengeList.list.find(
             item => Number(item.videoIdx) === Number(videoIdx),
           );
         if (findChallengeVideo) {
           findChallengeVideo.cntLike += 1;
           dispatch(
-            moreChallengeVideoListAction.modifyItem({
+            challengeListAction.modifyItem({
               idxName: 'videoIdx',
               idx: videoIdx,
               item: findChallengeVideo,
+            }),
+          );
+        }
+        dispatch(
+          challengeDetailAction.plusLikeCnt({
+            idxName: 'videoIdx',
+            idx: videoIdx,
+          }),
+        );
+
+        const moreFindMasterVideo = store
+          .getState()
+          .moreClassMasterVideoList.list.find(
+            item => Number(item.videoIdx) === Number(videoIdx),
+          );
+        if (moreFindMasterVideo) {
+          moreFindMasterVideo.cntLike += 1;
+          dispatch(
+            moreClassMaterVideoListAction.modifyItem({
+              idxName: 'videoIdx',
+              idx: videoIdx,
+              item: moreFindMasterVideo,
+            }),
+          );
+        }
+
+        const moreFindChallengeVideo = store
+          .getState()
+          .moreChallengeVideoList.list.find(
+            item => Number(item.videoIdx) === Number(videoIdx),
+          );
+        if (moreFindChallengeVideo) {
+          moreFindChallengeVideo.cntLike += 1;
+          dispatch(
+            moreChallengeVideoListAction.modifyItem({
+              idxName: 'videoIdx',
+              idx: videoIdx,
+              item: moreFindChallengeVideo,
             }),
           );
         }
@@ -99,34 +136,57 @@ function HeartCounter({ heartNum = 0, videoIdx = '', isLike = false }) {
         setIsLiked(false);
         trlRef.current.disabled = false;
 
-        const findMasterVideo = store
-          .getState()
-          .moreClassMasterVideoList.list.find(
-            item => Number(item.videoIdx) === Number(videoIdx),
-          );
-        if (findMasterVideo) {
-          findMasterVideo.cntLike -= 1;
-          dispatch(
-            moreClassMaterVideoListAction.modifyItem({
-              idxName: 'videoIdx',
-              idx: videoIdx,
-              item: findMasterVideo,
-            }),
-          );
-        }
-
         const findChallengeVideo = store
           .getState()
-          .moreChallengeVideoList.list.find(
+          .challengeList.list.find(
             item => Number(item.videoIdx) === Number(videoIdx),
           );
         if (findChallengeVideo) {
           findChallengeVideo.cntLike -= 1;
           dispatch(
-            moreChallengeVideoListAction.modifyItem({
+            challengeListAction.modifyItem({
               idxName: 'videoIdx',
               idx: videoIdx,
               item: findChallengeVideo,
+            }),
+          );
+        }
+
+        dispatch(
+          challengeDetailAction.minusLikeCnt({
+            idxName: 'videoIdx',
+            idx: videoIdx,
+          }),
+        );
+
+        const moreFindMasterVideo = store
+          .getState()
+          .moreClassMasterVideoList.list.find(
+            item => Number(item.videoIdx) === Number(videoIdx),
+          );
+        if (moreFindMasterVideo) {
+          moreFindMasterVideo.cntLike -= 1;
+          dispatch(
+            moreClassMaterVideoListAction.modifyItem({
+              idxName: 'videoIdx',
+              idx: videoIdx,
+              item: moreFindMasterVideo,
+            }),
+          );
+        }
+
+        const moreFindChallengeVideo = store
+          .getState()
+          .moreChallengeVideoList.list.find(
+            item => Number(item.videoIdx) === Number(videoIdx),
+          );
+        if (moreFindChallengeVideo) {
+          moreFindChallengeVideo.cntLike -= 1;
+          dispatch(
+            moreChallengeVideoListAction.modifyItem({
+              idxName: 'videoIdx',
+              idx: videoIdx,
+              item: moreFindChallengeVideo,
             }),
           );
         }

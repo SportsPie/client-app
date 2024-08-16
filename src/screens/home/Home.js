@@ -464,9 +464,13 @@ function Home() {
                     scrollEnabled={false}
                     renderItem={({ item, index }) => (
                       <ImageBackground
-                        source={{
-                          uri: item?.logoPath ? item.logoPath : item.thumbPath,
-                        }}
+                        source={
+                          item.thumbPath
+                            ? {
+                                uri: item.thumbPath,
+                              }
+                            : SPImages.defaultAcademyThumb
+                        }
                         style={[
                           styles.contentsBox,
                           styles.homeContentsBox,
@@ -1037,7 +1041,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.203,
   },
   searchBtn: {
-    backgroundColor: '#FF671F',
+    backgroundColor: '#FF7C10',
     borderRadius: 8,
     paddingHorizontal: 20,
     paddingVertical: 13,

@@ -184,7 +184,14 @@ function ChallengeTab() {
   );
 
   const renderChallengeItemForVideo = useCallback(({ item }) => {
-    return <FeedVideoItemChallenge item={item} />;
+    return (
+      <FeedVideoItemChallenge
+        item={item}
+        onDelete={() => {
+          onVideoRefresh();
+        }}
+      />
+    );
   }, []);
 
   return (

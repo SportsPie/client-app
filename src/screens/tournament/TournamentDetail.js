@@ -421,7 +421,8 @@ function TournamentDetail({ route }) {
       <View style={styles.buttonWrap}>
         {member?.academyAdmin &&
           tournamentStatus.code === TOURNAMENT_STATE.REGISTERING.code &&
-          tournamentInfo.aprvState === 'WAIT' && (
+          tournamentInfo.aprvState === 'WAIT' &&
+          tournamentInfo.ableApply && (
             <PrimaryButton
               outlineButton
               buttonStyle={styles.submitButton}
@@ -433,7 +434,8 @@ function TournamentDetail({ route }) {
         {member?.academyAdmin &&
           (!tournamentInfo.isApply || !fromHistory) &&
           (tournamentStatus.code === TOURNAMENT_STATE.REGISTERING.code ||
-            tournamentInfo.isApply) && (
+            tournamentInfo.isApply) &&
+          tournamentInfo.ableApply && (
             <PrimaryButton
               buttonStyle={styles.submitButton}
               text={renderSubmitButtonText}

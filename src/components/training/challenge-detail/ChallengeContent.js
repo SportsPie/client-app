@@ -1,13 +1,13 @@
-/* eslint-disable react/no-array-index-key */
 import React, { memo } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { FlatList, StyleSheet, Text, View } from 'react-native';
 import ChallengeContentItem from './ChallengeContentItem';
 import fontStyles from '../../../styles/fontStyles';
 import { COLORS } from '../../../styles/colors';
 import ListEmptyView from '../../ListEmptyView';
+import SPLoading from '../../SPLoading';
 
 // 도전 챌린지 리스트 ( = 챌린지 참여자 영상 )
-function ChallengeContent({ videoList = [] }) {
+function ChallengeContent({ videoList = [], videoLoading, pageKey }) {
   // [ return ]
   return (
     <View style={styles.container}>
@@ -19,8 +19,10 @@ function ChallengeContent({ videoList = [] }) {
       {videoList.length > 0 ? (
         videoList.map((item, index) => (
           <ChallengeContentItem
+            // eslint-disable-next-line react/no-array-index-key
             key={`challenge-video-list-${index}`}
             challenge={item}
+            pageKey={pageKey}
           />
         ))
       ) : (

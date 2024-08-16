@@ -22,7 +22,7 @@ const persistConfig = {
     'nav',
     'wifi',
     'communityList',
-    'socialTokenHistory',
+    'socialTokenHistoryList',
     'moreChallengeCommentList',
     'moreChallengeVideoList',
     'moreClassMasterCommentList',
@@ -49,6 +49,11 @@ const persistConfig = {
     'moreInquiryList',
     'moreNoticeList',
     'walletHistoryList',
+    'trainingList',
+    'trainingDetail',
+    'masterDetail',
+    'challengeList',
+    'challengeDetail',
   ],
 };
 

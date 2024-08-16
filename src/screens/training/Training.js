@@ -1,7 +1,7 @@
 /* eslint-disable react/no-array-index-key */
 /* eslint-disable react/no-unstable-nested-components */
 import { useFocusEffect } from '@react-navigation/native';
-import React, { memo, useCallback, useRef, useState } from 'react';
+import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Dimensions,
@@ -37,6 +37,13 @@ import { COLORS } from '../../styles/colors';
 import { handleError } from '../../utils/HandleError';
 import Utils from '../../utils/Utils';
 import ListEmptyView from '../../components/ListEmptyView';
+import { useDispatch, useSelector } from 'react-redux';
+import { matchingHistoryListAction } from '../../redux/reducers/list/matchingHistoryListSlice';
+import { trainingListAction } from '../../redux/reducers/list/trainingListSlice';
+import { challengeListAction } from '../../redux/reducers/list/challengeListSlice';
+import { store } from '../../redux/store';
+import { masterDetailAction } from '../../redux/reducers/list/masterDetailSlice';
+import { challengeDetailAction } from '../../redux/reducers/list/challengeDetailSlice';
 
 // 기초튼튼 훈련 Carousel 슬라이드 컴포넌트
 function BasicCarousel({ listData = [] }) {
@@ -59,70 +66,78 @@ function BasicCarousel({ listData = [] }) {
   }
 
   // 렌더 컴포넌트
-  const renderItem = ({ item }) => (
-    <TouchableOpacity
-      key={`program-detail-${item.groupIdx}-${item.trainingIdx}`}
-      activeOpacity={ACTIVE_OPACITY}
-      onPress={() => {
-        NavigationService.navigate(navName.trainingDetail, {
-          trainingIdx: item.trainingIdx,
-        });
-      }}>
-      <ImageBackground
-        source={
-          item.thumbPath ? { uri: item.thumbPath } : SPImages.challengeImage
-        }
-        alt={`program-img-${item.trainingIdx}`}
-        style={[
-          styles.image,
-          styles.subBackgroundImage,
-          { height: dynamicHeight, width: imageWidth },
-        ]}>
-        <LinearGradient
-          colors={['transparent', 'rgba(0,0,0,0.5)']}
-          style={styles.gradient}>
-          <View style={styles.trainingDetailList}>
-            <View style={styles.trainingDetailItem}>
-              <Image source={SPIcons.icView} />
-              <Text style={styles.trainingDetailText}>
-                {Utils.changeNumberComma(item.cntView)}
+  const renderItem = ({ item }) => {
+    return (
+      <TouchableOpacity
+        key={`program-detail-${item.groupIdx}-${
+          typeof item.trainingIdx === 'string'
+            ? `${item.trainingIdx}key`
+            : item.trainingIdx
+        }`}
+        activeOpacity={ACTIVE_OPACITY}
+        onPress={() => {
+          NavigationService.navigate(navName.trainingDetail, {
+            trainingIdx: item.trainingIdx,
+          });
+        }}>
+        <ImageBackground
+          source={
+            item.thumbPath ? { uri: item.thumbPath } : SPImages.challengeImage
+          }
+          alt={`program-img-${item.trainingIdx}`}
+          style={[
+            styles.image,
+            styles.subBackgroundImage,
+            { height: dynamicHeight, width: imageWidth },
+          ]}>
+          <LinearGradient
+            colors={['transparent', 'rgba(0,0,0,0.5)']}
+            style={styles.gradient}>
+            <View style={styles.trainingDetailList}>
+              <View style={styles.trainingDetailItem}>
+                <Image source={SPIcons.icView} />
+                <Text style={styles.trainingDetailText}>
+                  {Utils.changeNumberComma(item.cntView)}
+                </Text>
+              </View>
+              <View style={styles.trainingDetailItem}>
+                <Image source={SPIcons.icHeart} />
+                <Text style={styles.trainingDetailText}>
+                  {Utils.changeNumberComma(item.cntLike)}
+                </Text>
+              </View>
+            </View>
+            <View style={styles.trainingInfo}>
+              <Text
+                style={styles.trainingInfoTitle}
+                numberOfLines={2}
+                ellipsizeMode="tail">
+                {item.trainingName}
               </Text>
             </View>
-            <View style={styles.trainingDetailItem}>
-              <Image source={SPIcons.icHeart} />
-              <Text style={styles.trainingDetailText}>
-                {Utils.changeNumberComma(item.cntLike)}
-              </Text>
-            </View>
-          </View>
-          <View style={styles.trainingInfo}>
-            <Text
-              style={styles.trainingInfoTitle}
-              numberOfLines={2}
-              ellipsizeMode="tail">
-              {item.trainingName}
-            </Text>
-          </View>
-        </LinearGradient>
-      </ImageBackground>
-    </TouchableOpacity>
-  );
+          </LinearGradient>
+        </ImageBackground>
+      </TouchableOpacity>
+    );
+  };
 
   return (
-    <Carousel
-      sliderWidth={screenWidth}
-      itemWidth={imageWidth + 8}
-      data={listData}
-      renderItem={renderItem}
-      activeSlideAlignment="start"
-      inactiveSlideScale={1}
-      inactiveSlideOpacity={1}
-      slideStyle={{ paddingRight: 8 }}
-      vertical={false} // 수직 슬라이드 비활성화
-      loop={false}
-      enableMomentum={true}
-      decelerationRate={0.9}
-    />
+    <View style={{ overflow: 'hidden' }}>
+      <Carousel
+        sliderWidth={screenWidth}
+        itemWidth={imageWidth + 8}
+        data={listData}
+        renderItem={renderItem}
+        activeSlideAlignment="start"
+        inactiveSlideScale={1}
+        inactiveSlideOpacity={1}
+        slideStyle={{ paddingRight: 8 }}
+        vertical={false} // 수직 슬라이드 비활성화
+        loop={false}
+        enableMomentum={true}
+        decelerationRate={0.9}
+      />
+    </View>
   );
 }
 
@@ -220,6 +235,27 @@ function TabButton({ title, activeTab, setActiveTab }) {
 
 // PIE 트레이닝 메인
 function Training({ route }) {
+  const dispatch = useDispatch();
+  const listName = 'trainingList';
+  const {
+    bannerList, // 슬라이드 배너 리스트
+    trainingObj: trainingObject,
+    refreshing: trainingRefreshing,
+    loading, // 트레이닝 로딩
+  } = useSelector(selector => selector[listName]);
+  const action = trainingListAction;
+
+  const challengeListName = 'challengeList';
+  const {
+    list: challengeList,
+    isLast,
+    page: challengePage,
+    refreshing: challengeRefreshing,
+    loading: challengeLoading, // 트레이닝 로딩
+    pagingKey,
+  } = useSelector(selector => selector[challengeListName]);
+  const challengeAction = challengeListAction;
+
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const imageHeight = width <= 480 ? 141 : (width * 9) / 16;
@@ -228,19 +264,8 @@ function Training({ route }) {
   const challengeListRef = useRef(); // 챌린지 리스트 Ref
 
   // [ state ]
-  const [loading, setLoading] = useState(false); // 트레이닝 로딩
-  const [bannerList, setBannerList] = useState([]); // 슬라이드 배너 리스트
-  const [trainingObject, setTrainingObject] = useState([]); // 기초튼튼 훈련 카테고리별 리스트
   const activeTab = route.params?.activeTab || '기초튼튼 훈련';
   const paramReset = route.params?.paramReset;
-  const [challengeLoading, setChallengeLoading] = useState(false); // 챌린지 로딩
-  const [challengeList, setChallengeList] = useState([]); // 챌린지 리스트
-  const [challengePage, setChallengePage] = useState({
-    page: 1, // 챌린지 페이지
-    key: Math.floor(Math.random() * 10000), // 챌린지 페이지 Key
-    isLast: false, // 챌린지 페이지 마지막
-  });
-  const [refreshing, setRefreshing] = useState(false);
 
   const paddingTop = Platform.OS === 'ios' ? insets.top : 14;
 
@@ -258,15 +283,16 @@ function Training({ route }) {
 
   // [ util ] 챌린지 새로고침 ( with Key 갱신 )
   const onRefreshChallenge = () => {
-    setRefreshing(true);
-    setChallengeList([]);
-    setChallengePage(prev => {
-      return {
-        isLast: false,
-        key: Math.floor(Math.random() * 10000), // Key 갱신
-        page: typeof prev.page === 'string' ? 1 : '1',
-      };
-    });
+    dispatch(challengeAction.refresh());
+  };
+
+  const loadMoreProjects = () => {
+    setTimeout(() => {
+      if (!isLast) {
+        const prevPage = store.getState()[challengeListName].page;
+        dispatch(challengeAction.setPage(prevPage + 1));
+      }
+    }, 0);
   };
 
   // [ util ] 챌린지 렌더
@@ -282,47 +308,45 @@ function Training({ route }) {
   // [ api ] 기초튼튼 훈련 리스트 조회
   const getTrainingList = async () => {
     try {
-      setLoading(true);
       const { data } = await apiGetTrainingList();
 
       if (data) {
-        setBannerList([...data.data.banner]);
-        setTrainingObject({ ...data.data.trainingList });
+        dispatch(action.setBannerList(data.data.banner));
+        dispatch(action.setTrainingObj(data.data.trainingList));
       }
 
-      setLoading(false);
+      dispatch(action.setLoading(false));
     } catch (error) {
       handleError(error);
-      setLoading(false);
+      dispatch(action.setRefreshing(false));
+      dispatch(action.setLoading(false));
     }
   };
 
   // [ api ] 챌린지 리스트 조회
   const getChallengeList = async () => {
     try {
-      setChallengeLoading(true);
       const { data } = await apiGetChallengeList({
-        page: Number(challengePage.page),
-        size: 10,
-        pagingKey: challengePage.key,
+        page: challengePage,
+        size: 30,
+        pagingKey,
       });
 
       if (data) {
-        setChallengePage(prev => {
-          return { ...prev, isLast: data.data.isLast };
-        });
+        dispatch(challengeAction.setIsLast(data.data.isLast));
 
-        if (Number(challengePage.page) === 1) {
-          setChallengeList([...data.data.list]);
+        if (challengePage === 1) {
+          dispatch(challengeAction.setList(data.data.list));
         } else {
-          setChallengeList(prev => [...prev, ...data.data.list]);
+          const prevList = store.getState()[challengeListName].list;
+          dispatch(challengeAction.setList([...prevList, ...data.data.list]));
         }
       }
     } catch (error) {
       handleError(error);
     }
-    setChallengeLoading(false);
-    setRefreshing(false);
+    dispatch(challengeAction.setRefreshing(false));
+    dispatch(challengeAction.setLoading(false));
   };
 
   // [ api ] 배너 조회수 갱신
@@ -333,50 +357,42 @@ function Training({ route }) {
   const handleTabChange = tab => {
     NavigationService.navigate(navName.training, {
       activeTab: tab,
+      paramReset,
     });
   };
 
-  // [ useFocusEffect ] 트레이닝 리스트 & 챌린지 리스트
-  useFocusEffect(
-    useCallback(() => {
-      getTrainingList();
-      return () => {
-        setChallengeList([]);
-        setChallengePage(prev => {
-          return {
-            ...prev,
-            isLast: false,
-            page: typeof prev.page === 'string' ? 1 : '1',
-          };
-        });
-      };
-    }, []),
-  );
+  useEffect(() => {
+    if (paramReset) {
+      dispatch(action.reset());
+      dispatch(challengeAction.reset());
+      dispatch(masterDetailAction.allReset());
+      dispatch(challengeDetailAction.allReset());
+      NavigationService.navigate(navName.training, {
+        activeTab,
+        paramReset: false,
+      });
+      onRefreshChallenge();
+    }
+  }, [paramReset]);
 
-  useFocusEffect(
-    useCallback(() => {
-      if (paramReset) {
-        NavigationService.navigate(navName.training, {
-          activeTab,
-        });
-        setChallengeList([]);
-        onRefreshChallenge();
-      }
-    }, [paramReset]),
-  );
+  useEffect(() => {
+    if (!paramReset) {
+      getTrainingList();
+    }
+  }, [paramReset, trainingRefreshing]);
 
   // [ useEffect ] 챌린지 페이징
-  useFocusEffect(
-    useCallback(() => {
-      if (Number(challengePage.page)) {
+  useEffect(() => {
+    if (!paramReset) {
+      if (challengeRefreshing || (!challengeRefreshing && challengePage > 1)) {
         getChallengeList();
       }
-    }, [challengePage.page]),
-  );
+    }
+  }, [challengePage, challengeRefreshing, paramReset]);
 
   // [ return ]
   return (
-    <View style={styles.container}>
+    <View style={[styles.container]}>
       {/* 헤더 */}
       <Header
         title="PIE 트레이닝"
@@ -390,30 +406,42 @@ function Training({ route }) {
           color: COLORS.white,
         }}
       />
-      <View style={styles.background} />
+      <View style={[styles.background]} />
       {/* 트레이닝 Button Group */}
-      {loading ? (
-        <SPLoading />
-      ) : (
-        <View style={styles.trainingBox}>
-          {/* Tab */}
-          <View style={styles.tabButtonBox}>
-            <TabButton
-              title="기초튼튼 훈련"
-              activeTab={activeTab}
-              setActiveTab={handleTabChange}
-            />
-            <TabButton
-              title="챌린지"
-              activeTab={activeTab}
-              setActiveTab={handleTabChange}
-            />
-          </View>
-          <View>
-            {/* Tab > 기초튼튼 훈련 */}
-            {activeTab === '기초튼튼 훈련' && (
+      <View style={[styles.trainingBox]}>
+        {/* Tab */}
+        <View style={styles.tabButtonBox}>
+          <TabButton
+            title="기초튼튼 훈련"
+            activeTab={activeTab}
+            setActiveTab={handleTabChange}
+          />
+          <TabButton
+            title="챌린지"
+            activeTab={activeTab}
+            setActiveTab={handleTabChange}
+          />
+        </View>
+        <View style={{ flex: 1, position: 'relative' }}>
+          {/* Tab > 기초튼튼 훈련 */}
+          <View
+            style={[
+              {
+                position: 'absolute',
+                left: 0,
+                right: 0,
+                top: 0,
+                bottom: 0,
+              },
+              activeTab === '기초튼튼 훈련'
+                ? { zIndex: 1 }
+                : { zIndex: 0, opacity: 0 },
+            ]}>
+            {loading ? (
+              <SPLoading />
+            ) : (
               <ScrollView
-                style={{ marginBottom: 60 }}
+                style={{ flex: 1 }}
                 showsVerticalScrollIndicator={false}>
                 <View>
                   {/* 슬라이드 배너 */}
@@ -479,9 +507,9 @@ function Training({ route }) {
                       return (
                         <View
                           key={`training-list-category-${index}`}
-                          style={styles.trainingSubBox}>
+                          style={[styles.trainingSubBox]}>
                           <Text style={styles.trainingSubTitle}>{key}</Text>
-                          <View style={{ paddingLeft: 16 }}>
+                          <View>
                             <BasicCarousel
                               listData={[...trainingObject[key]]}
                             />
@@ -492,54 +520,51 @@ function Training({ route }) {
                 </View>
               </ScrollView>
             )}
+          </View>
 
-            {/* Tab > 챌린지 */}
-            {activeTab === '챌린지' && (
-              <View style={styles.challenge}>
-                {challengeList && challengeList.length > 0 ? (
-                  <FlatList
-                    ref={challengeListRef}
-                    data={challengeList}
-                    renderItem={renderChallengeItem}
-                    onEndReached={() => {
-                      setTimeout(() => {
-                        if (!challengePage.isLast) {
-                          setChallengePage(prev => {
-                            return { ...prev, page: Number(prev.page) + 1 };
-                          });
-                        }
-                      }, 0);
-                    }}
-                    // onEndReachedThreshold={0.5}
-                    ListFooterComponent={
-                      challengeLoading
-                        ? () => {
-                            return (
-                              <ActivityIndicator
-                                size="small"
-                                style={{ marginVertical: 20 }}
-                              />
-                            );
-                          }
-                        : null
-                    }
-                    refreshControl={
-                      <RefreshControl
-                        refreshing={refreshing}
-                        onRefresh={onRefreshChallenge}
-                      />
-                    }
+          {/* 챌린지 Tab */}
+          <View
+            style={[
+              styles.challenge,
+              activeTab === '챌린지'
+                ? { zIndex: 1 }
+                : { zIndex: 0, opacity: 0 },
+            ]}>
+            {challengeList && challengeList.length > 0 ? (
+              <FlatList
+                style={{ flex: 1 }}
+                ref={challengeListRef}
+                data={challengeList}
+                renderItem={renderChallengeItem}
+                onEndReached={loadMoreProjects}
+                onEndReachedThreshold={0.5}
+                ListFooterComponent={
+                  challengeLoading
+                    ? () => {
+                        return (
+                          <ActivityIndicator
+                            size="small"
+                            style={{ marginVertical: 20 }}
+                          />
+                        );
+                      }
+                    : null
+                }
+                refreshControl={
+                  <RefreshControl
+                    refreshing={challengeRefreshing}
+                    onRefresh={onRefreshChallenge}
                   />
-                ) : challengeLoading ? (
-                  <SPLoading />
-                ) : (
-                  <ListEmptyView text="챌린지 영상이 존재하지 않습니다." />
-                )}
-              </View>
+                }
+              />
+            ) : challengeLoading ? (
+              <SPLoading />
+            ) : (
+              <ListEmptyView text="챌린지 영상이 존재하지 않습니다." />
             )}
           </View>
         </View>
-      )}
+      </View>
     </View>
   );
 }
@@ -549,7 +574,8 @@ export default memo(Training);
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFF',
+    // backgroundColor: '#FFF',
+    backgroundColor: COLORS.darkBlue,
   },
   image: {
     width: '100%',
@@ -557,14 +583,16 @@ const styles = StyleSheet.create({
     resizeMode: 'cover',
   },
   background: {
-    paddingBottom: 28,
+    // paddingBottom: 28,
     backgroundColor: '#313779',
   },
   trainingBox: {
     flex: 1,
     position: 'relative',
-    top: -28,
-    borderRadius: 24,
+    // top: -28,
+    // borderRadius: 24,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
     backgroundColor: '#FFF',
   },
   tabButtonBox: {
@@ -596,7 +624,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   activeTabText: {
-    color: '#FF671F',
+    color: '#FF7C10',
   },
   swiperBox: {
     marginBottom: 0,
@@ -611,6 +639,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   trainingSubBox: {
+    paddingHorizontal: 16,
     paddingVertical: 24,
   },
   trainingSubTitle: {
@@ -619,7 +648,6 @@ const styles = StyleSheet.create({
     color: '#121212',
     lineHeight: 28,
     letterSpacing: -0.24,
-    paddingHorizontal: 16,
     marginBottom: 16,
   },
   subBackgroundImage: {
@@ -670,7 +698,11 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     gap: 16,
     paddingHorizontal: 16,
-    marginBottom: 60,
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
   },
   usersBox: {
     flexDirection: 'row',

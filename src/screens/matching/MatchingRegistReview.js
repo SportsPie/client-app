@@ -307,14 +307,14 @@ const styles = StyleSheet.create({
   ratingText: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#FF671F',
+    color: '#FF7C10',
     lineHeight: 26,
     letterSpacing: -0.004,
   },
   dot: {
     width: 4,
     height: 4,
-    backgroundColor: '#FF671F',
+    backgroundColor: '#FF7C10',
     borderRadius: 2,
   },
   contentBox: {
@@ -358,7 +358,7 @@ const styles = StyleSheet.create({
   },
   numberBox: {
     minWidth: 16,
-    backgroundColor: '#5A5F94',
+    backgroundColor: '#546EA1',
     borderRadius: 5,
     paddingHorizontal: 2,
     paddingVertical: 1,
@@ -412,7 +412,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   enabledClearBtn: {
-    backgroundColor: '#FF671F',
+    backgroundColor: '#FF7C10',
   },
   disabledClearBtn: {
     backgroundColor: '#E3E2E1',

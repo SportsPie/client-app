@@ -16,7 +16,7 @@ import { navName } from '../../common/constants/navName';
 import ListEmptyView from '../ListEmptyView';
 
 // PIE 트레이닝 > 상세 > 마스터 영상 리스트
-function MasterVideoTab({ title = '', videoList = [] }) {
+function MasterVideoTab({ title = '', videoList = [], pageKey }) {
   const { width } = useWindowDimensions();
   const imageWidth = (width - 40) / 2;
   let imageHeight;
@@ -36,6 +36,7 @@ function MasterVideoTab({ title = '', videoList = [] }) {
           onPress={() =>
             NavigationService.push(navName.masterVideoDetail, {
               videoIdx: item.videoIdx,
+              pageKey: pageKey ? `${Number(pageKey) + 1}` : '1',
             })
           }>
           <ImageBackground

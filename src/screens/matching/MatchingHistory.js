@@ -599,7 +599,7 @@ const styles = {
   date: {
     fontSize: 14,
     fontWeight: 600,
-    color: '#FF671F',
+    color: '#FF7C10',
     lineHeight: 20,
     letterSpacing: 0.203,
     textAlign: 'center',
@@ -663,7 +663,7 @@ const styles = {
     paddingHorizontal: 21.5,
   },
   WriteBtn: {
-    backgroundColor: '#FF671F',
+    backgroundColor: '#FF7C10',
     borderRadius: 10,
     paddingHorizontal: 28,
     paddingVertical: 12,
@@ -709,7 +709,7 @@ const styles = {
     textAlign: 'center',
   },
   joinBtn: {
-    backgroundColor: '#FF671F',
+    backgroundColor: '#FF7C10',
     borderRadius: 8,
     paddingHorizontal: 20,
     paddingVertical: 9,

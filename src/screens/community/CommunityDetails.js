@@ -10,11 +10,11 @@ import React, {
 } from 'react';
 import {
   Dimensions,
+  FlatList,
   Image,
   Keyboard,
   Modal,
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -46,7 +46,7 @@ import Avatar from '../../components/Avatar';
 import DismissKeyboard from '../../components/DismissKeyboard';
 import Divider from '../../components/Divider';
 import SPHeader from '../../components/SPHeader';
-import Loading from '../../components/SPLoading';
+import SPLoading from '../../components/SPLoading';
 import SPMoreModal, {
   MODAL_MORE_BUTTONS,
   MODAL_MORE_TYPE,
@@ -64,6 +64,7 @@ import { communityCommentListAction } from '../../redux/reducers/list/communityC
 import { store } from '../../redux/store';
 import { navName } from '../../common/constants/navName';
 import { moreCommunityListAction } from '../../redux/reducers/list/moreCommunityListSlice';
+import ListEmptyView from '../../components/ListEmptyView';
 
 function CommunityDetails({
   route,
@@ -86,8 +87,7 @@ function CommunityDetails({
   // --------------------------------------------------
   const noParamReset = route?.params?.noParamReset;
   const action = communityCommentListAction;
-  const scrollRef = useRef();
-  const targetRef = useRef();
+  const flatListRef = useRef();
   const insets = useSafeAreaInsets();
 
   const isLogin = useSelector(selector => selector.auth)?.isLogin;
@@ -101,6 +101,7 @@ function CommunityDetails({
   // list
   const [size, setSize] = useState(30);
   const [isFocus, setIsFocus] = useState(true);
+  const [listCall, setListCall] = useState(false);
 
   // modal
   const [modalVisible, setModalVisible] = useState(false);
@@ -218,6 +219,7 @@ function CommunityDetails({
     setIsFocus(false);
     dispatch(action.setRefreshing(false));
     dispatch(action.setLoading(false));
+    setListCall(true);
   };
 
   const changeLike = async () => {
@@ -251,6 +253,7 @@ function CommunityDetails({
     );
   };
 
+  const [commentRegist, setCommentRegist] = useState(false);
   const registComment = async () => {
     setComment('');
     if (trlRef.current.disabled) return;
@@ -279,10 +282,7 @@ function CommunityDetails({
         }),
       );
       dispatch(action.refresh());
-
-      setTimeout(() => {
-        handleScrollToElement();
-      }, 0);
+      setCommentRegist(true);
     } catch (error) {
       handleError(error);
     }
@@ -354,14 +354,6 @@ function CommunityDetails({
 
     if (isScrolledToBottom) {
       loadMoreProjects();
-    }
-  };
-
-  const handleScrollToElement = () => {
-    if (targetRef.current) {
-      targetRef.current.measure((x, y, width, height, pageX, pageY) => {
-        scrollRef.current.scrollTo({ x: 0, y: pageY - 60, animated: false });
-      });
     }
   };
 
@@ -479,53 +471,6 @@ function CommunityDetails({
     );
   }, [feedDetail]);
 
-  const renderFeed = useMemo(() => {
-    return (
-      <View style={styles.feedSection}>
-        <View style={styles.userInfoSection}>
-          <Avatar
-            disableEditMode
-            imageSize={40}
-            imageURL={feedDetail.profilePath}
-          />
-          <View style={{ rowGap: 2 }}>
-            <Text style={styles.nameText}>{feedDetail?.userNickname}</Text>
-            <Text style={styles.dateText}>
-              {Utils.formatTimeAgo(feedDetail?.regDate)}
-            </Text>
-          </View>
-        </View>
-
-        <Text style={styles.contentText}>{feedDetail?.contents}</Text>
-
-        {feedDetail?.files?.length > 0 && renderImages}
-
-        <View style={styles.hashtagContainer}>
-          {feedDetail?.tagsKo?.length > 0 &&
-            feedDetail?.tagsKo.map((item, index) => (
-              // eslint-disable-next-line react/no-array-index-key
-              <View style={styles.hashtagWrapper} key={index}>
-                <Text style={styles.hashtagText}>#{item}</Text>
-              </View>
-            ))}
-        </View>
-        <View style={styles.likeWrapper}>
-          <TouchableOpacity
-            onPress={() => {
-              changeLike();
-            }}>
-            {feedDetail?.isLike ? (
-              <SPSvgs.HeartFill width={20} height={20} />
-            ) : (
-              <SPSvgs.HeartOutline width={20} height={20} />
-            )}
-          </TouchableOpacity>
-          <Text style={styles.reactCountText}>{feedDetail?.cntLike}</Text>
-        </View>
-      </View>
-    );
-  }, [feedDetail]);
-
   const renderComments = useMemo(() => {
     return (
       <View style={styles.reviewSection}>
@@ -545,63 +490,65 @@ function CommunityDetails({
             댓글 {feedDetail?.cntComment}
           </Text>
         </View>
-
-        <View ref={targetRef} style={styles.replyContainer}>
-          {commentList && commentList.length > 0 ? (
-            commentList.map((item, index) => {
-              return (
-                <View style={{ rowGap: 8 }} key={index}>
-                  <View
-                    style={[
-                      styles.userInfoSection,
-                      {
-                        marginHorizontal: 0,
-                        paddingVertical: 4,
-                      },
-                    ]}>
-                    <Avatar
-                      disableEditMode
-                      imageSize={40}
-                      imageURL={item.profilePath}
-                    />
-                    <View style={{ flex: 1 }}>
-                      <Text style={styles.nameText}>{item?.userNickname}</Text>
-                      <Text style={styles.dateText}>
-                        {Utils.formatTimeAgo(item?.regDate)}
-                      </Text>
-                    </View>
-                    <Pressable
-                      hitSlop={12}
-                      onPress={() => {
-                        openCommentModal(item);
-                      }}>
-                      <SPSvgs.EllipsesVertical />
-                    </Pressable>
-                  </View>
-                  <Text style={styles.commentText}>{item?.comment}</Text>
-                </View>
-              );
-            })
-          ) : loading ? (
-            <Loading />
-          ) : (
-            <View
-              style={[
-                styles.replyBox,
-                { justifyContent: 'center', alignItems: 'center' },
-              ]}>
-              <Text style={styles.noneText}>댓글이 없습니다.</Text>
-            </View>
-          )}
-        </View>
       </View>
     );
   }, [commentList, loading]);
 
+  const renderFeed = useMemo(() => {
+    return (
+      <View>
+        <View style={styles.feedSection}>
+          <View style={styles.userInfoSection}>
+            <Avatar
+              disableEditMode
+              imageSize={40}
+              imageURL={feedDetail.profilePath}
+            />
+            <View style={{ rowGap: 2 }}>
+              <Text style={styles.nameText}>{feedDetail?.userNickname}</Text>
+              <Text style={styles.dateText}>
+                {Utils.formatTimeAgo(feedDetail?.regDate)}
+              </Text>
+            </View>
+          </View>
+
+          <Text style={styles.contentText}>{feedDetail?.contents}</Text>
+
+          {feedDetail?.files?.length > 0 && renderImages}
+
+          <View style={styles.hashtagContainer}>
+            {feedDetail?.tagsKo?.length > 0 &&
+              feedDetail?.tagsKo.map((item, index) => (
+                // eslint-disable-next-line react/no-array-index-key
+                <View style={styles.hashtagWrapper} key={index}>
+                  <Text style={styles.hashtagText}>#{item}</Text>
+                </View>
+              ))}
+          </View>
+          <View style={styles.likeWrapper}>
+            <TouchableOpacity
+              onPress={() => {
+                changeLike();
+              }}>
+              {feedDetail?.isLike ? (
+                <SPSvgs.HeartFill width={20} height={20} />
+              ) : (
+                <SPSvgs.HeartOutline width={20} height={20} />
+              )}
+            </TouchableOpacity>
+            <Text style={styles.reactCountText}>{feedDetail?.cntLike}</Text>
+          </View>
+        </View>
+        <Divider />
+        {renderComments}
+      </View>
+    );
+  }, [feedDetail]);
+
   const renderCommentInputSection = useMemo(() => {
     // 댓글창 부분
     return (
-      <View>
+      <TouchableOpacity activeOpacity={1} onPress={e => e.stopPropagation()}>
         <Divider />
         <View style={styles.inputSection}>
           <Avatar
@@ -649,7 +596,7 @@ function CommunityDetails({
             </View>
           </View>
         </View>
-      </View>
+      </TouchableOpacity>
     );
   }, [userInfo, comment]);
 
@@ -663,16 +610,90 @@ function CommunityDetails({
           keyboardVerticalOffset={0}
           style={styles.container}>
           {renderHeader}
-          <ScrollView
-            showsVerticalScrollIndicator={false}
-            ref={scrollRef}
-            onScroll={handleScroll}
-            scrollEventThrottle={16}>
-            {renderFeed}
-            <Divider />
-            {renderComments}
-          </ScrollView>
-          {renderCommentInputSection}
+          {listCall ? (
+            <View style={{ flex: 1 }}>
+              <FlatList
+                key={loading ? 'loading' : 'loaded'}
+                ref={flatListRef}
+                data={commentList}
+                style={{ flex: 1 }}
+                showsVerticalScrollIndicator={false}
+                onContentSizeChange={() => {
+                  if (page === 1 && commentRegist && commentList.length > 0) {
+                    flatListRef.current.scrollToIndex({
+                      animated: false,
+                      index: 0,
+                    });
+                    setCommentRegist(false);
+                  }
+                }}
+                renderItem={({ item }) => {
+                  return (
+                    <View
+                      style={{
+                        rowGap: 8,
+                        paddingHorizontal: 16,
+                        paddingBottom: 24,
+                      }}>
+                      <View
+                        style={[
+                          styles.userInfoSection,
+                          {
+                            marginHorizontal: 0,
+                            paddingVertical: 4,
+                          },
+                        ]}>
+                        <Avatar
+                          disableEditMode
+                          imageSize={40}
+                          imageURL={item.profilePath}
+                        />
+                        <View style={{ flex: 1 }}>
+                          <Text style={styles.nameText}>
+                            {item?.userNickname}
+                          </Text>
+                          <Text style={styles.dateText}>
+                            {Utils.formatTimeAgo(item?.regDate)}
+                          </Text>
+                        </View>
+                        <Pressable
+                          hitSlop={12}
+                          onPress={() => {
+                            openCommentModal(item);
+                          }}>
+                          <SPSvgs.EllipsesVertical />
+                        </Pressable>
+                      </View>
+                      <Text style={[styles.commentText]}>{item?.comment}</Text>
+                    </View>
+                  );
+                }}
+                ListHeaderComponent={renderFeed}
+                onEndReached={loadMoreProjects}
+                onEndReachedThreshold={0.5}
+                ListEmptyComponent={
+                  !loading ? (
+                    <View
+                      style={{
+                        flex: 1,
+                      }}>
+                      <ListEmptyView text="댓글이 없습니다." />
+                    </View>
+                  ) : (
+                    <View
+                      style={{
+                        flex: 1,
+                      }}>
+                      <SPLoading />
+                    </View>
+                  )
+                }
+              />
+              {renderCommentInputSection}
+            </View>
+          ) : (
+            <SPLoading />
+          )}
         </SPKeyboardAvoidingView>
       </SafeAreaView>
       {/* 더보기 모달 :: 게시글 */}
@@ -898,7 +919,8 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   reviewSection: {
-    paddingVertical: 24,
+    paddingTop: 24,
+    paddingBottom: 16,
     paddingHorizontal: 16,
     rowGap: 16,
   },

@@ -8,23 +8,18 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { BottomSheetTextInput } from '@gorhom/bottom-sheet';
-import { COLORS } from '../../../styles/colors';
 import fontStyles from '../../../styles/fontStyles';
 import Avatar from '../../Avatar';
 import SPIcons from '../../../assets/icon';
 import Utils from '../../../utils/Utils';
-import { IS_IOS } from '../../../common/constants/constants';
-import SPKeyboardAvoidingView from '../../SPKeyboardAvoidingView';
-import DismissKeyboard from '../../DismissKeyboard';
 
-function CommentInputSection({ onChangeText, onSubmit, userInfo }) {
+function CommentInputSection({ onChangeText, onSubmit, userInfo, maxLength }) {
   const inputRef = useRef();
   const [comment, setComment] = useState('');
 
   const handleTextChange = useCallback(
     text => {
-      if (text.length <= 1000) {
+      if (text.length <= maxLength) {
         setComment(text);
         onChangeText(text); // 상위 컴포넌트로 텍스트 전달
       }
@@ -48,7 +43,7 @@ function CommentInputSection({ onChangeText, onSubmit, userInfo }) {
         imageURL={userInfo?.userProfilePath}
         imageSize={24}
       />
-      <BottomSheetTextInput
+      <TextInput
         ref={inputRef}
         style={styles.textInput}
         value={comment}

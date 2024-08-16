@@ -241,7 +241,7 @@ const styles = {
     letterSpacing: 0.091,
   },
   subBtn: {
-    backgroundColor: '#FF671F',
+    backgroundColor: '#FF7C10',
     borderRadius: 10,
     paddingHorizontal: 28,
     paddingVertical: 12,

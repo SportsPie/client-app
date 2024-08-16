@@ -23,7 +23,7 @@ function StampBoost(props) {
           x2={16.5}
           y2={7}
           gradientUnits="userSpaceOnUse">
-          <Stop stopColor="#FF671F" />
+          <Stop stopColor="#FF7C10" />
           <Stop offset={1} stopColor="#FF854C" />
         </LinearGradient>
       </Defs>

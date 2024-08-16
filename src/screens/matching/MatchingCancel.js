@@ -276,9 +276,9 @@ const styles = {
   },
   confirmButton: {
     flex: 1,
-    backgroundColor: '#FF671F',
+    backgroundColor: '#FF7C10',
     borderWidth: 1,
-    borderColor: '#FF671F',
+    borderColor: '#FF7C10',
     borderRadius: 8,
     paddingHorizontal: 20,
     paddingVertical: 12,
@@ -306,7 +306,7 @@ const styles = {
   },
   appealBtn: {
     flex: 1,
-    backgroundColor: '#FF671F',
+    backgroundColor: '#FF7C10',
     borderRadius: 10,
     paddingHorizontal: 28,
     paddingVertical: 12,

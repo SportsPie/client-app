@@ -1,9 +1,7 @@
 import moment from 'moment';
 import React, { memo, useCallback, useMemo, useRef, useState } from 'react';
 import {
-  Image,
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
   useWindowDimensions,
@@ -135,33 +133,38 @@ function MoreArticleDetail({ route }) {
             }
           : {})}
       />
-
-      <View
-        style={styles.container}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.container}>
-        <View style={{ rowGap: 8 }}>
-          <Text style={fontStyles.fontSize24_Bold}>{articleDetail?.title}</Text>
-          <Text
-            style={[
-              fontStyles.fontSize12_Medium,
-              {
-                color: COLORS.labelNeutral,
-              },
-            ]}>
-            {moment(articleDetail?.regDate).format('YYYY-MM-DD')}
-          </Text>
-        </View>
-        <WebView
-          source={{
-            html: mainContents,
-          }}
-          style={{
-            flex: 1,
-          }}
-          textZoom={200}
-        />
-      </View>
+      {articleDetail &&
+        Object.keys(articleDetail)?.length > 0 &&
+        mainContents && (
+          <View
+            style={styles.container}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.container}>
+            <View style={{ rowGap: 8 }}>
+              <Text style={fontStyles.fontSize24_Bold}>
+                {articleDetail?.title}
+              </Text>
+              <Text
+                style={[
+                  fontStyles.fontSize12_Medium,
+                  {
+                    color: COLORS.labelNeutral,
+                  },
+                ]}>
+                {moment(articleDetail?.regDate).format('YYYY-MM-DD')}
+              </Text>
+            </View>
+            <WebView
+              source={{
+                html: mainContents,
+              }}
+              style={{
+                flex: 1,
+              }}
+              textZoom={200}
+            />
+          </View>
+        )}
     </SafeAreaView>
   );
 }

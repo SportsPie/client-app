@@ -434,7 +434,7 @@ const styles = StyleSheet.create({
   chatCount: {
     width: 10,
     height: 10,
-    backgroundColor: '#FF671F',
+    backgroundColor: '#FF7C10',
     borderRadius: 5,
   },
   noneChatText: {

@@ -155,7 +155,7 @@ const styles = {
     paddingTop: 4,
   },
   mainBtn: {
-    backgroundColor: '#FF671F',
+    backgroundColor: '#FF7C10',
     borderRadius: 10,
     paddingHorizontal: 28,
     paddingVertical: 12,

@@ -1,5 +1,5 @@
 /* eslint-disable react/no-unstable-nested-components */
-import React, { memo, useEffect, useRef, useState } from 'react';
+import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Pressable,
@@ -16,6 +16,7 @@ import { apiGetMasterVideoCommentList } from '../../../api/RestAPI';
 import { handleError } from '../../../utils/HandleError';
 import { format } from 'date-fns';
 import { RefreshControl } from 'react-native-gesture-handler';
+import { useFocusEffect } from '@react-navigation/native';
 
 // 상수값
 const PAGE_SIZE = 20; // 페이지 사이즈
@@ -52,6 +53,16 @@ function MasterLastComment({ videoIdx = '' }) {
     }, 500);
   };
 
+  const commentModify = (idx, item) => {
+    const modifiedComment = commentList.find(v => v.commentIdx === idx);
+    if (modifiedComment) {
+      const obj = { ...modifiedComment, ...item };
+      const index = commentList.findIndex(v => v.commentIdx === obj.commentIdx);
+      commentList[index] = obj;
+    }
+    setCommentList(prev => [...prev]);
+  };
+
   // [ api ] 트레이닝 마스터 영상 댓글 리스트 조회
   const getMasterVideoCommentList = async () => {
     try {
@@ -81,11 +92,16 @@ function MasterLastComment({ videoIdx = '' }) {
   };
 
   // [ useEffect ]
-  useEffect(() => {
-    if (videoIdx) {
-      setPage(prev => (typeof prev === 'string' ? 1 : '1'));
-    }
-  }, [videoIdx]);
+  useFocusEffect(
+    useCallback(() => {
+      if (videoIdx) {
+        setPage(prev => (typeof prev === 'string' ? 1 : '1'));
+      }
+      return () => {
+        setPage(prev => (typeof prev === 'string' ? 1 : '1'));
+      };
+    }, [videoIdx]),
+  );
 
   useEffect(() => {
     if (page) {
@@ -133,6 +149,7 @@ function MasterLastComment({ videoIdx = '' }) {
         videoIdx={videoIdx}
         commentList={commentList}
         onSubmit={onRefresh}
+        onModify={commentModify}
         onEndReached={getNextPage}
         ListFooterComponent={
           loading

@@ -33,6 +33,7 @@ import Settings from './Settings';
 import Share from './Share';
 import SocialToken from './SocialToken';
 import SportPieLogo from './SportPieLogo';
+import SportsPieLogo from './SportsPieLogo';
 import Stamp from './Stamp';
 import StampBoost from './StampBoost';
 import Swap from './Swap';
@@ -77,14 +78,25 @@ import BottomTabTrainingOutline from './bottom-tab/BottomTabTrainingOutline';
 import BottomTabTraining from './bottom-tab/BottomTabTraining';
 import InputClose from './InputClose';
 import LargeLogoWithText from './LargeLogoWithText';
+import LargeLogo from './LargeLogo';
 import ReportFeed from './ReportFeed';
 import ReportUser from './ReportUser';
 import ChevronRight from './ChevronRight';
 import PieTraining from './PieTraining';
 import Bookmarks from './Bookmarks';
 import BookmarksOutline from './BookmarksOutline';
+import AcademySoccer from './AcademySoccer';
+import AcademyCommunity from './AcademyCommunity';
+import AcademyScourt from './AcademyScourt';
+import AcademyReview from './AcademyReview';
+import AcademyNoti from './AcademyNoti';
+import AcademySchedule from './AcademySchedule';
+import AcademyPlayer from './AcademyPlayer';
+import Gender from './Gender';
+import ClassRoom from './ClassRoom';
 
 export class SPSvgs {
+  static SportsPieLogo = SportsPieLogo;
   static SportPieLogo = SportPieLogo;
   static KakaoTalk = KakaoTalk;
   static Google = Google;
@@ -152,12 +164,22 @@ export class SPSvgs {
   static Upgrade = Upgrade;
   static InputClose = InputClose;
   static LargeLogoWithText = LargeLogoWithText;
+  static LargeLogo = LargeLogo;
   static ReportFeed = ReportFeed;
   static ReportUser = ReportUser;
   static ChevronRight = ChevronRight;
   static PieTraining = PieTraining;
   static Bookmarks = Bookmarks;
   static BookmarksOutline = BookmarksOutline;
+  static AcademySoccer = AcademySoccer;
+  static AcademyCommunity = AcademyCommunity;
+  static AcademyScourt = AcademyScourt;
+  static AcademyReview = AcademyReview;
+  static AcademyNoti = AcademyNoti;
+  static AcademySchedule = AcademySchedule;
+  static AcademyPlayer = AcademyPlayer;
+  static Gender = Gender;
+  static ClassRoom = ClassRoom;
 
   //Bottom tab
   static BottomTabHomeOutline = BottomTabHomeOutline;

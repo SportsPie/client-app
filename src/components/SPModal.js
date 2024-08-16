@@ -186,8 +186,8 @@ function SPModal({
                 style={[
                   styles.confirmButton,
                   {
-                    backgroundColor: isConfirmDisabled ? '#E3E2E1' : '#FF671F',
-                    borderColor: isConfirmDisabled ? '#E3E2E1' : '#FF671F',
+                    backgroundColor: isConfirmDisabled ? '#E3E2E1' : '#FF7C10',
+                    borderColor: isConfirmDisabled ? '#E3E2E1' : '#FF7C10',
                   },
                 ]}>
                 <Text

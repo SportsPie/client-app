@@ -379,7 +379,7 @@ function AcademyRecruitmentForAdmin({ route }) {
             <View style={styles.joinList}>
               <View style={styles.joinListTop}>
                 <Text style={styles.joinListTitle}>가입 신청 리스트</Text>
-                <Text style={[styles.joinListTitle, { color: '#FF671F' }]}>
+                <Text style={[styles.joinListTitle, { color: '#FF7C10' }]}>
                   {waitList?.length}
                 </Text>
               </View>
@@ -539,7 +539,7 @@ const styles = {
     paddingVertical: 16,
   },
   recruitmentGender: {
-    backgroundColor: 'rgba(49, 55, 121, 0.08)',
+    backgroundColor: 'rgba(0, 38, 114, 0.10)',
     borderRadius: 4,
     paddingHorizontal: 4,
     paddingVertical: 3,
@@ -547,7 +547,7 @@ const styles = {
   recruitmentGenderText: {
     fontSize: 11,
     fontWeight: 600,
-    color: '#313779',
+    color: '#002672',
     lineHeight: 14,
     letterSpacing: 0.342,
   },
@@ -601,7 +601,7 @@ const styles = {
     borderBottomColor: '#FB8225',
   },
   activeTabText: {
-    color: '#FF671F',
+    color: '#FF7C10',
   },
   joinList: {
     flex: 1,
@@ -684,7 +684,7 @@ const styles = {
     letterSpacing: 0.342,
   },
   joinDeadlineBtn: {
-    backgroundColor: '#FF671F',
+    backgroundColor: '#FF7C10',
     borderRadius: 10,
     paddingHorizontal: 28,
     paddingVertical: 12,
@@ -723,7 +723,7 @@ const styles = {
   subApprovalBtn: {
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#FF671F',
+    backgroundColor: '#FF7C10',
     height: 32,
     borderRadius: 6,
     paddingHorizontal: 14,
@@ -757,7 +757,7 @@ const styles = {
   },
   recruitingBox: {
     borderWidth: 1,
-    backgroundColor: 'rgba(255, 103, 31, 0.08)',
+    backgroundColor: 'rgba(255, 124, 16, 0.15)',
     borderColor: 'transparent',
     borderRadius: 4,
     paddingHorizontal: 4,
@@ -765,6 +765,6 @@ const styles = {
   },
   recruitingText: {
     ...fontStyles.fontSize11_Semibold,
-    color: '#FF671F',
+    color: '#FF7C10',
   },
 };

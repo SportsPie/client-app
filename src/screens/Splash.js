@@ -7,7 +7,7 @@ import { COLORS } from '../styles/colors';
 function Splash() {
   return (
     <View style={styles.container}>
-      <SPSvgs.LargeLogoWithText />
+      <SPSvgs.LargeLogo />
     </View>
   );
 }

@@ -469,7 +469,7 @@ function AcademyRegist() {
                         height: 18,
                         bottom: 0,
                         right: 0,
-                        backgroundColor: '#FF671F',
+                        backgroundColor: '#FF7C10',
                         borderRadius: 18,
                         justifyContent: 'center',
                         alignItems: 'center',
@@ -740,10 +740,10 @@ function AcademyRegist() {
                               styles.classTypeBtn,
                               {
                                 backgroundColor: selectedClassType?.[item.value]
-                                  ? '#FF671F'
+                                  ? '#FF7C10'
                                   : 'rgba(135, 141, 150, 0.16)',
                                 borderColor: selectedClassType?.[item.value]
-                                  ? '#FF671F'
+                                  ? '#FF7C10'
                                   : 'rgba(135, 141, 150, 0.16)',
                               },
                             ]}>
@@ -806,10 +806,10 @@ function AcademyRegist() {
                                 backgroundColor: selectedTeachingType?.[
                                   item.value
                                 ]
-                                  ? '#FF671F'
+                                  ? '#FF7C10'
                                   : 'rgba(135, 141, 150, 0.16)',
                                 borderColor: selectedTeachingType?.[item.value]
-                                  ? '#FF671F'
+                                  ? '#FF7C10'
                                   : 'rgba(135, 141, 150, 0.16)',
                               },
                             ]}>
@@ -872,10 +872,10 @@ function AcademyRegist() {
                                 backgroundColor: selectedServiceType?.[
                                   item.value
                                 ]
-                                  ? '#FF671F'
+                                  ? '#FF7C10'
                                   : 'rgba(135, 141, 150, 0.16)',
                                 borderColor: selectedServiceType?.[item.value]
-                                  ? '#FF671F'
+                                  ? '#FF7C10'
                                   : 'rgba(135, 141, 150, 0.16)',
                               },
                             ]}>
@@ -974,7 +974,7 @@ function AcademyRegist() {
                 height: 48,
                 paddingVertical: 12,
                 paddingHorizontal: 28,
-                backgroundColor: '#FF671F',
+                backgroundColor: '#FF7C10',
                 justifyContent: 'center',
                 alignItems: 'center',
                 borderRadius: 10,
@@ -1090,7 +1090,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 8,
-    backgroundColor: '#FF671F',
+    backgroundColor: '#FF7C10',
   },
   imageTitleText: {
     fontSize: 11,

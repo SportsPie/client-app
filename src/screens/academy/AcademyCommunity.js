@@ -1,12 +1,11 @@
 /* eslint-disable react/no-unstable-nested-components */
-import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
+import React, { memo, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Dimensions,
   FlatList,
   Image,
   Modal,
-  Platform,
   Pressable,
   RefreshControl,
   Text,
@@ -16,7 +15,6 @@ import {
 } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import Carousel from 'react-native-snap-carousel';
-import { useFocusEffect } from '@react-navigation/native';
 import SPMoreModal, {
   MODAL_MORE_BUTTONS,
   MODAL_MORE_TYPE,
@@ -44,10 +42,11 @@ import {
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
 import Header from '../../components/header';
-import { communityCommentListAction } from '../../redux/reducers/list/communityCommentListSlice';
 import { academyCommunityListAction } from '../../redux/reducers/list/academyCommunityListSlice';
 import { store } from '../../redux/store';
-import { academyRecruitmentListAction } from '../../redux/reducers/list/academyRecruitmentListSlice';
+import { COLORS } from '../../styles/colors';
+import { SPSvgs } from '../../assets/svg';
+import { SCREEN_WIDTH } from '@gorhom/bottom-sheet';
 
 // 커뮤니티 이미지 슬라이드
 function CarouselSection({ challengeData, openImageModal, setSelectedImage }) {
@@ -69,21 +68,27 @@ function CarouselSection({ challengeData, openImageModal, setSelectedImage }) {
           styles.subBackgroundImage,
           { height: dynamicHeight },
         ]}
+        resizeMethod="resize"
+        resizeMode="cover"
       />
     </Pressable>
   );
   return (
     <Carousel
-      sliderWidth={screenWidth}
-      itemWidth={screenWidth - 52}
+      // sliderWidth={screenWidth}
+      // itemWidth={screenWidth - (challengeData?.length > 1 ? 52 : 52 / 2)}
+      sliderWidth={SCREEN_WIDTH}
+      itemWidth={SCREEN_WIDTH - 16 - 8}
       data={challengeData}
       renderItem={renderItem}
       activeSlideAlignment="start"
       inactiveSlideScale={1}
       inactiveSlideOpacity={0.7}
-      contentContainerStyle={{ paddingHorizontal: 16 }}
+      // contentContainerStyle={{ paddingHorizontal: 16 }}
       slideStyle={{ paddingRight: 8 }}
+      enableMomentum={true}
       vertical={false} // 수직 슬라이드 비활성화
+      decelerationRate="fast"
     />
   );
 }
@@ -256,7 +261,7 @@ function AcademyCommunity({ route }) {
     // eslint-disable-next-line no-param-reassign
     item.isLike = !item.isLike;
     dispatch(
-      academyRecruitmentListAction.modifyItem({
+      action.modifyItem({
         idxName: 'feedIdx',
         idx: item.feedIdx,
         item,
@@ -513,7 +518,8 @@ function AcademyCommunity({ route }) {
                                 onPress={() => {
                                   openModal(item);
                                 }}>
-                                <Image source={SPIcons.icOptionsVertical} />
+                                {/* <Image source={SPIcons.icOptionsVertical} /> */}
+                                <SPSvgs.EllipsesVertical />
                               </Pressable>
                             )
                           : showOptionButton && (
@@ -545,7 +551,7 @@ function AcademyCommunity({ route }) {
                     </Pressable>
                     {/* 이미지 슬라이드 */}
                     {item.files && item.files.length > 0 && (
-                      <View style={{ overflow: 'hidden' }}>
+                      <View>
                         <CarouselSection
                           challengeData={item.files}
                           openImageModal={openImageModal}
@@ -754,8 +760,7 @@ const styles = {
   },
   image: {
     width: '100%',
-    height: '100%',
-    resizeMode: 'cover',
+    borderRadius: 12,
   },
   buttonBox: {
     flexDirection: 'row',
@@ -781,7 +786,7 @@ const styles = {
     letterSpacing: 0.252,
   },
   activeButton: {
-    backgroundColor: '#FF671F',
+    backgroundColor: '#FF7C10',
   },
   activeButtonText: {
     color: '#FFF',
@@ -847,7 +852,7 @@ const styles = {
     gap: 8,
   },
   communityTag: {
-    backgroundColor: '#D6D7E4',
+    backgroundColor: '#E6E9F1',
     borderRadius: 16,
     paddingHorizontal: 4,
     paddingVertical: 2,
@@ -855,7 +860,7 @@ const styles = {
   communityTagText: {
     fontSize: 12,
     fontWeight: 500,
-    color: '#313779',
+    color: '#002672',
     lineHeight: 16,
   },
   communityText: {
@@ -888,26 +893,40 @@ const styles = {
     lineHeight: 16,
     letterSpacing: 0.302,
   },
+  // wrtieBtn: {
+  //   position: 'absolute',
+  //   right: 16,
+  //   bottom: 16,
+  //   backgroundColor: 'white', // 배경색 지정
+  //   borderRadius: 50,
+  //   ...Platform.select({
+  //     ios: {
+  //       shadowColor: '#000',
+  //       shadowOffset: { width: 0, height: 2 },
+  //       shadowOpacity: 0.3,
+  //       shadowRadius: 4,
+  //     },
+  //     android: {
+  //       elevation: 4,
+  //     },
+  //   }),
+  // },
   wrtieBtn: {
     position: 'absolute',
-    right: 16,
+    zIndex: 999,
     bottom: 16,
-    backgroundColor: 'white', // 배경색 지정
-    borderRadius: 50,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.3,
-        shadowRadius: 4,
-      },
-      android: {
-        elevation: 4,
-      },
-    }),
+    right: 16,
+    shadowColor: COLORS.black,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   applyBtn: {
-    backgroundColor: '#FF671F',
+    backgroundColor: '#FF7C10',
     borderRadius: 10,
     paddingHorizontal: 28,
     paddingVertical: 12,

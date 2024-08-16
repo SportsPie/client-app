@@ -270,7 +270,7 @@ function MatchingSelectScorer({ route }) {
             <Text style={styles.contentTitle}>
               {item.title === 'unspecified' ? '미지정' : item.title}
             </Text>
-            <Text style={[styles.contentTitle, { color: '#FF671F' }]}>
+            <Text style={[styles.contentTitle, { color: '#FF7C10' }]}>
               {item.data.length}
             </Text>
           </View>
@@ -604,7 +604,7 @@ const styles = {
   },
   numberBox: {
     minWidth: 16,
-    backgroundColor: '#5A5F94',
+    backgroundColor: '#546EA1',
     borderRadius: 5,
     paddingHorizontal: 2,
     paddingVertical: 1,
@@ -683,7 +683,7 @@ const styles = {
     textAlign: 'center',
   },
   enabledClearBtn: {
-    backgroundColor: '#FF671F',
+    backgroundColor: '#FF7C10',
   },
   disabledClearBtn: {
     backgroundColor: '#E3E2E1',
@@ -728,7 +728,7 @@ const styles = {
   },
   addNumberBox: {
     minWidth: 16,
-    backgroundColor: '#5A5F94',
+    backgroundColor: '#546EA1',
     borderRadius: 5,
     paddingHorizontal: 2,
     paddingVertical: 1,

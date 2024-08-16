@@ -1,5 +1,20 @@
-import React, { memo, useCallback, useRef, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import React, {
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import {
+  FlatList,
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import { PrimaryButton } from '../../components/PrimaryButton';
 import Header from '../../components/header';
 import ChallengeLastComment from '../../components/training/challenge-detail/ChallengeLastComment';
@@ -24,69 +39,59 @@ import { SPSvgs } from '../../assets/svg';
 import SPSingleVideo from '../../components/SPSingleVideo';
 import { useFocusEffect } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { moreChallengeVideoListAction } from '../../redux/reducers/list/moreChallengeVideoListSlice';
+import { challengeListAction } from '../../redux/reducers/list/challengeListSlice';
+import { store } from '../../redux/store';
+import { challengeDetailAction } from '../../redux/reducers/list/challengeDetailSlice';
+import Utils from '../../utils/Utils';
+import ChallengeContentItem from '../../components/training/challenge-detail/ChallengeContentItem';
+import ListEmptyView from '../../components/ListEmptyView';
 
 // 챌린지 영상 상세
 export function ChallengeDetail({ route }) {
   const dispatch = useDispatch();
+  const flatListRef = useRef();
+  const trlRef = useRef({ current: { disabled: false } });
   // 페이지 파라미터 > 접근 제한
   const { videoIdx } = route?.params || { videoIdx: '' };
   if (!videoIdx) {
     handleError(new AccessDeniedException('잘못된 접근입니다.'));
   }
+  const noParamReset = route?.params?.noParamReset;
+  const pageKey = route?.params?.pageKey ? `${route?.params?.pageKey}` : '1';
+  const fromMorePage = route?.params?.fromMorePage;
 
-  // [ ref ]
-  const scrollRef = useRef();
+  const listName = 'challengeDetail';
+  let pageState = useSelector(selector => selector[listName]);
+  pageState = pageState?.data?.[pageKey] || {};
+  const {
+    page: challengePage,
+    isLast,
+    list: challengeList,
+    refreshing,
+    loading: videoLoading,
+    pagingKey: videoPagingKey,
+  } = pageState;
+  const challengeDetail = pageState?.challengeDetail || {};
+
+  const action = challengeDetailAction;
 
   // [ state ]
-  const [loading, setLoading] = useState(false); // 데이터 로딩
+  const [loading, setLoading] = useState(true); // 데이터 로딩
   const [isScrollable, setIsScrollable] = useState(true); // 스크롤 동작
-  const [videoDetail, setVideoDetail] = useState({
-    videoIdx: '',
-    title: '',
-    contents: '',
-    thumbPath: '',
-    videoPath: '',
-    videoTime: '',
-    videoGroupIdx: '',
-    videoGroupName: '',
-    cntComment: 0,
-    cntLike: 0,
-    cntView: 0,
-    confirmYn: null,
-    isLike: false,
-    isMine: false,
-    memberIdx: '',
-    memberName: '',
-    profilePath: '',
-    parentVideoIdx: '',
-    regDate: '',
-  }); // 챌린지 영상 상세
-
-  // [ state ] 동영상 플레이어
-  const [isVideoLoading, setIsVideoLoading] = useState(true);
 
   // [ state ] 모달
   const [showSelectModal, setShowSelectModal] = useState(false); // 동영상 첨부 모달
   const [showVideoMoreModal, setShowVideoMoreModal] = useState(false); // 영상 더보기 모달 Display
+  const [videoLoaded, setVideoLoaded] = useState(false);
 
-  // [ state ]
-  const [challengeList, setChallengeList] = useState([]); // 챌린지 영상 리스트
-  const [challengePage, setChallengePage] = useState({
-    page: '', // 챌린지 페이지
-    key: null, // 챌린지 페이지 Key
-    isLast: false, // 챌린지 페이지 마지막
-  });
-  // const [otherVideoloading, setOtherVideoLoading] = useState(false);
+  const [showVideo, setShowVideo] = useState(false);
+  const [layoutTimer, setLayoutTimer] = useState();
+  const [layoutDone, setLayoutDone] = useState(false);
 
-  // [ state ] 다른 챌리지 리스트 페이징 Key
-  // const [otherChallengePagingKey, setOtherChallengePagingKey] = useState('');
-
-  // [ util ] 다른 챌리지 리스트 페이징 Key
-  // const getOtherChallengeListPagingKey = pagingKey => {
-  //   setOtherChallengePagingKey(pagingKey);
-  // };
+  // 영상 상제
+  const [detailHeight, setDetailHeight] = useState();
 
   // [ util ] 동영상 업로드
   const openVideoSelectModal = () => {
@@ -106,9 +111,9 @@ export function ChallengeDetail({ route }) {
   // [ util ] 챌린지 영상 '릴스' 이동
   const moveToChallengeReels = () => {
     NavigationService.navigate(navName.challengeContentPlayer, {
-      videoIdx: videoDetail.videoIdx,
-      parentIdx: videoDetail.parentVideoIdx,
-      pagingKey: challengePage.key,
+      videoIdx: challengeDetail.videoIdx,
+      parentIdx: challengeDetail.parentVideoIdx,
+      pagingKey: videoPagingKey,
     });
   };
 
@@ -131,19 +136,19 @@ export function ChallengeDetail({ route }) {
       case 'CAMERA':
         NavigationService.navigate(navName.challengeAddDetails, {
           videoURL: fileUrl,
-          videoIdx: videoDetail.videoIdx,
+          videoIdx: challengeDetail.videoIdx,
           videoName,
           videoType,
-          parentIdx: videoDetail.parentVideoIdx || videoDetail.videoIdx,
+          parentIdx: challengeDetail.parentVideoIdx || challengeDetail.videoIdx,
         });
         break;
       case 'ALBUM':
         NavigationService.navigate(navName.challengeVideoPlayer, {
           videoURL: fileUrl,
-          videoIdx: videoDetail.videoIdx,
+          videoIdx: challengeDetail.videoIdx,
           videoName,
           videoType,
-          parentIdx: videoDetail.parentVideoIdx || videoDetail.videoIdx,
+          parentIdx: challengeDetail.parentVideoIdx || challengeDetail.videoIdx,
         });
         break;
       default:
@@ -156,42 +161,51 @@ export function ChallengeDetail({ route }) {
     setShowVideoMoreModal(false);
 
     NavigationService.navigate(navName.challengeEditDetails, {
-      videoIdx: videoDetail.videoIdx,
+      videoIdx: challengeDetail.videoIdx,
     });
   };
 
   // [ util ] 챌린지 페이징
   const loadMoreProjects = () => {
     setTimeout(() => {
-      if (!challengePage.isLast) {
-        setChallengePage(prev => {
-          return {
-            ...prev,
-            page: +prev.page + 1,
-          };
-        });
+      if (!isLast && videoLoaded) {
+        const prevPage = store.getState()[listName]?.data[pageKey]?.page;
+        dispatch(action.setPage({ key: pageKey, data: prevPage + 1 }));
       }
     }, 0);
   };
 
   // [ util ] 동영상 풀 스크린 토글
   const toggleFullScreenMode = value => {
-    scrollRef.current.scrollTo({
-      x: 0,
-      y: 0,
-      animated: false,
-    });
+    // scrollRef.current.scrollTo({
+    //   x: 0,
+    //   y: 0,
+    //   animated: false,
+    // });
     setIsScrollable(value);
   };
 
   // [ api ] 챌린지 영상 '상세'
   const getChallengeDetail = async () => {
     try {
-      setLoading(true);
       const { data } = await apiGetChallengeDetail(videoIdx);
 
       if (data) {
-        setVideoDetail({ ...data.data });
+        dispatch(action.setChallengeDetail({ key: pageKey, data: data.data }));
+        dispatch(
+          action.modifyItem({
+            idxName: 'videoIdx',
+            idx: videoIdx,
+            item: data.data,
+          }),
+        );
+        dispatch(
+          challengeListAction.modifyItem({
+            idxName: 'videoIdx',
+            idx: videoIdx,
+            item: data.data,
+          }),
+        );
         dispatch(
           moreChallengeVideoListAction.modifyItem({
             idxName: 'videoIdx',
@@ -200,132 +214,163 @@ export function ChallengeDetail({ route }) {
           }),
         );
       }
-
-      setLoading(false);
     } catch (error) {
       handleError(error);
-      setLoading(false);
     }
+    setLoading(false);
   };
 
   // [ api ] 챌린지 영상 '삭제'
   const removeChallengeVideo = async () => {
     try {
-      setLoading(true);
+      if (trlRef.current.disabled) return;
+      trlRef.current.disabled = true;
       const { data } = await apiRemoveChallengeVideo(videoIdx);
 
       if (data) {
-        NavigationService.goBack();
+        Utils.openModal({
+          title: '성공',
+          body: '영상을 삭제하였습니다.',
+        });
+        if (!fromMorePage) {
+          NavigationService.navigate(navName.training, {
+            activeTab: '챌린지',
+            paramReset: true,
+          });
+        } else {
+          dispatch(moreChallengeVideoListAction.refresh());
+          NavigationService.goBack();
+        }
       }
-
-      setLoading(false);
     } catch (error) {
       handleError(error);
-      setLoading(false);
     }
+    trlRef.current.disabled = false;
   };
 
   // [ api ] 챌린지 참여 영상 리스트 조회
   const getChallengeVideoList = async () => {
     try {
       const { data } = await apiGetChallengeVideoList({
-        videoIdx: videoDetail.videoIdx,
-        parentIdx: videoDetail.parentVideoIdx
-          ? videoDetail.parentVideoIdx
-          : videoDetail.videoIdx,
-        page: +challengePage.page,
-        pagingKey: challengePage.key,
-        size: 10,
+        videoIdx: challengeDetail.videoIdx,
+        parentIdx: challengeDetail.parentVideoIdx
+          ? challengeDetail.parentVideoIdx
+          : challengeDetail.videoIdx,
+        page: challengePage,
+        pagingKey: videoPagingKey,
+        size: 300,
       });
 
       if (data) {
-        setChallengePage(prev => {
-          return {
-            ...prev,
-            isLast: data.data.isLast,
-          };
-        });
+        dispatch(
+          action.setPagingKey({ key: pageKey, data: data.data.pagingKey }),
+        );
+        dispatch(action.setIsLast({ key: pageKey, data: data.data.isLast }));
 
         // 1 페이지
-        if (+challengePage.page === 1) {
-          setChallengeList([...data.data.list]);
+        if (challengePage === 1) {
+          dispatch(action.setList({ key: pageKey, data: data.data.list }));
         }
         // 2 페이지 이상
         else {
-          setChallengeList([...challengeList, ...data.data.list]);
+          const prevList = store.getState()[listName]?.data[pageKey]?.list;
+          dispatch(
+            action.setList({
+              key: pageKey,
+              data: [...prevList, ...data.data.list],
+            }),
+          );
         }
       }
     } catch (error) {
       handleError(error);
     }
+    dispatch(action.setRefreshing({ key: pageKey, data: false }));
+    dispatch(action.setLoading({ key: pageKey, data: false }));
   };
 
   // [ useEffect ] 챌린지 영상 상세 조회
+  const onFocus = async () => {
+    try {
+      if (!noParamReset) {
+        dispatch(action.reset(pageKey));
+        NavigationService.replace(navName.challengeDetail, {
+          ...(route?.params || {}),
+          pageKey,
+          noParamReset: true,
+        });
+      } else if (videoIdx) {
+        await getChallengeDetail();
+      }
+    } catch (error) {
+      handleError(error);
+    }
+  };
   useFocusEffect(
     useCallback(() => {
-      if (videoIdx) getChallengeDetail();
+      onFocus();
+      // setVideoLoaded(true);
     }, [videoIdx]),
   );
 
-  // [ useEffect ] 챌린지 참여 영상 리스트 조회 ( with. 페이징 난수 Key 생성 )
-  useFocusEffect(
-    useCallback(() => {
-      if (videoDetail.videoIdx) {
-        setChallengePage(prev => {
-          return {
-            ...prev,
-            key: Math.floor(Math.random() * 10000),
-            page: typeof prev.page === 'string' ? 1 : '1',
-          };
-        });
+  const detailVideoIdx = challengeDetail.videoIdx
+    ? Number(challengeDetail.videoIdx)
+    : '';
+  useEffect(() => {
+    if (noParamReset && detailVideoIdx) {
+      dispatch(action.setRefreshing({ key: pageKey, data: true }));
+    }
+  }, [noParamReset, detailVideoIdx]);
+
+  // [ useEffect ] 챌린지 참여 영상 페이징  useEffect(()=>{
+  useEffect(() => {
+    if (noParamReset && detailVideoIdx && videoLoaded) {
+      if (
+        (refreshing && challengePage === 1) ||
+        (!refreshing && challengePage > 1)
+      ) {
+        getChallengeVideoList();
       }
-    }, [videoDetail.videoIdx]),
-  );
+    }
+  }, [challengePage, refreshing, noParamReset, detailVideoIdx, videoLoaded]);
 
-  // [ useEffect ] 챌린지 참여 영상 페이징
-  useFocusEffect(
-    useCallback(() => {
-      if (challengePage.page) getChallengeVideoList();
-    }, [challengePage.page]),
-  );
+  useEffect(() => {
+    if (videoLoaded && layoutDone) {
+      setShowVideo(true);
+    } else {
+      setShowVideo(false);
+    }
+  }, [layoutDone, videoLoaded]);
 
-  // [ return ]
-  return loading ? (
-    <SPLoading />
-  ) : (
-    <SafeAreaView style={styles.container}>
-      {/* 헤더 */}
-      {isScrollable && (
-        <Header
-          title={videoDetail.challengeTitle}
-          rightContent={
-            videoDetail.parentVideoIdx && (
-              <Pressable style={{ padding: 10 }} onPress={openVideoMoreModal}>
-                <SPSvgs.EllipsesVertical />
-              </Pressable>
-            )
+  const challengeVideoDetail = useMemo(() => {
+    return (
+      <View
+        onLayout={event => {
+          if (videoLoaded) {
+            const { x, y, width, height } = event.nativeEvent.layout;
+            if (layoutTimer) {
+              clearTimeout(layoutTimer);
+              setLayoutTimer(null);
+            }
+            const timer = setTimeout(() => {
+              setLayoutDone(true);
+            }, 300);
+            setLayoutTimer(timer);
           }
-        />
-      )}
-
-      {/* 바디 */}
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        ref={scrollRef}
-        onScroll={handleScroll}
-        scrollEnabled={isScrollable}
-        scrollEventThrottle={16}>
+        }}>
         {/* 동영상 & 썸네일 */}
-        {videoDetail.videoPath && (
+        {challengeDetail.videoPath && (
           <SPSingleVideo
-            source={videoDetail.videoPath}
-            thumbnailPath={videoDetail.thumbPath ?? ''}
+            source={challengeDetail.videoPath}
+            thumbnailPath={challengeDetail.thumbPath ?? ''}
             repeat={true}
             isPaused={true}
             disablePlayPause={true}
-            onLoad={() => setIsVideoLoading(false)}
+            onLoad={() => {
+              setVideoLoaded(true);
+            }}
             onFullScreen={
-              videoDetail.parentVideoIdx
+              challengeDetail.parentVideoIdx
                 ? moveToChallengeReels
                 : toggleFullScreenMode
             }
@@ -335,16 +380,16 @@ export function ChallengeDetail({ route }) {
         {/* 상세 */}
         <View style={{ marginVertical: 24 }}>
           <ChallengeVideoDescription
-            videoIdx={videoDetail.videoIdx}
-            parentVideoIdx={videoDetail.parentVideoIdx}
-            nickName={videoDetail.memberNickName}
-            profilePath={videoDetail.profilePath}
-            title={videoDetail.title}
-            description={videoDetail.contents}
-            isLike={videoDetail.isLike}
-            like={videoDetail.cntLike}
-            view={videoDetail.cntView}
-            date={videoDetail.regDate}
+            videoIdx={challengeDetail.videoIdx}
+            parentVideoIdx={challengeDetail.parentVideoIdx}
+            nickName={challengeDetail.memberNickName}
+            profilePath={challengeDetail.profilePath}
+            title={challengeDetail.title}
+            description={challengeDetail.contents}
+            isLike={challengeDetail.isLike}
+            like={challengeDetail.cntLike}
+            view={challengeDetail.cntView}
+            date={challengeDetail.regDate}
           />
         </View>
 
@@ -357,40 +402,150 @@ export function ChallengeDetail({ route }) {
 
         {/* 코멘트 */}
         <View style={{ marginTop: 16 }}>
-          <ChallengeLastComment videoIdx={videoDetail.videoIdx} />
+          <ChallengeLastComment videoIdx={challengeDetail.videoIdx} />
         </View>
 
-        {/* 도전 챌린지 */}
-        {!isVideoLoading && <ChallengeContent videoList={challengeList} />}
-      </ScrollView>
+        {/* /!* 도전 챌린지 *!/ */}
+        {/* <ChallengeContent */}
+        {/*  videoList={challengeList} */}
+        {/*  videoLoading={videoLoading} */}
+        {/*  pageKey={pageKey} */}
+        {/* /> */}
+      </View>
+    );
+  }, [challengeDetail, layoutTimer, videoLoaded]);
 
-      {/* 모달 : 영상 소스 선택 */}
-      <SPSelectVideoModal
-        title="챌린지 동영상 업로드"
-        visible={showSelectModal}
-        onClose={() => setShowSelectModal(false)}
-        setLoading={setLoading}
-        onComplete={({ type, fileUrl, videoName, videoType }) => {
-          uploadMyMasterVideo(type, fileUrl, videoName, videoType);
-        }}
-      />
+  const [refreshNum, setRefreshNum] = useState(0);
 
-      {/* 모달 : 영상 더보기 > 신고 */}
-      <SPMoreModal
-        transparent={true}
-        visible={showVideoMoreModal}
-        onClose={closeVideoMoreModal}
-        onDelete={removeChallengeVideo}
-        onModify={moveToModifyChallengeVideo}
-        type={MODAL_MORE_TYPE.CHALLENGE_VIDEO}
-        idx={videoDetail.videoIdx}
-        targetUserIdx={videoDetail.memberIdx}
-        memberButtons={
-          videoDetail.isMine
-            ? [MODAL_MORE_BUTTONS.EDIT, MODAL_MORE_BUTTONS.REMOVE]
-            : [MODAL_MORE_BUTTONS.REPORT]
-        }
-      />
+  // [ return ]
+  return (
+    <SafeAreaView style={styles.container}>
+      {/* 헤더 */}
+      {isScrollable && (
+        <Header
+          title={challengeDetail.challengeTitle}
+          rightContent={
+            challengeDetail.parentVideoIdx && (
+              <Pressable style={{ padding: 10 }} onPress={openVideoMoreModal}>
+                <SPSvgs.EllipsesVertical />
+              </Pressable>
+            )
+          }
+        />
+      )}
+      <View style={{ flex: 1 }}>
+        {loading ? (
+          <SPLoading />
+        ) : (
+          <View style={{ flex: 1, position: 'relative' }}>
+            <View
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                zIndex: showVideo ? 0 : 1,
+                opacity: showVideo ? 0 : 1,
+              }}>
+              <SPLoading />
+            </View>
+            <View
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                zIndex: showVideo ? 1 : 0,
+                opacity: showVideo ? 1 : 0,
+              }}>
+              <FlatList
+                scrollEnabled={isScrollable}
+                ref={flatListRef}
+                key={showVideo ? pageKey : 'loading'}
+                style={{ flex: 1, position: 'relative' }}
+                data={showVideo && !videoLoading ? challengeList : []}
+                // keyExtractor={item => item?.videoIdx}
+                extraData={refreshNum}
+                initialNumToRender={30}
+                maxToRenderPerBatch={30}
+                windowSize={30}
+                ListHeaderComponent={challengeVideoDetail}
+                renderItem={({ item }) => {
+                  return (
+                    <View
+                      style={{
+                        paddingTop: 16,
+                        paddingHorizontal: 16,
+                      }}>
+                      <ChallengeContentItem
+                        challenge={item}
+                        pageKey={pageKey}
+                      />
+                    </View>
+                  );
+                }}
+                onEndReached={loadMoreProjects}
+                onEndReachedThreshold={0.5}
+                showsVerticalScrollIndicator={false}
+                onContentSizeChange={() => {
+                  if (videoLoaded) {
+                    setRefreshNum(prev => prev + 1);
+                  }
+                }}
+                ListEmptyComponent={
+                  videoLoaded && !videoLoading ? (
+                    <View style={{ flex: 1 }}>
+                      <ListEmptyView text="등록된 챌린지 영상이 없습니다." />
+                    </View>
+                  ) : (
+                    <View
+                      style={{
+                        flex: 1,
+                        height: '100%',
+                      }}>
+                      <SPLoading />
+                    </View>
+                  )
+                }
+                ListFooterComponent={<View style={{ height: 16 }} />}
+              />
+            </View>
+          </View>
+        )}
+      </View>
+      <View>
+        {/* 모달 : 영상 소스 선택 */}
+        <SPSelectVideoModal
+          title="챌린지 동영상 업로드"
+          visible={showSelectModal}
+          onClose={() => setShowSelectModal(false)}
+          setLoading={() => {
+            dispatch(action.setLoading({ key: pageKey, data: true }));
+          }}
+          onComplete={({ type, fileUrl, videoName, videoType }) => {
+            uploadMyMasterVideo(type, fileUrl, videoName, videoType);
+          }}
+        />
+
+        {/* 모달 : 영상 더보기 > 신고 */}
+        <SPMoreModal
+          transparent={true}
+          visible={showVideoMoreModal}
+          onClose={closeVideoMoreModal}
+          onDelete={removeChallengeVideo}
+          onModify={moveToModifyChallengeVideo}
+          type={MODAL_MORE_TYPE.CHALLENGE_VIDEO}
+          idx={challengeDetail.videoIdx}
+          targetUserIdx={challengeDetail.memberIdx}
+          memberButtons={
+            challengeDetail.isMine
+              ? [MODAL_MORE_BUTTONS.EDIT, MODAL_MORE_BUTTONS.REMOVE]
+              : [MODAL_MORE_BUTTONS.REPORT]
+          }
+        />
+      </View>
     </SafeAreaView>
   );
 }

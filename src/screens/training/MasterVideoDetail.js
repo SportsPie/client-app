@@ -31,11 +31,55 @@ import { navName } from '../../common/constants/navName';
 import { COLORS } from '../../styles/colors';
 import { useFocusEffect } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { moreClassMaterVideoListAction } from '../../redux/reducers/list/moreClassMasterVideoListSlice';
+import { trainingDetailAction } from '../../redux/reducers/list/trainingDetailSlice';
+import { masterDetailAction } from '../../redux/reducers/list/masterDetailSlice';
 
+const masterDetailInit = {
+  trainingIdx: '',
+  trainingName: '',
+  title: '',
+  masterIdx: '',
+  masterDate: '',
+  videoIdx: '',
+  videoName: '',
+  videoPath: '',
+  videoTime: 0,
+  thumbPath: '',
+  viewDate: '',
+  regDate: '',
+  memberIdx: '',
+  memberName: '',
+  profilePath: '',
+  cntComment: 0,
+  cntLike: 0,
+  cntView: 0,
+  contents: '',
+  isLike: false,
+  isMine: false,
+};
 function MasterVideoDetail({ route }) {
   const dispatch = useDispatch();
+  // 페이지 파라미터  > 접근 유효성 검사
+  const { videoIdx } = route?.params || { videoIdx: '' };
+  if (!videoIdx) {
+    handleError(new AccessDeniedException('잘못된 접근입니다.'));
+  }
+  const noParamReset = route?.params?.noParamReset;
+  const pageKey = route?.params?.pageKey ? `${route?.params?.pageKey}` : '1';
+
+  const listName = 'masterDetail';
+  let pageState = useSelector(selector => selector[listName]);
+  pageState = pageState?.data?.[pageKey] || {};
+  const {
+    masterVideoList: otherVideoList,
+    refreshing,
+    loading,
+    videoPagingKey: otherVideoPagingKey,
+  } = pageState;
+  const masterDetail = pageState?.masterDetail || {};
+  const action = masterDetailAction;
   const { width } = useWindowDimensions();
   let imageHeight;
 
@@ -45,39 +89,10 @@ function MasterVideoDetail({ route }) {
     const aspectRatio = 360 / 640;
     imageHeight = width / aspectRatio;
   }
-
-  // 페이지 파라미터  > 접근 유효성 검사
-  const { videoIdx } = route?.params || { videoIdx: '' };
-  if (!videoIdx) {
-    handleError(new AccessDeniedException('잘못된 접근입니다.'));
-  }
   // [ ref ]
   const pageRef = useRef();
 
   // [ state ]
-  const [videoDetail, setVideoDetail] = useState({
-    trainingIdx: '',
-    trainingName: '',
-    title: '',
-    masterIdx: '',
-    masterDate: '',
-    videoIdx: '',
-    videoName: '',
-    videoPath: '',
-    videoTime: 0,
-    thumbPath: '',
-    viewDate: '',
-    regDate: '',
-    memberIdx: '',
-    memberName: '',
-    profilePath: '',
-    cntComment: 0,
-    cntLike: 0,
-    cntView: 0,
-    contents: '',
-    isLike: false,
-    isMine: false,
-  }); // 마스터 영상 상세
   const [trainingDetail, setTrainingDetail] = useState({
     trainingIdx: '',
     thumbPath: '',
@@ -85,8 +100,6 @@ function MasterVideoDetail({ route }) {
     programDesc: '',
   }); // 훈련영상 영상 상세
   const [showVideoMore, setShowVideoMore] = useState(false); // 영상 더보기 모달 Display
-  const [otherVideoList, setOtherVideoList] = useState([]); // 다른 마스터 영상 리스트
-  const [otherVideoPagingKey, setOtherVideoPagingKey] = useState([]); // 다른 마스터 영상 리스트 페이징 Key
 
   // [ state ] 동영상 플레이어
   const [isVideoLoading, setIsVideoLoading] = useState(true);
@@ -104,8 +117,8 @@ function MasterVideoDetail({ route }) {
   // [ util ] 마스터 릴스 이동
   const moveToMasterReels = () => {
     NavigationService.navigate(navName.masterVideoDetailPlayer, {
-      videoIdx: videoDetail.videoIdx,
-      trainingIdx: videoDetail.trainingIdx,
+      videoIdx: masterDetail.videoIdx,
+      trainingIdx: masterDetail.trainingIdx,
       pagingKey: otherVideoPagingKey,
     });
   };
@@ -116,8 +129,22 @@ function MasterVideoDetail({ route }) {
       const { data } = await apiGetMasterVideoDetail(videoIdx);
 
       if (data) {
-        setVideoDetail({ ...data.data });
-        pageRef.current.scrollTo(0, 0);
+        // pageRef.current.scrollTo(0, 0);
+        dispatch(action.setMasterDetail({ key: pageKey, data: data.data }));
+        dispatch(
+          action.modifyItem({
+            idx: videoIdx,
+            idxName: 'videoIdx',
+            item: data.data,
+          }),
+        );
+        dispatch(
+          trainingDetailAction.modifyItem({
+            idxName: 'videoIdx',
+            idx: videoIdx,
+            item: data.data,
+          }),
+        );
         dispatch(
           moreClassMaterVideoListAction.modifyItem({
             idxName: 'videoIdx',
@@ -134,7 +161,7 @@ function MasterVideoDetail({ route }) {
   // [ api ] 트레이닝 상세 조회
   const getTrainingDetail = async () => {
     try {
-      const { data } = await apiGetTrainingDetail(videoDetail.trainingIdx);
+      const { data } = await apiGetTrainingDetail(masterDetail.trainingIdx);
 
       if (data) {
         setTrainingDetail(data.data);
@@ -150,49 +177,56 @@ function MasterVideoDetail({ route }) {
       const { data } = await apiGetMasterVideoList({
         page: 1,
         size: 6,
-        videoIdx: videoDetail.videoIdx, // 상세 조회 시, API 필터
-        trainingIdx: videoDetail.trainingIdx,
+        videoIdx: masterDetail.videoIdx, // 상세 조회 시, API 필터
+        trainingIdx: masterDetail.trainingIdx,
       });
 
       if (data) {
-        setOtherVideoPagingKey(data.data.pagingKey);
-        setOtherVideoList([...data.data.list]);
+        dispatch(
+          action.setPagingKey({ key: pageKey, data: data.data.pagingKey }),
+        );
+        dispatch(
+          action.setMasterVideoList({ key: pageKey, data: data.data.list }),
+        );
       }
     } catch (error) {
       handleError(error);
     }
   };
 
-  // [ useFocusEffect ] 마스터 영상 상세
   useFocusEffect(
     useCallback(() => {
-      if (videoIdx) getMasterVideoDetail();
-    }, [videoIdx]),
+      if (!noParamReset) {
+        dispatch(action.reset(pageKey));
+        NavigationService.replace(navName.masterVideoDetail, {
+          ...(route?.params || {}),
+          noParamReset: true,
+        });
+      } else if (videoIdx) getMasterVideoDetail();
+    }, [videoIdx, noParamReset]),
   );
 
   // [ useFocusEffect ] 훈련영상 상세
-  useFocusEffect(
-    useCallback(() => {
-      if (videoDetail.trainingIdx) getTrainingDetail();
-    }, [videoDetail.trainingIdx]),
-  );
+  useEffect(() => {
+    if (noParamReset && masterDetail.trainingIdx) getTrainingDetail();
+  }, [masterDetail.trainingIdx, noParamReset]);
 
   // [ useFocusEffect ] 다른 마스터 영상 리스트
-  useFocusEffect(
-    useCallback(() => {
-      if (videoDetail.videoIdx && videoDetail.trainingIdx) getMasterVideoList();
-    }, [videoDetail.videoIdx, videoDetail.trainingIdx]),
-  );
+  useEffect(() => {
+    if (noParamReset && masterDetail.videoIdx && masterDetail.trainingIdx) {
+      getMasterVideoList();
+    }
+  }, [masterDetail.videoIdx, masterDetail.trainingIdx, noParamReset]);
 
   // [ return ]
   return (
     <SafeAreaView style={styles.container}>
-      {videoDetail.videoIdx && (
+      {masterDetail.videoIdx && (
         <>
           <Header
-            title={videoDetail.trainingName}
+            title={masterDetail.trainingName}
             rightContent={
-              !videoDetail.isMine && (
+              !masterDetail.isMine && (
                 <Pressable style={{ padding: 10 }} onPress={openVideoModal}>
                   <SPSvgs.EllipsesVertical />
                 </Pressable>
@@ -205,10 +239,10 @@ function MasterVideoDetail({ route }) {
             contentContainerStyle={styles.content}
             showsVerticalScrollIndicator={false}>
             {/* 동영상 & 썸네일 */}
-            {videoDetail.videoPath && (
+            {masterDetail.videoPath && (
               <SPSingleVideo
-                source={videoDetail.videoPath}
-                thumbnailPath={videoDetail.thumbPath ?? ''}
+                source={masterDetail.videoPath}
+                thumbnailPath={masterDetail.thumbPath ?? ''}
                 repeat={true}
                 isPaused={true}
                 disablePlayPause={true}
@@ -219,19 +253,19 @@ function MasterVideoDetail({ route }) {
 
             {/* 내용 */}
             <MasterVideoDescription
-              videoIdx={videoDetail.videoIdx}
-              isLike={videoDetail.isLike}
-              nickName={videoDetail.memberNickName}
-              profilePath={videoDetail.profilePath}
-              title={videoDetail.title}
-              description={videoDetail.contents}
-              cntView={videoDetail.cntView}
-              cntLike={videoDetail.cntLike}
-              regDate={videoDetail.regDate}
+              videoIdx={masterDetail.videoIdx}
+              isLike={masterDetail.isLike}
+              nickName={masterDetail.memberNickName}
+              profilePath={masterDetail.profilePath}
+              title={masterDetail.title}
+              description={masterDetail.contents}
+              cntView={masterDetail.cntView}
+              cntLike={masterDetail.cntLike}
+              regDate={masterDetail.regDate}
             />
 
             {/* 댓글 */}
-            <MasterLastComment videoIdx={videoDetail.videoIdx} />
+            <MasterLastComment videoIdx={masterDetail.videoIdx} />
 
             {/* 훈련 영상 */}
             <View style={styles.trainingVideoWrapper}>
@@ -256,6 +290,7 @@ function MasterVideoDetail({ route }) {
                 type="OTHER"
                 title="또 다른 마스터 영상"
                 videoList={otherVideoList}
+                pageKey={pageKey}
               />
             )}
           </ScrollView>
@@ -266,8 +301,8 @@ function MasterVideoDetail({ route }) {
             visible={showVideoMore}
             onClose={closeVideoModal}
             type={MODAL_MORE_TYPE.MASTER_VIDEO}
-            idx={videoDetail.videoIdx}
-            targetUserIdx={videoDetail.memberIdx}
+            idx={masterDetail.videoIdx}
+            targetUserIdx={masterDetail.memberIdx}
             memberButtons={[MODAL_MORE_BUTTONS.REPORT]}
           />
         </>

@@ -44,7 +44,7 @@ function SPVideo({
   const navigation = useNavigation();
   const videoRef = useRef();
   const videoRefs = useRef({});
-  const singleVideo = typeof source === 'string' || source.length === 1;
+  const singleVideo = typeof source === 'string' || source?.length === 1;
   const [videoHeight, setVideoHeight] = useState(240); // Null > 360 변경
   const [viewId, setViewId] = useState();
   const [pause, setPause] = useState(isPaused);

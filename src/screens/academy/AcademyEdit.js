@@ -30,6 +30,7 @@ import { COLORS } from '../../styles/colors';
 import GeoLocationUtils from '../../utils/GeoLocationUtils';
 import { handleError } from '../../utils/HandleError';
 import Utils from '../../utils/Utils';
+import { SPSvgs } from '../../assets/svg';
 
 export default function AcademyEdit({ route }) {
   /**
@@ -573,18 +574,19 @@ export default function AcademyEdit({ route }) {
                           height: 18,
                           bottom: 0,
                           right: 0,
-                          backgroundColor: '#FF671F',
+                          backgroundColor: '#FF7C10',
                           borderRadius: 18,
                           justifyContent: 'center',
                           alignItems: 'center',
                         }}>
-                        <Image
+                        <SPSvgs.Camera />
+                        {/* <Image
                           source={SPIcons.icCamera}
                           style={{
                             width: 12,
                             height: 12,
                           }}
-                        />
+                        /> */}
                       </View>
                     </View>
                   </TouchableOpacity>
@@ -912,10 +914,10 @@ export default function AcademyEdit({ route }) {
                                   backgroundColor: selectedClassType?.[
                                     item.value
                                   ]
-                                    ? '#FF671F'
+                                    ? '#FF7C10'
                                     : 'rgba(135, 141, 150, 0.16)',
                                   borderColor: selectedClassType?.[item.value]
-                                    ? '#FF671F'
+                                    ? '#FF7C10'
                                     : 'rgba(135, 141, 150, 0.16)',
                                 },
                               ]}>
@@ -982,12 +984,12 @@ export default function AcademyEdit({ route }) {
                                   backgroundColor: selectedTeachingType?.[
                                     item.value
                                   ]
-                                    ? '#FF671F'
+                                    ? '#FF7C10'
                                     : 'rgba(135, 141, 150, 0.16)',
                                   borderColor: selectedTeachingType?.[
                                     item.value
                                   ]
-                                    ? '#FF671F'
+                                    ? '#FF7C10'
                                     : 'rgba(135, 141, 150, 0.16)',
                                 },
                               ]}>
@@ -1054,10 +1056,10 @@ export default function AcademyEdit({ route }) {
                                   backgroundColor: selectedServiceType?.[
                                     item.value
                                   ]
-                                    ? '#FF671F'
+                                    ? '#FF7C10'
                                     : 'rgba(135, 141, 150, 0.16)',
                                   borderColor: selectedServiceType?.[item.value]
-                                    ? '#FF671F'
+                                    ? '#FF7C10'
                                     : 'rgba(135, 141, 150, 0.16)',
                                 },
                               ]}>
@@ -1156,7 +1158,7 @@ export default function AcademyEdit({ route }) {
                   height: 48,
                   paddingVertical: 12,
                   paddingHorizontal: 28,
-                  backgroundColor: '#FF671F',
+                  backgroundColor: '#FF7C10',
                   justifyContent: 'center',
                   alignItems: 'center',
                   borderRadius: 10,
@@ -1270,7 +1272,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 8,
-    backgroundColor: '#FF671F',
+    backgroundColor: '#FF7C10',
   },
   imageTitleText: {
     fontSize: 11,

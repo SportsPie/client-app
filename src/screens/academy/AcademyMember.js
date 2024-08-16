@@ -74,7 +74,7 @@ function MatchingBox({ data }) {
         }
         return {
           backgroundColor: 'rgba(255, 103, 31, 0.16)',
-          color: '#FF671F',
+          color: '#FF7C10',
           desc: '경기예정',
         };
       case MATCH_STATE.REVIEW.code:
@@ -889,7 +889,14 @@ function Academy({ navigation }) {
                     data={finishMatchList}
                     scrollEnabled={false}
                     renderItem={({ item, index }) => (
-                      <View style={styles.operatorReviwBox}>
+                      <TouchableOpacity
+                        style={styles.operatorReviwBox}
+                        activeOpacity={1}
+                        onPress={() => {
+                          NavigationService.navigate(navName.matchingDetail, {
+                            matchIdx: item.matchIdx,
+                          });
+                        }}>
                         <View>
                           <View
                             style={[styles.matchingDay, { marginBottom: 6 }]}>
@@ -915,7 +922,8 @@ function Academy({ navigation }) {
                           </View>
                         </View>
                         <TouchableOpacity
-                          onPress={() => {
+                          onPress={e => {
+                            e.stopPropagation();
                             NavigationService.navigate(
                               navName.matchingRegistReview,
                               {
@@ -929,7 +937,7 @@ function Academy({ navigation }) {
                           ]}>
                           <Text style={styles.reviewBtn}>리뷰 쓰기</Text>
                         </TouchableOpacity>
-                      </View>
+                      </TouchableOpacity>
                     )}
                   />
                 ) : (
@@ -1257,7 +1265,7 @@ const styles = StyleSheet.create({
   matchingStatusText: {
     fontSize: 12,
     fontWeight: 600,
-    color: '#FF671F',
+    color: '#FF7C10',
     lineHeight: 16,
     letterSpacing: 0.302,
   },
@@ -1300,7 +1308,7 @@ const styles = StyleSheet.create({
     borderBottomColor: 'rgba(135, 141, 150, 0.22)',
   },
   recruitmentGender: {
-    backgroundColor: 'rgba(49, 55, 121, 0.08)',
+    backgroundColor: 'rgba(0, 38, 114, 0.10)',
     borderRadius: 4,
     paddingHorizontal: 4,
     paddingVertical: 3,
@@ -1308,7 +1316,7 @@ const styles = StyleSheet.create({
   recruitmentGenderText: {
     fontSize: 11,
     fontWeight: 600,
-    color: '#313779',
+    color: '#002672',
     lineHeight: 14,
     letterSpacing: 0.342,
   },
@@ -1380,7 +1388,7 @@ const styles = StyleSheet.create({
   },
   academyProduceBtn: {
     borderWidth: 1,
-    borderColor: '#FF671F',
+    borderColor: '#FF7C10',
     borderRadius: 8,
     paddingHorizontal: 20,
     paddingVertical: 9,
@@ -1388,12 +1396,12 @@ const styles = StyleSheet.create({
   buttonText: {
     fontSize: 15,
     fontWeight: 600,
-    color: '#FF671F',
+    color: '#FF7C10',
     lineHeight: 22,
     letterSpacing: 0.144,
   },
   academyReviewBtn: {
-    backgroundColor: '#FF671F',
+    backgroundColor: '#FF7C10',
     borderRadius: 8,
     paddingHorizontal: 20,
     paddingVertical: 13,
@@ -1504,7 +1512,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.203,
   },
   searchBtn: {
-    backgroundColor: '#FF671F',
+    backgroundColor: '#FF7C10',
     borderRadius: 8,
     paddingHorizontal: 20,
     paddingVertical: 9,
@@ -1564,7 +1572,7 @@ const styles = StyleSheet.create({
   },
   recruitingBox: {
     borderWidth: 1,
-    backgroundColor: 'rgba(255, 103, 31, 0.08)',
+    backgroundColor: 'rgba(255, 124, 16, 0.15)',
     borderColor: 'transparent',
     borderRadius: 4,
     paddingHorizontal: 4,
@@ -1572,7 +1580,7 @@ const styles = StyleSheet.create({
   },
   recruitingText: {
     ...fontStyles.fontSize11_Semibold,
-    color: '#FF671F',
+    color: '#FF7C10',
   },
   moreArrowBtn: {
     padding: 12,

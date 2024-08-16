@@ -4,7 +4,7 @@ import modal from './modalSlice';
 import chat from './chatSlice';
 import wifi from './wifiSlice';
 import nav from './navSlice';
-import socialTokenHistory from './list/socialTokenHistoryListSlice';
+import socialTokenHistoryList from './list/socialTokenHistoryListSlice';
 import moreChallengeCommentList from './list/moreChallengeCommentListSlice';
 import moreChallengeVideoList from './list/moreChallengeVideoListSlice';
 import moreClassMasterCommentList from './list/moreClassMasterCommentListSlice';
@@ -31,6 +31,11 @@ import moreGameScheduleList from './list/moreGameScheduleListSlice';
 import moreInquiryList from './list/moreInquiryListSlice';
 import moreNoticeList from './list/moreNoticeListSlice';
 import walletHistoryList from './list/walletHistoryListSlice';
+import trainingList from './list/trainingListSlice';
+import trainingDetail from './list/trainingDetailSlice';
+import masterDetail from './list/masterDetailSlice';
+import challengeList from './list/challengeListSlice';
+import challengeDetail from './list/challengeDetailSlice';
 
 export default {
   auth,
@@ -38,7 +43,7 @@ export default {
   chat,
   wifi,
   nav,
-  socialTokenHistory,
+  socialTokenHistoryList,
   moreChallengeCommentList,
   moreChallengeVideoList,
   moreClassMasterCommentList,
@@ -65,4 +70,9 @@ export default {
   moreInquiryList,
   moreNoticeList,
   walletHistoryList,
+  trainingList,
+  trainingDetail,
+  masterDetail,
+  challengeList,
+  challengeDetail,
 };

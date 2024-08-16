@@ -426,11 +426,11 @@ function AcademyRecruitmentEdit({ route }) {
                         {
                           backgroundColor:
                             selectedGenderType === item.value
-                              ? '#FF671F'
+                              ? '#FF7C10'
                               : 'rgba(135, 141, 150, 0.16)',
                           borderColor:
                             selectedGenderType === item.value
-                              ? '#FF671F'
+                              ? '#FF7C10'
                               : 'rgba(135, 141, 150, 0.16)',
                         },
                       ]}>
@@ -470,10 +470,10 @@ function AcademyRecruitmentEdit({ route }) {
                         styles.classTypeBtn,
                         {
                           backgroundColor: selectedClassType?.[item.value]
-                            ? '#FF671F'
+                            ? '#FF7C10'
                             : 'rgba(135, 141, 150, 0.16)',
                           borderColor: selectedClassType?.[item.value]
-                            ? '#FF671F'
+                            ? '#FF7C10'
                             : 'rgba(135, 141, 150, 0.16)',
                         },
                       ]}>
@@ -518,11 +518,11 @@ function AcademyRecruitmentEdit({ route }) {
                         {
                           backgroundColor:
                             selectedPeriodType === item.value
-                              ? '#FF671F'
+                              ? '#FF7C10'
                               : 'rgba(135, 141, 150, 0.16)',
                           borderColor:
                             selectedPeriodType === item.value
-                              ? '#FF671F'
+                              ? '#FF7C10'
                               : 'rgba(135, 141, 150, 0.16)',
                         },
                       ]}>
@@ -616,8 +616,8 @@ function AcademyRecruitmentEdit({ route }) {
                                 backgroundColor: '#ffffff',
                                 calendarBackground: '#ffffff',
                                 selectedDayTextColor: '#ffffff',
-                                selectedDayBackgroundColor: '#FF671F',
-                                todayTextColor: '#FF671F',
+                                selectedDayBackgroundColor: '#FF7C10',
+                                todayTextColor: '#FF7C10',
                                 arrowColor: 'black',
                                 dayTextColor: '#1A1C1E',
                                 textDisabledColor: 'rgba(46, 49, 53, 0.16)',
@@ -795,8 +795,8 @@ function AcademyRecruitmentEdit({ route }) {
                                 backgroundColor: '#ffffff',
                                 calendarBackground: '#ffffff',
                                 selectedDayTextColor: '#ffffff',
-                                selectedDayBackgroundColor: '#FF671F',
-                                todayTextColor: '#FF671F',
+                                selectedDayBackgroundColor: '#FF7C10',
+                                todayTextColor: '#FF7C10',
                                 arrowColor: 'black',
                                 dayTextColor: '#1A1C1E',
                                 textDisabledColor: 'rgba(46, 49, 53, 0.16)',
@@ -909,7 +909,7 @@ function AcademyRecruitmentEdit({ route }) {
             style={[
               styles.subBtn,
               {
-                backgroundColor: isFormValid() ? '#FF671F' : '#E3E2E1',
+                backgroundColor: isFormValid() ? '#FF7C10' : '#E3E2E1',
               },
             ]}>
             <TouchableOpacity
@@ -1033,7 +1033,7 @@ const styles = {
     paddingVertical: 8,
     fontSize: 13,
     fontWeight: '600',
-    color: '#FF671F',
+    color: '#FF7C10',
     lineHeight: 18,
     letterSpacing: 0.252,
   },
@@ -1063,7 +1063,7 @@ const styles = {
     paddingVertical: 14,
   },
   subBtn: {
-    backgroundColor: '#FF671F',
+    backgroundColor: '#FF7C10',
     borderRadius: 10,
     paddingHorizontal: 28,
     paddingVertical: 12,
@@ -1158,9 +1158,9 @@ const styles = {
   },
   confirmButton: {
     flex: 1,
-    backgroundColor: '#FF671F',
+    backgroundColor: '#FF7C10',
     borderWidth: 1,
-    borderColor: '#FF671F',
+    borderColor: '#FF7C10',
     borderRadius: 8,
     paddingHorizontal: 20,
     paddingVertical: 9,

@@ -17,6 +17,7 @@ import Header from '../../components/header';
 import { handleError } from '../../utils/HandleError';
 import Utils from '../../utils/Utils';
 import { academyScheduleListAction } from '../../redux/reducers/list/academyScheduleListSlice';
+import { useDispatch } from 'react-redux';
 
 LocaleConfig.locales.fr = {
   monthNames: [
@@ -208,8 +209,8 @@ function AcademyScheduleWrite() {
             style={[
               styles.applyBtn,
               {
-                backgroundColor: !contents ? '#E3E2E1' : '#FF671F',
-                borderColor: !contents ? '#E3E2E1' : '#FF671F',
+                backgroundColor: !contents ? '#E3E2E1' : '#FF7C10',
+                borderColor: !contents ? '#E3E2E1' : '#FF7C10',
               },
             ]}
             disabled={!contents}
@@ -258,8 +259,8 @@ function AcademyScheduleWrite() {
                       backgroundColor: '#ffffff',
                       calendarBackground: '#ffffff',
                       selectedDayTextColor: '#ffffff',
-                      selectedDayBackgroundColor: '#FF671F',
-                      todayTextColor: '#FF671F',
+                      selectedDayBackgroundColor: '#FF7C10',
+                      todayTextColor: '#FF7C10',
                       arrowColor: 'black',
                       dayTextColor: '#1A1C1E',
                       textDisabledColor: 'rgba(46, 49, 53, 0.16)',
@@ -372,7 +373,7 @@ const styles = {
     letterSpacing: 0.203,
   },
   applyBtn: {
-    backgroundColor: '#FF671F',
+    backgroundColor: '#FF7C10',
     borderRadius: 10,
     paddingHorizontal: 28,
     paddingVertical: 12,
@@ -507,9 +508,9 @@ const styles = {
   },
   confirmButton: {
     flex: 1,
-    backgroundColor: '#FF671F',
+    backgroundColor: '#FF7C10',
     borderWidth: 1,
-    borderColor: '#FF671F',
+    borderColor: '#FF7C10',
     borderRadius: 8,
     paddingHorizontal: 20,
     paddingVertical: 9,

@@ -682,11 +682,11 @@ function MatchingRegist() {
                         {
                           backgroundColor:
                             selectedGender === gender.value
-                              ? '#FF671F'
+                              ? '#FF7C10'
                               : 'rgba(135, 141, 150, 0.16)',
                           borderColor:
                             selectedGender === gender.value
-                              ? '#FF671F'
+                              ? '#FF7C10'
                               : 'rgba(135, 141, 150, 0.16)',
                         },
                         selectedGender === gender.value &&
@@ -736,11 +736,11 @@ function MatchingRegist() {
                             {
                               backgroundColor:
                                 selectedClassType === item.value
-                                  ? '#FF671F'
+                                  ? '#FF7C10'
                                   : 'rgba(135, 141, 150, 0.16)',
                               borderColor:
                                 selectedClassType === item.value
-                                  ? '#FF671F'
+                                  ? '#FF7C10'
                                   : 'rgba(135, 141, 150, 0.16)',
                             },
                           ]}>
@@ -854,8 +854,8 @@ function MatchingRegist() {
                       backgroundColor: '#ffffff',
                       calendarBackground: '#ffffff',
                       selectedDayTextColor: '#ffffff',
-                      selectedDayBackgroundColor: '#FF671F',
-                      todayTextColor: '#FF671F',
+                      selectedDayBackgroundColor: '#FF7C10',
+                      todayTextColor: '#FF7C10',
                       arrowColor: 'black',
                       dayTextColor: '#1A1C1E',
                       textDisabledColor: 'rgba(46, 49, 53, 0.16)',
@@ -977,7 +977,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.3,
   },
   selectedButton: {
-    backgroundColor: '#FF671F',
+    backgroundColor: '#FF7C10',
   },
   buttonContainer: {
     bottom: 0,
@@ -1114,7 +1114,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     fontSize: 13,
     fontWeight: '600',
-    color: '#FF671F',
+    color: '#FF7C10',
     lineHeight: 18,
     letterSpacing: 0.252,
   },
@@ -1133,7 +1133,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   enabledClearBtn: {
-    backgroundColor: '#FF671F',
+    backgroundColor: '#FF7C10',
   },
   disabledClearBtn: {
     backgroundColor: '#E3E2E1',
@@ -1228,9 +1228,9 @@ const styles = StyleSheet.create({
   },
   confirmButton: {
     flex: 1,
-    backgroundColor: '#FF671F',
+    backgroundColor: '#FF7C10',
     borderWidth: 1,
-    borderColor: '#FF671F',
+    borderColor: '#FF7C10',
     borderRadius: 8,
     paddingHorizontal: 20,
     paddingVertical: 9,

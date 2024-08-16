@@ -690,15 +690,15 @@ function MatchingSchedule({ route }) {
       backgroundColor: '#ffffff',
       calendarBackground: '#ffffff',
       selectedDayTextColor: '#ffffff',
-      selectedDayBackgroundColor: '#FF671F',
-      todayTextColor: '#FF671F',
+      selectedDayBackgroundColor: '#FF7C10',
+      todayTextColor: '#FF7C10',
       dayTextColor: '#1A1C1E',
       textDisabledColor: 'rgba(46, 49, 53, 0.16)',
       textDayFontWeight: '700',
       textSectionTitleColor: 'rgba(46, 49, 53, 0.60)',
       textDayFontSize: 14,
-      dotColor: '#FF671F',
-      selectedDotColor: '#FF671F',
+      dotColor: '#FF7C10',
+      selectedDotColor: '#FF7C10',
     };
 
     return (
@@ -1267,23 +1267,23 @@ function MatchingBox({ item }) {
 
   const matchingBoxStyle =
     item.matchState === MATCH_STATE.APPLY.code && isMatchClose
-      ? { ...styles.matchingBox, backgroundColor: 'rgba(49, 55, 121, 0.08)' }
+      ? { ...styles.matchingBox, backgroundColor: 'rgba(0, 38, 114, 0.05)' }
       : item.matchState === MATCH_STATE.APPLY.code
       ? styles.matchingBox
-      : { ...styles.matchingBox, backgroundColor: 'rgba(49, 55, 121, 0.08)' }; // 상태에 따라 변경된 스타일 적용
+      : { ...styles.matchingBox, backgroundColor: 'rgba(0, 38, 114, 0.05)' }; // 상태에 따라 변경된 스타일 적용
 
   const genderStyle =
     item.matchState === MATCH_STATE.APPLY.code && isMatchClose
       ? {
           ...styles.matchingGender,
-          backgroundColor: 'rgba(49, 55, 121, 0.08)',
+          backgroundColor: 'rgba(0, 38, 114, 0.10)',
           borderWidth: 0,
         }
       : item.matchState === MATCH_STATE.APPLY.code
       ? styles.matchingGender
       : {
           ...styles.matchingGender,
-          backgroundColor: 'rgba(49, 55, 121, 0.08)',
+          backgroundColor: 'rgba(0, 38, 114, 0.10)',
           borderWidth: 0,
         };
 
@@ -1291,14 +1291,14 @@ function MatchingBox({ item }) {
     item.matchState === MATCH_STATE.APPLY.code && isMatchClose
       ? {
           ...styles.matchingNumber,
-          backgroundColor: 'rgba(49, 55, 121, 0.08)',
+          backgroundColor: 'rgba(0, 38, 114, 0.10)',
           borderWidth: 0,
         }
       : item.matchState === MATCH_STATE.APPLY.code
       ? styles.matchingNumber
       : {
           ...styles.matchingNumber,
-          backgroundColor: 'rgba(49, 55, 121, 0.08)',
+          backgroundColor: 'rgba(0, 38, 114, 0.10)',
           borderWidth: 0,
         };
 
@@ -1306,13 +1306,13 @@ function MatchingBox({ item }) {
     item.matchState === MATCH_STATE.APPLY.code && isMatchClose
       ? {
           ...styles.matchingStatus,
-          backgroundColor: 'rgba(49, 55, 121, 0.08)',
+          backgroundColor: 'rgba(135, 141, 150, 0.16)',
         }
       : item.matchState === MATCH_STATE.APPLY.code
       ? styles.matchingStatus
       : {
           ...styles.matchingStatus,
-          backgroundColor: 'rgba(49, 55, 121, 0.08)',
+          backgroundColor: 'rgba(135, 141, 150, 0.16)',
         };
 
   const statusTextStyle =
@@ -1333,8 +1333,8 @@ function MatchingBox({ item }) {
           };
         }
         return {
-          backgroundColor: 'rgba(255, 103, 31, 0.16)',
-          color: '#FF671F',
+          backgroundColor: 'rgba(255, 124, 16, 0.15)',
+          color: '#FF7C10',
           desc: '경기예정',
         };
       case MATCH_STATE.REVIEW.code:
@@ -1544,7 +1544,7 @@ const getStylesForTitle = type => {
   switch (type) {
     case TOURNAMENT_STATE.REGISTERING.code:
       return {
-        titleBoxStyle: { backgroundColor: '#FF671F' },
+        titleBoxStyle: { backgroundColor: '#FF7C10' },
         titleTextStyle: { color: '#FFF' },
       };
     case TOURNAMENT_STATE.CLOSED.code:
@@ -1662,7 +1662,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.203,
   },
   activeToggleText: {
-    color: '#FF671F',
+    color: '#FF7C10',
   },
   dayContainer: {
     flexDirection: 'row',
@@ -1679,7 +1679,7 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   selectedDayBox: {
-    backgroundColor: '#FF671F',
+    backgroundColor: '#FF7C10',
     borderRadius: 8,
     ...Platform.select({
       ios: {
@@ -1800,7 +1800,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: 4,
     borderWidth: 1,
-    borderColor: 'rgba(49, 55, 121, 0.43)',
+    borderColor: 'rgba(0, 38, 114, 0.10)',
   },
   matchingNumberText: {
     fontSize: 12,
@@ -1818,12 +1818,12 @@ const styles = StyleSheet.create({
   matchingStatusText: {
     fontSize: 12,
     fontWeight: 600,
-    color: '#FF671F',
+    color: '#FF7C10',
     lineHeight: 16,
     letterSpacing: 0.302,
   },
   playgroundAddr: {
-    backgroundColor: '#FF671F',
+    backgroundColor: '#FF7C10',
     borderRadius: 15,
     paddingHorizontal: 10,
     paddingVertical: 7,
@@ -1844,7 +1844,7 @@ const styles = StyleSheet.create({
   playgroundCount: {
     fontSize: 17,
     fontWeight: 600,
-    color: '#FF671F',
+    color: '#FF7C10',
   },
   playgroundCountText: {
     fontSize: 17,
@@ -1948,7 +1948,7 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     justifyContent: 'flex-start',
     alignSelf: 'flex-start',
-    backgroundColor: '#FF671F',
+    backgroundColor: '#FF7C10',
     borderRadius: 16,
     overflow: 'hidden',
     paddingHorizontal: 8,
@@ -2003,23 +2003,37 @@ const styles = StyleSheet.create({
     lineHeight: 28,
     letterSpacing: -0.24,
   },
+  // writeBtn: {
+  //   position: 'absolute',
+  //   right: 16,
+  //   bottom: 16,
+  //   backgroundColor: 'white',
+  //   borderRadius: 50,
+  //   ...Platform.select({
+  //     ios: {
+  //       shadowColor: '#000',
+  //       shadowOffset: { width: 0, height: 2 },
+  //       shadowOpacity: 0.3,
+  //       shadowRadius: 4,
+  //     },
+  //     android: {
+  //       elevation: 4,
+  //     },
+  //   }),
+  // },
   writeBtn: {
     position: 'absolute',
-    right: 16,
+    zIndex: 999,
     bottom: 16,
-    backgroundColor: 'white',
-    borderRadius: 50,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.3,
-        shadowRadius: 4,
-      },
-      android: {
-        elevation: 4,
-      },
-    }),
+    right: 16,
+    shadowColor: COLORS.black,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   noneText: {
     fontSize: 13,
@@ -2063,7 +2077,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   selectedMonth: {
-    backgroundColor: '#FF671F',
+    backgroundColor: '#FF7C10',
   },
   monthTextStyle: {
     fontSize: 16,
@@ -2085,7 +2099,7 @@ const styles = StyleSheet.create({
   },
   appealBtn: {
     flex: 1,
-    backgroundColor: '#FF671F',
+    backgroundColor: '#FF7C10',
     borderRadius: 10,
     paddingHorizontal: 12,
     paddingVertical: 12,

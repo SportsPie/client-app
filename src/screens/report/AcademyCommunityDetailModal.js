@@ -3,13 +3,13 @@ import moment from 'moment';
 import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
 import {
   Dimensions,
+  FlatList,
   Image,
   Keyboard,
   Modal,
-  ScrollView,
+  SafeAreaView,
   Text,
   TextInput,
-  SafeAreaView,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -32,11 +32,10 @@ import SPIcons from '../../assets/icon';
 import { IS_YN } from '../../common/constants/isYN';
 import { MODAL_CLOSE_EVENT } from '../../common/constants/modalCloseEvent';
 import { REPORT_TYPE } from '../../common/constants/reportType';
-import Avatar from '../../components/Avatar';
 import DismissKeyboard from '../../components/DismissKeyboard';
 import SPHeader from '../../components/SPHeader';
 import SPKeyboardAvoidingView from '../../components/SPKeyboardAvoidingView';
-import Loading from '../../components/SPLoading';
+import SPLoading from '../../components/SPLoading';
 import SPMoreModal, {
   MODAL_MORE_BUTTONS,
   MODAL_MORE_TYPE,
@@ -47,6 +46,7 @@ import { COLORS } from '../../styles/colors';
 import fontStyles from '../../styles/fontStyles';
 import { handleError } from '../../utils/HandleError';
 import Utils from '../../utils/Utils';
+import ListEmptyView from '../../components/ListEmptyView';
 
 // 커뮤니티 이미지 슬라이드
 function CarouselSection({ data, openFileterModal, setSelectedImage }) {
@@ -92,9 +92,7 @@ function AcademyCommunityDetailModal({ route, type = REPORT_TYPE.FEED, idx }) {
   /**
    * state
    */
-
-  const scrollRef = useRef();
-  const targetRef = useRef();
+  const flatListRef = useRef();
   const insets = useSafeAreaInsets();
 
   const isLogin = useSelector(selector => selector.auth)?.isLogin;
@@ -119,6 +117,7 @@ function AcademyCommunityDetailModal({ route, type = REPORT_TYPE.FEED, idx }) {
   const [isLast, setIsLast] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [isFocus, setIsFocus] = useState(true);
+  const [listCall, setListCall] = useState(false);
   const [commentList, setCommentList] = useState([]);
 
   // modal
@@ -234,6 +233,7 @@ function AcademyCommunityDetailModal({ route, type = REPORT_TYPE.FEED, idx }) {
     setIsFocus(false);
     setLoading(false);
     setRefreshing(false);
+    setListCall(true);
   };
 
   const changeLike = async () => {
@@ -262,6 +262,7 @@ function AcademyCommunityDetailModal({ route, type = REPORT_TYPE.FEED, idx }) {
     });
   };
 
+  const [commentRegist, setCommentRegist] = useState(false);
   const registComment = async () => {
     setComment('');
     if (trlRef.current.disabled) return;
@@ -285,10 +286,7 @@ function AcademyCommunityDetailModal({ route, type = REPORT_TYPE.FEED, idx }) {
       setFeedDetail(prev => prev);
       setCommentList(prev => [data.data, ...prev]);
       Keyboard.dismiss();
-
-      setTimeout(() => {
-        handleScrollToElement();
-      }, 0);
+      setCommentRegist(true);
     } catch (error) {
       handleError(error);
     } finally {
@@ -344,26 +342,6 @@ function AcademyCommunityDetailModal({ route, type = REPORT_TYPE.FEED, idx }) {
 
   const closeImageModal = () => {
     setImageModalShow(false);
-  };
-
-  const handleScroll = event => {
-    const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent;
-    const paddingToBottom = 20;
-    const isScrolledToBottom =
-      layoutMeasurement.height + contentOffset.y >=
-      contentSize.height - paddingToBottom;
-
-    if (isScrolledToBottom) {
-      loadMoreProjects();
-    }
-  };
-
-  const handleScrollToElement = () => {
-    if (targetRef.current) {
-      targetRef.current.measure((x, y, width, height, pageX, pageY) => {
-        scrollRef.current.scrollTo({ x: 0, y: pageY - 60, animated: false });
-      });
-    }
   };
 
   const loadMoreProjects = () => {
@@ -423,6 +401,106 @@ function AcademyCommunityDetailModal({ route, type = REPORT_TYPE.FEED, idx }) {
     }
   }, [page, isFocus, refreshing]);
 
+  const detailRender = () => {
+    return (
+      <View>
+        <View style={styles.communityBox}>
+          {/* 게시글 상단 정보 */}
+          <View style={styles.communityRight}>
+            {feedDetail.tagsKo?.map((item, index) => {
+              return (
+                // eslint-disable-next-line react/no-array-index-key
+                <View key={index} style={styles.communityTag}>
+                  <Text style={styles.communityTagText}>#{item} </Text>
+                </View>
+              );
+            })}
+          </View>
+          <View style={styles.communityTitle}>
+            <View style={styles.communityLeft}>
+              <View style={styles.iconContainer}>
+                {feedDetail.profilePath ? (
+                  <Image
+                    source={{ uri: feedDetail.profilePath }}
+                    style={styles.icon}
+                  />
+                ) : (
+                  <Image source={SPIcons.icPerson} style={styles.icon} />
+                )}
+                {feedDetail.isAcademyCreator && (
+                  <Image
+                    source={SPIcons.icSuperAdmin}
+                    style={styles.overlayIcon}
+                  />
+                )}
+                {!feedDetail.isAcademyCreator && feedDetail.isAcademyAdmin && (
+                  <Image source={SPIcons.icAdmin} style={styles.overlayIcon} />
+                )}
+              </View>
+              <View>
+                <Text style={styles.name}>{feedDetail.userNickname}</Text>
+                <Text style={styles.dateCreated}>
+                  {moment(feedDetail.regDate).fromNow()}
+                </Text>
+              </View>
+            </View>
+          </View>
+
+          {/* 내용 */}
+          <View>
+            <Text style={styles.communityText}>{feedDetail.contents}</Text>
+          </View>
+          {/* 이미지 슬라이드 */}
+          {feedDetail.files && feedDetail.files.length > 0 && (
+            <View style={{ overflow: 'hidden' }}>
+              <CarouselSection
+                data={feedDetail.files}
+                openFileterModal={openImageModal}
+                setSelectedImage={setSelectedImage}
+              />
+            </View>
+          )}
+          {/* 좋아요 */}
+          <View style={styles.bottomBox}>
+            <TouchableOpacity
+              style={styles.bottomBtn}
+              onPress={changeLike}
+              disabled={true}>
+              <View>
+                <Image
+                  source={
+                    feedDetail.isLike
+                      ? SPIcons.icFillHeart
+                      : SPIcons.icGrayHeart
+                  }
+                />
+              </View>
+              <Text style={styles.number}>
+                {Utils.changeNumberComma(feedDetail.cntLike)}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* 댓글창 */}
+        <View style={[styles.communityBox, { gap: 16, borderBottomWidth: 0 }]}>
+          <View style={[styles.bottomBox, { gap: 4 }]}>
+            <View>
+              <Image
+                source={SPIcons.icChatBubble}
+                style={{ width: 20, height: 20 }}
+              />
+            </View>
+            {/* 댓글 수 */}
+            <Text style={styles.number}>
+              댓글 {Utils.changeNumberComma(feedDetail.cntComment)}
+            </Text>
+          </View>
+        </View>
+      </View>
+    );
+  };
+
   return (
     <DismissKeyboard>
       <SPKeyboardAvoidingView
@@ -433,229 +511,134 @@ function AcademyCommunityDetailModal({ route, type = REPORT_TYPE.FEED, idx }) {
           flex: 1,
         }}>
         <SafeAreaView style={styles.container}>
-          <View style={styles.communityContainer}>
-            <ScrollView
-              showsVerticalScrollIndicator={false}
-              ref={scrollRef}
-              onScroll={handleScroll}
-              scrollEventThrottle={16}>
-              <View style={styles.communityBox}>
-                {/* 게시글 상단 정보 */}
-                <View style={styles.communityRight}>
-                  {feedDetail.tagsKo?.map((item, index) => {
-                    return (
-                      // eslint-disable-next-line react/no-array-index-key
-                      <View key={index} style={styles.communityTag}>
-                        <Text style={styles.communityTagText}>#{item} </Text>
-                      </View>
-                    );
-                  })}
-                </View>
-                <View style={styles.communityTitle}>
-                  <View style={styles.communityLeft}>
-                    <View style={styles.iconContainer}>
-                      {feedDetail.profilePath ? (
-                        <Image
-                          source={{ uri: feedDetail.profilePath }}
-                          style={styles.icon}
-                        />
-                      ) : (
-                        <Image source={SPIcons.icPerson} style={styles.icon} />
-                      )}
-                      {feedDetail.isAcademyCreator && (
-                        <Image
-                          source={SPIcons.icSuperAdmin}
-                          style={styles.overlayIcon}
-                        />
-                      )}
-                      {!feedDetail.isAcademyCreator &&
-                        feedDetail.isAcademyAdmin && (
-                          <Image
-                            source={SPIcons.icAdmin}
-                            style={styles.overlayIcon}
-                          />
-                        )}
-                    </View>
-                    <View>
-                      <Text style={styles.name}>{feedDetail.userNickname}</Text>
-                      <Text style={styles.dateCreated}>
-                        {moment(feedDetail.regDate).fromNow()}
-                      </Text>
-                    </View>
-                  </View>
-                </View>
-
-                {/* 내용 */}
-                <View>
-                  <Text style={styles.communityText}>
-                    {feedDetail.contents}
-                  </Text>
-                </View>
-                {/* 이미지 슬라이드 */}
-                {feedDetail.files && feedDetail.files.length > 0 && (
-                  <View style={{ overflow: 'hidden' }}>
-                    <CarouselSection
-                      data={feedDetail.files}
-                      openFileterModal={openImageModal}
-                      setSelectedImage={setSelectedImage}
-                    />
-                  </View>
-                )}
-                {/* 좋아요 */}
-                <View style={styles.bottomBox}>
-                  <TouchableOpacity
-                    style={styles.bottomBtn}
-                    onPress={changeLike}
-                    disabled={true}>
-                    <View>
-                      <Image
-                        source={
-                          feedDetail.isLike
-                            ? SPIcons.icFillHeart
-                            : SPIcons.icGrayHeart
-                        }
-                      />
-                    </View>
-                    <Text style={styles.number}>
-                      {Utils.changeNumberComma(feedDetail.cntLike)}
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-
-              {/* 댓글창 */}
-              <View
-                style={[
-                  styles.communityBox,
-                  { gap: 16, borderBottomWidth: 0 },
-                ]}>
-                <View style={[styles.bottomBox, { gap: 4 }]}>
-                  <View>
-                    <Image
-                      source={SPIcons.icChatBubble}
-                      style={{ width: 20, height: 20 }}
-                    />
-                  </View>
-                  {/* 댓글 수 */}
-                  <Text style={styles.number}>
-                    댓글 {Utils.changeNumberComma(feedDetail.cntComment)}
-                  </Text>
-                </View>
-
-                {/* 상세 댓글 */}
-                <View ref={targetRef} style={styles.replyContainer}>
-                  {commentList && commentList.length > 0 ? (
-                    commentList.map((item, index) => {
-                      return (
-                        <View
-                          /* eslint-disable-next-line react/no-array-index-key */
-                          key={index}
-                          style={styles.replyBox}>
-                          <View style={styles.communityTitle}>
-                            <View style={styles.communityLeft}>
-                              <View style={styles.iconContainer}>
-                                {item.profilePath ? (
-                                  <Image
-                                    source={{ uri: item.profilePath }}
-                                    style={styles.icon}
-                                  />
-                                ) : (
-                                  <Image
-                                    source={SPIcons.icPerson}
-                                    style={styles.icon}
-                                  />
-                                )}
-                              </View>
-                              <View>
-                                <Text style={styles.name}>
-                                  {item.userNickname}
-                                </Text>
-                                <Text style={styles.dateCreated}>
-                                  {moment(item.regDate).format('YYYY.MM.DD')}
-                                </Text>
-                              </View>
-                            </View>
+          {listCall ? (
+            <View style={styles.communityContainer}>
+              <FlatList
+                ref={flatListRef}
+                key={loading ? 'loading' : 'loaded'}
+                ListHeaderComponent={detailRender}
+                data={commentList}
+                style={{ flex: 1 }}
+                showsVerticalScrollIndicator={false}
+                onContentSizeChange={() => {
+                  if (page === 1 && commentRegist && commentList.length > 0) {
+                    flatListRef.current.scrollToIndex({
+                      animated: false,
+                      index: 0,
+                    });
+                    setCommentRegist(false);
+                  }
+                }}
+                renderItem={({ item }) => {
+                  return (
+                    <View style={[styles.replyBox, { paddingBottom: 24 }]}>
+                      <View style={styles.communityTitle}>
+                        <View style={styles.communityLeft}>
+                          <View style={styles.iconContainer}>
+                            {item.profilePath ? (
+                              <Image
+                                source={{ uri: item.profilePath }}
+                                style={styles.icon}
+                              />
+                            ) : (
+                              <Image
+                                source={SPIcons.icPerson}
+                                style={styles.icon}
+                              />
+                            )}
                           </View>
-                          <View style={styles.replySubBox}>
-                            <Text style={styles.replySubText}>
-                              {item.comment}
+                          <View>
+                            <Text style={styles.name}>{item.userNickname}</Text>
+                            <Text style={styles.dateCreated}>
+                              {moment(item.regDate).format('YYYY.MM.DD')}
                             </Text>
                           </View>
                         </View>
-                      );
-                    })
-                  ) : loading ? (
-                    <Loading />
+                      </View>
+                      <View style={styles.replySubBox}>
+                        <Text style={styles.replySubText}>{item.comment}</Text>
+                      </View>
+                    </View>
+                  );
+                }}
+                onEndReached={loadMoreProjects}
+                onEndReachedThreshold={0.5}
+                ListEmptyComponent={
+                  !loading ? (
+                    <View style={{ flex: 1 }}>
+                      <ListEmptyView text="댓글이 없습니다." />
+                    </View>
                   ) : (
                     <View
-                      style={[
-                        styles.replyBox,
-                        { justifyContent: 'center', alignItems: 'center' },
-                      ]}>
-                      <Text style={styles.noneText}>댓글이 없습니다.</Text>
+                      style={{
+                        flex: 1,
+                      }}>
+                      <SPLoading />
                     </View>
-                  )}
-                </View>
-              </View>
-            </ScrollView>
+                  )
+                }
+              />
 
-            {/* 더보기 모달 :: 게시글 */}
-            <SPMoreModal
-              visible={modalVisible}
-              onClose={closeModal}
-              isAdmin={isAdmin}
-              type={MODAL_MORE_TYPE.FEED}
-              idx={contentsIdx}
-              targetUserIdx={feedDetail?.userIdx}
-              onConfirm={() => {
-                NavigationService.goBack();
-              }}
-              adminButtons={
-                isMyFeed
-                  ? [
-                      MODAL_MORE_BUTTONS.EDIT,
-                      MODAL_MORE_BUTTONS.REMOVE,
-                      isAdminFeed
-                        ? feedDetail?.topYn === IS_YN.Y
-                          ? MODAL_MORE_BUTTONS.UNFIX
-                          : MODAL_MORE_BUTTONS.FIX
-                        : 'NOTHING',
-                    ]
-                  : [MODAL_MORE_BUTTONS.REMOVE]
-              }
-              memberButtons={
-                isMyFeed
-                  ? [MODAL_MORE_BUTTONS.EDIT, MODAL_MORE_BUTTONS.REMOVE]
-                  : feedDetail?.topYn === IS_YN.Y
-                  ? 'NOTHING'
-                  : [MODAL_MORE_BUTTONS.REPORT]
-              }
-            />
+              {/* 더보기 모달 :: 게시글 */}
+              <SPMoreModal
+                visible={modalVisible}
+                onClose={closeModal}
+                isAdmin={isAdmin}
+                type={MODAL_MORE_TYPE.FEED}
+                idx={contentsIdx}
+                targetUserIdx={feedDetail?.userIdx}
+                onConfirm={() => {
+                  NavigationService.goBack();
+                }}
+                adminButtons={
+                  isMyFeed
+                    ? [
+                        MODAL_MORE_BUTTONS.EDIT,
+                        MODAL_MORE_BUTTONS.REMOVE,
+                        isAdminFeed
+                          ? feedDetail?.topYn === IS_YN.Y
+                            ? MODAL_MORE_BUTTONS.UNFIX
+                            : MODAL_MORE_BUTTONS.FIX
+                          : 'NOTHING',
+                      ]
+                    : [MODAL_MORE_BUTTONS.REMOVE]
+                }
+                memberButtons={
+                  isMyFeed
+                    ? [MODAL_MORE_BUTTONS.EDIT, MODAL_MORE_BUTTONS.REMOVE]
+                    : feedDetail?.topYn === IS_YN.Y
+                    ? 'NOTHING'
+                    : [MODAL_MORE_BUTTONS.REPORT]
+                }
+              />
 
-            {/* 더보기 모달 :: 댓글 */}
-            <SPMoreModal
-              visible={commentModalVisible}
-              onClose={closeCommentModal}
-              isAdmin={isAdmin}
-              type={MODAL_MORE_TYPE.FEED_COMMENT}
-              idx={selectedComment?.commentIdx}
-              targetUserIdx={selectedComment?.userIdx}
-              onModify={openModifyCommentModal}
-              onConfirm={() => {
-                setChangeEvent(prev => !prev);
-              }}
-              adminButtons={
-                isMyComment
-                  ? [MODAL_MORE_BUTTONS.EDIT, MODAL_MORE_BUTTONS.REMOVE]
-                  : [MODAL_MORE_BUTTONS.REMOVE]
-              }
-              memberButtons={
-                isMyComment
-                  ? [MODAL_MORE_BUTTONS.EDIT, MODAL_MORE_BUTTONS.REMOVE]
-                  : [MODAL_MORE_BUTTONS.REPORT]
-              }
-            />
-          </View>
+              {/* 더보기 모달 :: 댓글 */}
+              <SPMoreModal
+                visible={commentModalVisible}
+                onClose={closeCommentModal}
+                isAdmin={isAdmin}
+                type={MODAL_MORE_TYPE.FEED_COMMENT}
+                idx={selectedComment?.commentIdx}
+                targetUserIdx={selectedComment?.userIdx}
+                onModify={openModifyCommentModal}
+                onConfirm={() => {
+                  setChangeEvent(prev => !prev);
+                }}
+                adminButtons={
+                  isMyComment
+                    ? [MODAL_MORE_BUTTONS.EDIT, MODAL_MORE_BUTTONS.REMOVE]
+                    : [MODAL_MORE_BUTTONS.REMOVE]
+                }
+                memberButtons={
+                  isMyComment
+                    ? [MODAL_MORE_BUTTONS.EDIT, MODAL_MORE_BUTTONS.REMOVE]
+                    : [MODAL_MORE_BUTTONS.REPORT]
+                }
+              />
+            </View>
+          ) : (
+            <SPLoading />
+          )}
 
           <Modal
             animationType="fade"
@@ -887,6 +870,7 @@ const styles = {
   replyBox: {
     flexDirection: 'column',
     gap: 8,
+    paddingHorizontal: 16,
   },
   replySubBox: {
     paddingLeft: 48,
@@ -921,7 +905,7 @@ const styles = {
     // paddingTop: 0,
   },
   applyBtn: {
-    backgroundColor: '#FF671F',
+    backgroundColor: '#FF7C10',
     borderRadius: 10,
     paddingHorizontal: 28,
     paddingVertical: 12,

@@ -150,7 +150,7 @@ function Login({ noMove }) {
             contentContainerStyle={styles.container}
             showsVerticalScrollIndicator={false}>
             <View style={styles.logo}>
-              <SPSvgs.SportPieLogo />
+              <SPSvgs.SportsPieLogo />
             </View>
 
             <View style={styles.inputSection}>

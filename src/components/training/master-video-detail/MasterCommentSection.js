@@ -1,14 +1,8 @@
-import {
-  BottomSheetModal,
-  BottomSheetView as BottomView,
-  WINDOW_HEIGHT,
-} from '@gorhom/bottom-sheet';
 import React, {
   forwardRef,
   memo,
   useCallback,
   useImperativeHandle,
-  useMemo,
   useRef,
   useState,
 } from 'react';
@@ -17,11 +11,11 @@ import {
   Modal,
   Pressable,
   SafeAreaView,
-  ScrollView,
   StatusBar,
   StyleSheet,
   Text,
   TextInput,
+  TouchableOpacity,
   useWindowDimensions,
   View,
 } from 'react-native';
@@ -35,7 +29,6 @@ import {
   apiSaveMasterVideoComment,
 } from '../../../api/RestAPI';
 import { SPSvgs } from '../../../assets/svg';
-import { IS_IOS } from '../../../common/constants/constants';
 import { CustomException } from '../../../common/exceptions';
 import fontStyles from '../../../styles/fontStyles';
 import { handleError } from '../../../utils/HandleError';
@@ -50,19 +43,16 @@ import CommentInputSection from '../challenge-detail/CommentInputSection';
 import CommentSectionItem from '../challenge-detail/CommentSectionItem';
 import { COLORS } from '../../../styles/colors';
 import { useFocusEffect } from '@react-navigation/native';
-import moreClassMasterCommentListSlice, {
-  moreClassMaterCommentListAction,
-} from '../../../redux/reducers/list/moreClassMasterCommentListSlice';
+import { moreClassMaterCommentListAction } from '../../../redux/reducers/list/moreClassMasterCommentListSlice';
 import { moreClassMaterVideoListAction } from '../../../redux/reducers/list/moreClassMasterVideoListSlice';
 import { store } from '../../../redux/store';
-import SPKeyboardAvoidingView from '../../SPKeyboardAvoidingView';
-import BackHandlerUtils from '../../../utils/BackHandlerUtils';
 
 const MasterCommentSection = forwardRef(
   (
     {
       videoIdx = '',
       onSubmit = () => null,
+      onModify = () => null,
       onEndReached = () => null,
       ListFooterComponent = () => null,
       refreshControl = () => null,
@@ -74,11 +64,11 @@ const MasterCommentSection = forwardRef(
     const isLogin = useSelector(selector => selector.auth)?.isLogin;
 
     const commentListRef = useRef();
-    const bottomSheetRef = useRef();
     const insets = useSafeAreaInsets();
     const statusBarHeight = StatusBar.currentHeight;
     const screenWidth = useWindowDimensions()?.width;
     const [userInfo, setUserInfo] = useState({});
+    const [chatModalShow, setChatModalShow] = useState(false);
 
     const getUserInfo = async () => {
       try {
@@ -106,32 +96,15 @@ const MasterCommentSection = forwardRef(
       imageHeight = screenWidth / aspectRatio;
     }
 
-    function show() {
-      BackHandlerUtils.remove();
-      BackHandlerUtils.add(() => {
-        if (bottomSheetRef.current) {
-          hide();
-          return true; // 뒤로가기 버튼의 기본 동작을 방지합니다.
-        }
-        return false; // 다른 곳에서 뒤로가기 버튼의 기본 동작을 수행합니다.
-      });
-      bottomSheetRef?.current?.present();
-    }
+    const show = () => {
+      setChatModalShow(true);
+    };
 
-    function hide() {
-      BackHandlerUtils.addDefaultBackHandlerEvent();
-      setCommentInput('');
-      bottomSheetRef?.current?.close();
-    }
+    const hide = () => {
+      setChatModalShow(false);
+    };
 
     useImperativeHandle(ref, () => ({ show, hide }), []);
-
-    const bottomSheetInsets = useMemo(() => {
-      if (IS_IOS) {
-        return WINDOW_HEIGHT - imageHeight - 60 - insets.top;
-      }
-      return WINDOW_HEIGHT - imageHeight - 60 - insets.top - statusBarHeight;
-    }, [WINDOW_HEIGHT, imageHeight, statusBarHeight, insets]);
 
     // [ state ] 댓글
     const [commentInput, setCommentInput] = useState('');
@@ -255,13 +228,11 @@ const MasterCommentSection = forwardRef(
         if (data) {
           Keyboard.dismiss();
           closeModifyCommentModal();
-
-          onSubmit();
           trlRef.current.disabled = false;
-          commentListRef.current.scrollToOffset({
-            animated: false,
-            offset: 0,
-          });
+          // commentListRef.current.scrollToOffset({
+          //   animated: false,
+          //   offset: 0,
+          // });
           targetComment.comment = editCommentInput;
           dispatch(
             moreClassMaterCommentListAction.modifyItem({
@@ -270,7 +241,7 @@ const MasterCommentSection = forwardRef(
               item: targetComment,
             }),
           );
-
+          if (onModify) onModify(targetComment.idx, targetComment);
           SPToast.show({ text: '댓글을 수정했어요' });
         }
       } catch (error) {
@@ -327,76 +298,88 @@ const MasterCommentSection = forwardRef(
 
     return (
       <View>
-        <BottomSheetModal
-          keyboardBehavior="extend"
-          snapPoints={[bottomSheetInsets]}
-          index={0}
-          ref={bottomSheetRef}
-          style={{
-            shadowColor: COLORS.black,
-            shadowOffset: {
-              width: 0,
-              height: 2,
-            },
-            shadowOpacity: 0.25,
-            shadowRadius: 3.84,
-
-            elevation: 5,
-          }}
-          handleComponent={null}>
-          <BottomView
-            style={[
-              styles.container,
-              {
-                paddingBottom: insets.bottom,
+        <Modal
+          transparent={true}
+          visible={chatModalShow}
+          onRequestClose={() => {
+            hide();
+          }}>
+          <TouchableOpacity
+            style={{ flex: 1 }}
+            activeOpacity={1}
+            onPress={hide}
+          />
+          <View
+            style={{
+              position: 'absolute',
+              backgroundColor: COLORS.background,
+              height: '60%',
+              width: '100%',
+              bottom: 0,
+              shadowColor: COLORS.black,
+              shadowOffset: {
+                width: 0,
+                height: 2,
               },
-            ]}>
-            <BottomView style={styles.headerWrapper}>
-              <Text style={fontStyles.fontSize18_Semibold}>댓글</Text>
-              <Pressable
-                onPress={() => {
-                  hide();
-                }}>
-                <SPSvgs.Close width={24} height={24} />
-              </Pressable>
-            </BottomView>
+              shadowOpacity: 0.25,
+              shadowRadius: 3.84,
 
-            <FlatList
-              ref={commentListRef}
-              data={commentList}
-              renderItem={renderItem}
-              onEndReached={onEndReached}
-              ListFooterComponent={ListFooterComponent}
-              refreshControl={refreshControl}
-            />
+              elevation: 5,
+            }}>
+            <View
+              style={[
+                styles.container,
+                {
+                  paddingBottom: insets.bottom,
+                },
+              ]}>
+              <View style={styles.headerWrapper}>
+                <Text style={fontStyles.fontSize18_Semibold}>댓글</Text>
+                <Pressable
+                  onPress={() => {
+                    hide();
+                  }}>
+                  <SPSvgs.Close width={24} height={24} />
+                </Pressable>
+              </View>
+              <FlatList
+                ref={commentListRef}
+                data={commentList}
+                renderItem={renderItem}
+                onEndReached={onEndReached}
+                ListFooterComponent={ListFooterComponent}
+                refreshControl={refreshControl}
+                keyExtractor={item => item?.commentIdx}
+              />
 
-            <CommentInputSection
-              onChangeText={text => setCommentInput(text)}
-              onSubmit={saveMasterVideoComment}
-              maxLength={1000}
-              userInfo={userInfo} // userInfo를 props로 전달
-            />
+              <CommentInputSection
+                onChangeText={text => setCommentInput(text)}
+                onSubmit={saveMasterVideoComment}
+                maxLength={1000}
+                userInfo={userInfo} // userInfo를 props로 전달
+              />
 
-            {/* 모달 > 댓글 더보기 */}
-            <SPMoreModal
-              transparent={true}
-              visible={showCommentMore}
-              onClose={closeCommentModal}
-              onReport={hide}
-              type={MODAL_MORE_TYPE.MASTER_VIDEO_COMMENT}
-              idx={targetComment.idx}
-              targetUserIdx={targetComment.memberIdx}
-              onDelete={removeMasterVideoComment}
-              onModify={openModifyCommentModal}
-              onConfirm={onSubmit}
-              memberButtons={
-                targetComment.isMine
-                  ? [MODAL_MORE_BUTTONS.EDIT, MODAL_MORE_BUTTONS.REMOVE]
-                  : [MODAL_MORE_BUTTONS.REPORT]
-              }
-            />
-          </BottomView>
-        </BottomSheetModal>
+              {/* 모달 > 댓글 더보기 */}
+              <SPMoreModal
+                transparent={true}
+                visible={showCommentMore}
+                onClose={closeCommentModal}
+                onReport={hide}
+                type={MODAL_MORE_TYPE.MASTER_VIDEO_COMMENT}
+                idx={targetComment.idx}
+                targetUserIdx={targetComment.memberIdx}
+                onDelete={removeMasterVideoComment}
+                onModify={openModifyCommentModal}
+                onConfirm={onSubmit}
+                memberButtons={
+                  targetComment.isMine
+                    ? [MODAL_MORE_BUTTONS.EDIT, MODAL_MORE_BUTTONS.REMOVE]
+                    : [MODAL_MORE_BUTTONS.REPORT]
+                }
+              />
+            </View>
+          </View>
+        </Modal>
         {/* 모달 > 댓글 수정 */}
         <Modal
           animationType="fade"

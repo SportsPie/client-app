@@ -107,13 +107,13 @@ function MoreMyInfo() {
           {member?.acdmyNm && (
             <View
               style={{
-                backgroundColor: 'rgba(255, 103, 31, 0.08)',
+                backgroundColor: 'rgba(255, 124, 16, 0.15)',
                 paddingHorizontal: 8,
                 paddingVertical: 4,
                 borderRadius: 4,
               }}>
               <Text
-                style={[fontStyles.fontSize12_Semibold, { color: '#FF671F' }]}>
+                style={[fontStyles.fontSize12_Semibold, { color: '#FF7C10' }]}>
                 {member.acdmyNm ? member.acdmyNm : '-'}
               </Text>
             </View>

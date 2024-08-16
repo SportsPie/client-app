@@ -224,7 +224,7 @@ export default function AcademyJoinModal({
               }}
               style={{
                 height: 48,
-                backgroundColor: '#FF671F',
+                backgroundColor: '#FF7C10',
                 justifyContent: 'center',
                 alignItems: 'center',
                 borderRadius: 10,
@@ -256,7 +256,7 @@ export default function AcademyJoinModal({
                 }}
                 style={{
                   height: 48,
-                  backgroundColor: '#FF671F',
+                  backgroundColor: '#FF7C10',
                   justifyContent: 'center',
                   alignItems: 'center',
                   borderRadius: 10,

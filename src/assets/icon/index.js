@@ -118,13 +118,13 @@ const SPIcons = {
   icSoccerBall: require('./ic_soccer_ball.png'),
   icThreeStar: require('./ic_three_star.png'),
   icFullScreen: require('./ic_full_screen.png'),
-  icBigCommunity: require('./ic_big_community.png'),
-  icBigNoti: require('./ic_big_noti.png'),
-  icBigPlayer: require('./ic_big_player.png'),
-  icBigReview: require('./ic_big_review.png'),
-  icBigSchedule: require('./ic_big_schedule.png'),
-  icBigScourt: require('./ic_big_scourt.png'),
-  icBigSoccerBall: require('./ic_big_soccer_ball.png'),
+  // icBigCommunity: require('./ic_big_community.png'),
+  // icBigNoti: require('./ic_big_noti.png'),
+  // icBigPlayer: require('./ic_big_player.png'),
+  // icBigReview: require('./ic_big_review.png'),
+  // icBigSchedule: require('./ic_big_schedule.png'),
+  // icBigScourt: require('./ic_big_scourt.png'),
+  // icBigSoccerBall: require('./ic_big_soccer_ball.png'),
 };
 
 export default SPIcons;

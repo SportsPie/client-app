@@ -1,24 +1,23 @@
-import React, { memo, useEffect, useState } from 'react';
+import React, { memo, useCallback } from 'react';
 import {
   Image,
-  Pressable,
-  ScrollView,
   StyleSheet,
   Text,
-  View,
   useWindowDimensions,
+  View,
 } from 'react-native';
 import { SPGifs } from '../../assets/gif';
-import SPHeader from '../../components/SPHeader';
-import NavigationService from '../../navigation/NavigationService';
-import { navName } from '../../common/constants/navName';
 import { handleError } from '../../utils/HandleError';
 import { AccessDeniedException } from '../../common/exceptions';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Header from '../../components/header';
+import { useFocusEffect } from '@react-navigation/native';
+import { useDispatch } from 'react-redux';
+import { trainingDetailAction } from '../../redux/reducers/list/trainingDetailSlice';
 
 // PIE 트레이닝 > 클래스 마스터 > 등록완료
 function TraningClear({ route }) {
+  const dispatch = useDispatch();
   const { width } = useWindowDimensions();
 
   let imageHeight;
@@ -36,6 +35,11 @@ function TraningClear({ route }) {
   if (!videoIdx) {
     handleError(new AccessDeniedException('잘못된 접근입니다.'));
   }
+  useFocusEffect(
+    useCallback(() => {
+      dispatch(trainingDetailAction.refresh());
+    }, []),
+  );
 
   return (
     <SafeAreaView style={styles.container}>

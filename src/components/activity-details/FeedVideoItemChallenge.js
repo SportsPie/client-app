@@ -1,14 +1,14 @@
 import {
   Image,
+  Modal,
   Pressable,
   StyleSheet,
   Text,
-  View,
-  useWindowDimensions,
-  Modal,
   TouchableOpacity,
+  useWindowDimensions,
+  View,
 } from 'react-native';
-import React, { memo, useState } from 'react';
+import React, { memo, useRef, useState } from 'react';
 import { SPSvgs } from '../../assets/svg';
 import moment from 'moment';
 import fontStyles from '../../styles/fontStyles';
@@ -16,9 +16,15 @@ import { COLORS } from '../../styles/colors';
 import NavigationService from '../../navigation/NavigationService';
 import { navName } from '../../common/constants/navName';
 import SPIcons from '../../assets/icon';
+import SPModal from '../SPModal';
+import { handleError } from '../../utils/HandleError';
+import { apiRemoveChallengeVideo } from '../../api/RestAPI';
+import Utils from '../../utils/Utils';
 
-function FeedVideoItem({ item, hideTitle }) {
+function FeedVideoItem({ item, hideTitle, onDelete }) {
+  const trlRef = useRef({ current: { disabled: false } });
   const [modalShow, setModalShow] = useState(false);
+  const [showRemoveCheckModal, setShowRemoveCheckModal] = useState(false);
   const { width } = useWindowDimensions();
   const closeModal = () => {
     setModalShow(false);
@@ -32,6 +38,22 @@ function FeedVideoItem({ item, hideTitle }) {
     imageHeight = imageWidth / aspectRatio;
   }
 
+  const remove = async () => {
+    if (trlRef.current.disabled) return;
+    trlRef.current.disabled = true;
+    try {
+      const { data } = await apiRemoveChallengeVideo(item.videoIdx);
+      Utils.openModal({
+        title: '성공',
+        body: '영상을 삭제하였습니다.',
+      });
+      if (onDelete) onDelete();
+    } catch (error) {
+      handleError(error);
+    }
+    trlRef.current.disabled = false;
+  };
+
   return (
     <View style={[styles.container, styles.iconContainer]}>
       <Pressable
@@ -41,6 +63,7 @@ function FeedVideoItem({ item, hideTitle }) {
             videoTitle: item.title,
             videoContents: item.contents,
             thumbPath: item.thumbPath,
+            fromMorePage: true,
           });
         }}
         style={{ borderRadius: 12 }}>
@@ -180,9 +203,34 @@ function FeedVideoItem({ item, hideTitle }) {
                   <Text style={styles.modalText}>수정하기</Text>
                 </View>
               </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.button}
+                onPress={() => {
+                  setModalShow(false);
+                  setShowRemoveCheckModal(true);
+                }}>
+                <View style={styles.modalBox}>
+                  <Image source={SPIcons.icDelete} />
+                  <Text style={styles.modalText}>삭제하기</Text>
+                </View>
+              </TouchableOpacity>
             </View>
           </TouchableOpacity>
         </Modal>
+        <SPModal
+          title="삭제 확인"
+          contents="삭제하시겠습니까?"
+          visible={showRemoveCheckModal}
+          onConfirm={() => {
+            remove();
+          }}
+          onCancel={() => {
+            setShowRemoveCheckModal(false);
+          }}
+          onClose={() => {
+            setShowRemoveCheckModal(false);
+          }}
+        />
       </View>
     </View>
   );

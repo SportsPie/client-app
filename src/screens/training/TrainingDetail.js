@@ -1,16 +1,16 @@
-import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
+import React, { memo, useEffect, useRef, useState } from 'react';
 import {
   Image,
   ImageBackground,
+  Pressable,
+  RefreshControl,
   ScrollView,
   Text,
   TouchableOpacity,
-  View,
   useWindowDimensions,
-  Pressable,
+  View,
 } from 'react-native';
-import { useFocusEffect } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import LinearGradient from 'react-native-linear-gradient';
 import SPIcons from '../../assets/icon';
 import SPImages from '../../assets/images';
@@ -35,6 +35,10 @@ import SPLoading from '../../components/SPLoading';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Header from '../../components/header';
 import { ACTIVE_OPACITY } from '../../common/constants/constants';
+import { trainingListAction } from '../../redux/reducers/list/trainingListSlice';
+import { trainingDetailAction } from '../../redux/reducers/list/trainingDetailSlice';
+import NavigationService from '../../navigation/NavigationService';
+import { navName } from '../../common/constants/navName';
 
 // 상수값
 const MAX_DESC_TEXT = 70;
@@ -66,6 +70,13 @@ function TabButton({ title, activeTab, setActiveTab }) {
 
 // 트레이닝 상세 메인
 function TrainingDetail({ route }) {
+  const dispatch = useDispatch();
+  const listName = 'trainingDetail';
+  const { masterVideoList, trainingDetail, refreshing, loading } = useSelector(
+    selector => selector[listName],
+  );
+  const noParamReset = route?.params?.noParamReset;
+  const action = trainingDetailAction;
   const isLogin = useSelector(selector => selector.auth)?.isLogin;
 
   const { width } = useWindowDimensions();
@@ -92,21 +103,7 @@ function TrainingDetail({ route }) {
   const pageRef = useRef();
 
   // [ state ]
-  const [loading, setLoading] = useState(true); // 로딩
   const [activeTab, setActiveTab] = useState('클래스 영상'); // 기초튼튼 훈련, 챌린지
-  const [trainingSummary, setTrainingSummary] = useState({
-    trainingName: '',
-    bannerPath: '',
-    cntLike: 0,
-    cntView: 0,
-    coachDesc: '',
-    coachName: '',
-    cntVideo: 0,
-    lastViewOrder: '',
-    programDesc: '',
-    isLike: false,
-  }); // 트레이닝 상세
-  const [masterVideoList, setMasterVideoList] = useState([]); // 마스터 영상 리스트
   const [displayAllProgramDesc, setDisplayAllProgramDesc] = useState(false); // 프로그램 소개글 더보기
   const [displayAllCoachDesc, setDisplayAllCoachDesc] = useState(false); // 코치 소개글 더보기
 
@@ -122,7 +119,7 @@ function TrainingDetail({ route }) {
     if (!trlRef.current.disabled) {
       trlRef.current.disabled = true;
 
-      if (!trainingSummary.isLike) {
+      if (!trainingDetail.isLike) {
         likeTraining();
       } else {
         unlikeTraining();
@@ -133,21 +130,25 @@ function TrainingDetail({ route }) {
   // [ api ] 트레이닝 상세 조회
   const getTrainingDetail = async () => {
     try {
-      setLoading(true);
       const { data } = await apiGetTrainingDetail(trainingIdx);
 
       if (data) {
-        setTrainingSummary({ ...data.data });
+        dispatch(action.setTrainingDetail(data.data));
         setDisplayAllProgramDesc(data.data.programDesc.length < MAX_DESC_TEXT);
         setDisplayAllCoachDesc(data.data.coachDesc.length < MAX_DESC_TEXT);
         if (pageRef.current) pageRef.current.scrollTo(0, 0);
+        dispatch(
+          trainingListAction.modifyItem({
+            idxName: 'trainingIdx',
+            idx: trainingIdx,
+            item: data.data,
+          }),
+        );
       }
-
-      setLoading(false);
     } catch (error) {
       handleError(error);
-      setLoading(false);
     }
+    dispatch(action.setLoading(false));
   };
 
   // [ api ] 좋아요 등록
@@ -156,12 +157,22 @@ function TrainingDetail({ route }) {
       const { data } = await apiLikeTraining(trainingIdx);
 
       if (data) {
-        setTrainingSummary({
-          ...trainingSummary,
-          cntLike: trainingSummary.cntLike + 1,
-          isLike: true,
-        });
+        dispatch(
+          action.setTrainingDetail({
+            ...trainingDetail,
+            cntLike: trainingDetail.cntLike + 1,
+            isLike: true,
+          }),
+        );
         trlRef.current.disabled = false;
+        trainingDetail.cntLike += 1;
+        dispatch(
+          trainingListAction.modifyItem({
+            idxName: 'trainingIdx',
+            idx: trainingIdx,
+            item: trainingDetail,
+          }),
+        );
       }
     } catch (error) {
       handleError(error);
@@ -175,12 +186,22 @@ function TrainingDetail({ route }) {
       const { data } = await apiUnlikeTraining(trainingIdx);
 
       if (data) {
-        setTrainingSummary({
-          ...trainingSummary,
-          cntLike: trainingSummary.cntLike - 1,
-          isLike: false,
-        });
+        dispatch(
+          action.setTrainingDetail({
+            ...trainingDetail,
+            cntLike: trainingDetail.cntLike - 1,
+            isLike: false,
+          }),
+        );
         trlRef.current.disabled = false;
+        trainingDetail.cntLike -= 1;
+        dispatch(
+          trainingListAction.modifyItem({
+            idxName: 'trainingIdx',
+            idx: trainingIdx,
+            item: trainingDetail,
+          }),
+        );
       }
     } catch (error) {
       handleError(error);
@@ -199,7 +220,7 @@ function TrainingDetail({ route }) {
       });
 
       if (data) {
-        setMasterVideoList([...data.data.list]);
+        dispatch(action.setMasterVideoList(data.data.list));
       }
     } catch (error) {
       handleError(error);
@@ -207,19 +228,43 @@ function TrainingDetail({ route }) {
   };
 
   // [ useEffect ] 상세
-  useFocusEffect(
-    useCallback(() => {
-      if (trainingIdx) getTrainingDetail();
-      else handleError(new AccessDeniedException('잘못된 접근입니다.'));
-    }, [trainingIdx]),
-  );
+  const onFocus = async () => {
+    try {
+      if (!noParamReset) {
+        setActiveTab('클래스 영상');
+        dispatch(action.reset());
+        NavigationService.replace(navName.trainingDetail, {
+          ...(route?.params || {}),
+          noParamReset: true,
+        });
+        return;
+      }
+      await getTrainingDetail();
+      await getMasterVideoList();
+    } catch (error) {
+      handleError(error);
+    }
+    dispatch(action.setRefreshing(false));
+    dispatch(action.setLoading(false));
+  };
 
-  // [ useFocusEffect ] 마스터 영상 리스트
-  useFocusEffect(
-    useCallback(() => {
-      if (trainingIdx) getMasterVideoList();
-    }, [trainingIdx]),
-  );
+  useEffect(() => {
+    if (trainingIdx) {
+      onFocus();
+    } else handleError(new AccessDeniedException('잘못된 접근입니다.'));
+  }, [trainingIdx, noParamReset]);
+
+  useEffect(() => {
+    const pageRefresh = async () => {
+      await getTrainingDetail();
+      await getMasterVideoList();
+      dispatch(action.setRefreshing(false));
+      dispatch(action.setLoading(false));
+    };
+    if (refreshing) {
+      pageRefresh();
+    }
+  }, [refreshing]);
 
   // [ return ]
   return (
@@ -229,11 +274,20 @@ function TrainingDetail({ route }) {
       {loading ? (
         <SPLoading />
       ) : (
-        <ScrollView showsVerticalScrollIndicator={false}>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={false}
+              onRefresh={() => {
+                dispatch(action.refresh());
+              }}
+            />
+          }>
           <ImageBackground
             source={
-              trainingSummary.bannerPath
-                ? { uri: trainingSummary.bannerPath }
+              trainingDetail.bannerPath
+                ? { uri: trainingDetail.bannerPath }
                 : SPImages.academyMainImage
             }
             style={[
@@ -249,10 +303,10 @@ function TrainingDetail({ route }) {
           {/* 소개글 */}
           <View style={styles.DetailSection}>
             <Text style={styles.DetailTitle}>
-              {trainingSummary.trainingName}
+              {trainingDetail.trainingName}
             </Text>
             <Text style={styles.DetailViews}>
-              조회수 {Utils.changeNumberComma(trainingSummary.cntView)}
+              조회수 {Utils.changeNumberComma(trainingDetail.cntView)}
             </Text>
             <Pressable
               hitSlop={{
@@ -265,7 +319,7 @@ function TrainingDetail({ route }) {
               <View>
                 <Image
                   source={
-                    trainingSummary.isLike
+                    trainingDetail.isLike
                       ? SPIcons.icOrangeHeart
                       : SPIcons.icGrayHeart
                   }
@@ -278,19 +332,19 @@ function TrainingDetail({ route }) {
                   justifyContent: 'center',
                 }}>
                 <Text style={styles.DetailLikeNumber}>
-                  {Utils.changeNumberComma(trainingSummary.cntLike)}
+                  {Utils.changeNumberComma(trainingDetail.cntLike)}
                 </Text>
               </View>
             </Pressable>
             <View style={styles.introductionBox}>
               <Text style={styles.introductionName}>
-                {trainingSummary.coachName}
+                {trainingDetail.coachName}
               </Text>
               <Text style={styles.introductionText}>
-                {trainingSummary.coachDesc.length < MAX_DESC_TEXT ||
+                {trainingDetail.coachDesc.length < MAX_DESC_TEXT ||
                 displayAllCoachDesc
-                  ? trainingSummary.coachDesc
-                  : `${trainingSummary.coachDesc.substring(
+                  ? trainingDetail.coachDesc
+                  : `${trainingDetail.coachDesc.substring(
                       0,
                       MAX_DESC_TEXT,
                     )}...`}{' '}
@@ -305,10 +359,10 @@ function TrainingDetail({ route }) {
             </View>
             <View style={styles.introductionSubBox}>
               <Text style={styles.introductionText}>
-                {trainingSummary.programDesc.length < MAX_DESC_TEXT ||
+                {trainingDetail.programDesc.length < MAX_DESC_TEXT ||
                 displayAllProgramDesc
-                  ? trainingSummary.programDesc
-                  : `${trainingSummary.programDesc.substring(
+                  ? trainingDetail.programDesc
+                  : `${trainingDetail.programDesc.substring(
                       0,
                       MAX_DESC_TEXT,
                     )}...`}
@@ -331,8 +385,8 @@ function TrainingDetail({ route }) {
             </View>
 
             <TrainingStatus
-              numberOfPie={trainingSummary.cntVideo}
-              numberPieComplete={trainingSummary.lastViewOrder}
+              numberOfPie={trainingDetail.cntVideo}
+              numberPieComplete={trainingDetail.lastViewOrder}
             />
           </View>
 
@@ -361,7 +415,9 @@ function TrainingDetail({ route }) {
               ) : (
                 <ClassVideoTab
                   trainingIdx={trainingIdx}
-                  setLoading={setLoading}
+                  setLoading={value => {
+                    dispatch(action.setLoading(value));
+                  }}
                 />
               )}
             </View>
@@ -546,7 +602,7 @@ const styles = {
     borderColor: '#FB8225',
   },
   activeTabText: {
-    color: '#FF671F',
+    color: '#FF7C10',
   },
   classDetailTop: {
     flexDirection: 'row',
@@ -617,7 +673,7 @@ const styles = {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItem: 'center',
-    backgroundColor: '#FF671F',
+    backgroundColor: '#FF7C10',
     borderRadius: 10,
     paddingHorizontal: 28,
     paddingVertical: 12,

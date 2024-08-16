@@ -423,7 +423,7 @@ const styles = {
   countText: {
     fontSize: 12,
     fontWeight: 600,
-    color: '#FF671F',
+    color: '#FF7C10',
     lineHeight: 16,
     letterSpacing: 0.302,
   },
@@ -516,7 +516,7 @@ const styles = {
   matchingTitle: {
     fontSize: 13,
     fontWeight: 600,
-    color: '#FF671F',
+    color: '#FF7C10',
     lineHeight: 18,
     letterSpacing: 0.252,
   },
@@ -570,7 +570,7 @@ const styles = {
     textAlign: 'center',
   },
   joinBtn: {
-    backgroundColor: '#FF671F',
+    backgroundColor: '#FF7C10',
     borderRadius: 8,
     paddingHorizontal: 20,
     paddingVertical: 9,

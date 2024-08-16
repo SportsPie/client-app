@@ -274,8 +274,8 @@ function AcademyScheduleEdit({ route }) {
               style={[
                 styles.applyBtnBox,
                 {
-                  backgroundColor: !contents ? '#E3E2E1' : '#FF671F',
-                  borderColor: !contents ? '#E3E2E1' : '#FF671F',
+                  backgroundColor: !contents ? '#E3E2E1' : '#FF7C10',
+                  borderColor: !contents ? '#E3E2E1' : '#FF7C10',
                 },
               ]}
               disabled={!contents}
@@ -325,8 +325,8 @@ function AcademyScheduleEdit({ route }) {
                       backgroundColor: '#ffffff',
                       calendarBackground: '#ffffff',
                       selectedDayTextColor: '#ffffff',
-                      selectedDayBackgroundColor: '#FF671F',
-                      todayTextColor: '#FF671F',
+                      selectedDayBackgroundColor: '#FF7C10',
+                      todayTextColor: '#FF7C10',
                       arrowColor: 'black',
                       dayTextColor: '#1A1C1E',
                       textDisabledColor: 'rgba(46, 49, 53, 0.16)',
@@ -594,9 +594,9 @@ const styles = {
   },
   confirmButton: {
     flex: 1,
-    backgroundColor: '#FF671F',
+    backgroundColor: '#FF7C10',
     borderWidth: 1,
-    borderColor: '#FF671F',
+    borderColor: '#FF7C10',
     borderRadius: 8,
     paddingHorizontal: 20,
     paddingVertical: 9,

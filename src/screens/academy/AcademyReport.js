@@ -435,7 +435,7 @@ const styles = StyleSheet.create({
     borderBottomColor: '#FB8225',
   },
   activeTabText: {
-    color: '#FF671F',
+    color: '#FF7C10',
   },
   tabContent: {
     flex: 1,
@@ -463,7 +463,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.252,
   },
   activeButton: {
-    backgroundColor: '#FF671F',
+    backgroundColor: '#FF7C10',
   },
   activeButtonText: {
     color: '#FFF',
@@ -503,10 +503,10 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   unresolvedStatusBox: {
-    backgroundColor: 'rgba(255, 103, 31, 0.08)',
+    backgroundColor: 'rgba(255, 124, 16, 0.15)',
   },
   resolvedStatusBox: {
-    backgroundColor: 'rgba(49, 55, 121, 0.08)',
+    backgroundColor: 'rgba(0, 38, 114, 0.10)',
   },
   statusText: {
     fontSize: 12,
@@ -515,10 +515,10 @@ const styles = StyleSheet.create({
     letterSpacing: 0.302,
   },
   unresolvedStatusText: {
-    color: '#FF671F',
+    color: '#FF7C10',
   },
   resolvedStatusText: {
-    color: '#313779',
+    color: '#002672',
   },
   contentTitle: {
     fontSize: 16,

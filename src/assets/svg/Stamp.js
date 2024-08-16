@@ -11,7 +11,7 @@ function Stamp(props) {
             cx={44}
             cy={38.5}
             r={29.928}
-            stroke="#FF671F"
+            stroke="#FF7C10"
             strokeWidth={4.144}
           />
           <Path

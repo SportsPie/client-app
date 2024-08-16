@@ -14,6 +14,7 @@ import Swiper from 'react-native-swiper';
 import { useDispatch, useSelector } from 'react-redux';
 import { apiGetAcademyDetail, apiGetMyInfo } from '../../api/RestAPI';
 import SPIcons from '../../assets/icon';
+import { SPSvgs } from '../../assets/svg';
 import { IS_YN } from '../../common/constants/isYN';
 import { navName } from '../../common/constants/navName';
 import { RECRUIT_PAGE_TYPE } from '../../common/constants/recruitPageType';
@@ -235,12 +236,13 @@ function AcademyDetail({
                   });
                 }}>
                 <View style={styles.menuItem}>
-                  <View style={styles.menuIcon}>
+                  {/* <View style={styles.menuIcon}>
                     <Image
                       source={SPIcons.icBigSoccerBall}
                       style={styles.iconImg}
                     />
-                  </View>
+                  </View> */}
+                  <SPSvgs.AcademySoccer />
                   <Text style={styles.menuText}>아카데미 소개</Text>
                 </View>
               </TouchableOpacity>
@@ -252,12 +254,13 @@ function AcademyDetail({
                   });
                 }}>
                 <View style={styles.menuItem}>
-                  <View style={styles.menuIcon}>
+                  {/* <View style={styles.menuIcon}>
                     <Image
                       source={SPIcons.icBigCommunity}
                       style={styles.iconImg}
                     />
-                  </View>
+                  </View> */}
+                  <SPSvgs.AcademyCommunity />
                   <Text style={styles.menuText}>커뮤니티</Text>
                 </View>
               </TouchableOpacity>
@@ -269,12 +272,13 @@ function AcademyDetail({
                   });
                 }}>
                 <View style={styles.menuItem}>
-                  <View style={styles.menuIcon}>
+                  {/* <View style={styles.menuIcon}>
                     <Image
                       source={SPIcons.icBigScourt}
                       style={styles.iconImg}
                     />
-                  </View>
+                  </View> */}
+                  <SPSvgs.AcademyScourt />
                   <Text style={styles.menuText}>경기이력</Text>
                 </View>
               </TouchableOpacity>
@@ -286,12 +290,13 @@ function AcademyDetail({
                   });
                 }}>
                 <View style={styles.menuItem}>
-                  <View style={styles.menuIcon}>
+                  {/* <View style={styles.menuIcon}>
                     <Image
                       source={SPIcons.icBigReview}
                       style={styles.iconImg}
                     />
-                  </View>
+                  </View> */}
+                  <SPSvgs.AcademyReview />
                   <Text style={styles.menuText}>경기리뷰</Text>
                 </View>
               </TouchableOpacity>
@@ -304,12 +309,13 @@ function AcademyDetail({
                     NavigationService.navigate(navName.academyPlayer);
                   }}>
                   <View style={styles.menuItem}>
-                    <View style={styles.menuIcon}>
+                    {/* <View style={styles.menuIcon}>
                       <Image
                         source={SPIcons.icBigPlayer}
                         style={styles.iconImg}
                       />
-                    </View>
+                    </View> */}
+                    <SPSvgs.AcademyPlayer />
                     <Text style={styles.menuText}>선수관리</Text>
                   </View>
                 </TouchableOpacity>
@@ -332,9 +338,10 @@ function AcademyDetail({
                   }
                 }}>
                 <View style={styles.menuItem}>
-                  <View style={styles.menuIcon}>
+                  {/* <View style={styles.menuIcon}>
                     <Image source={SPIcons.icBigNoti} style={styles.iconImg} />
-                  </View>
+                  </View> */}
+                  <SPSvgs.AcademyNoti />
                   <Text style={styles.menuText}>회원모집</Text>
                 </View>
               </TouchableOpacity>
@@ -346,12 +353,13 @@ function AcademyDetail({
                   });
                 }}>
                 <View style={styles.menuItem}>
-                  <View style={styles.menuIcon}>
+                  {/* <View style={styles.menuIcon}>
                     <Image
                       source={SPIcons.icBigSchedule}
                       style={styles.iconImg}
                     />
-                  </View>
+                  </View> */}
+                  <SPSvgs.AcademySchedule />
                   <Text style={styles.menuText}>
                     {isAdmin ? '일정관리' : '일정'}
                   </Text>
@@ -432,45 +440,51 @@ function AcademyDetail({
               )}
             </View>
           </View>
+          {academyDetail.description && (
+            <View style={styles.middleBox}>
+              <Text
+                style={styles.middleText}
+                numberOfLines={showMoreDesc ? 0 : 3}
+                onTextLayout={({ nativeEvent: { lines } }) => {
+                  setShouldShowMoreButton(lines.length > 2);
+                }}
+                ellipsizeMode="tail">
+                {academyDetail.description}
+              </Text>
+              {shouldShowMoreButton && (
+                <TouchableOpacity
+                  style={{ alignSelf: 'flex-start' }}
+                  onPress={() => {
+                    setShowMoreDesc(prev => !prev);
+                  }}>
+                  <Text style={styles.moreText}>
+                    {showMoreDesc ? '숨기기' : '더보기'}
+                  </Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          )}
           <View style={styles.middleBox}>
-            <Text
-              style={styles.middleText}
-              numberOfLines={showMoreDesc ? 0 : 3}
-              onTextLayout={({ nativeEvent: { lines } }) => {
-                setShouldShowMoreButton(lines.length > 2);
-              }}
-              ellipsizeMode="tail">
-              {academyDetail.description}
-            </Text>
-            {shouldShowMoreButton && (
-              <TouchableOpacity
-                style={{ alignSelf: 'flex-start' }}
-                onPress={() => {
-                  setShowMoreDesc(prev => !prev);
-                }}>
-                <Text style={styles.moreText}>
-                  {showMoreDesc ? '숨기기' : '더보기'}
+            {academyDetail.phoneNo && (
+              <View style={styles.middleInfo}>
+                <View style={{ minWidth: 46 }}>
+                  <Text style={styles.middleInfoTitle}>대표번호</Text>
+                </View>
+                <Text style={styles.middleInfoText}>
+                  {Utils.addHypenToPhoneNumber(academyDetail.phoneNo)}
                 </Text>
-              </TouchableOpacity>
+              </View>
             )}
-          </View>
-          <View style={styles.middleBox}>
-            <View style={styles.middleInfo}>
-              <View style={{ minWidth: 46 }}>
-                <Text style={styles.middleInfoTitle}>대표번호</Text>
+            {academyDetail.workTime && (
+              <View style={styles.middleInfo}>
+                <View style={{ minWidth: 46 }}>
+                  <Text style={styles.middleInfoTitle}>영업시간</Text>
+                </View>
+                <Text style={styles.middleInfoText}>
+                  {academyDetail.workTime}
+                </Text>
               </View>
-              <Text style={styles.middleInfoText}>
-                {Utils.addHypenToPhoneNumber(academyDetail.phoneNo)}
-              </Text>
-            </View>
-            <View style={styles.middleInfo}>
-              <View style={{ minWidth: 46 }}>
-                <Text style={styles.middleInfoTitle}>영업시간</Text>
-              </View>
-              <Text style={styles.middleInfoText}>
-                {academyDetail.workTime}
-              </Text>
-            </View>
+            )}
             <View style={styles.middleInfo}>
               <View style={{ minWidth: 46 }}>
                 <Text style={styles.middleInfoTitle}>주소</Text>
@@ -562,7 +576,7 @@ const styles = {
   topAddress: {
     fontSize: 13,
     fontWeight: '500',
-    color: '#FF671F',
+    color: '#FF7C10',
     lineHeight: 18,
     letterSpacing: 0.252,
   },

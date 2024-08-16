@@ -24,8 +24,11 @@ import Header from '../../components/header';
 import { COLORS } from '../../styles/colors';
 import { handleError } from '../../utils/HandleError';
 import Utils from '../../utils/Utils';
+import { useDispatch } from 'react-redux';
+import { challengeDetailAction } from '../../redux/reducers/list/challengeDetailSlice';
 
 function ChallengeEditDetails({ route }) {
+  const dispatch = useDispatch();
   const { width } = useWindowDimensions();
   let imageHeight;
 
@@ -86,6 +89,15 @@ function ChallengeEditDetails({ route }) {
       });
 
       if (data) {
+        const { data: challengeDetail } = await apiGetChallengeDetail(videoIdx);
+        dispatch(
+          challengeDetailAction.modifyItem({
+            idxName: 'videoIdx',
+            idx: challengeDetail.data.videoIdx,
+            item: challengeDetail.data,
+          }),
+        );
+
         Utils.openModal({
           title: '성공',
           body: '챌린지 영상 정보가 수정되었습니다.',
@@ -103,7 +115,7 @@ function ChallengeEditDetails({ route }) {
       const { data } = await apiGetChallengeDetail(videoIdx);
 
       if (data) {
-        setVideoURL(data.data.vidath);
+        setVideoURL(data.data.videoPath);
         setTitle(data.data.title);
         setDescription(data.data.contents);
         setIsOpenVideo(data.data.showYn === 'Y');
@@ -233,17 +245,18 @@ function ChallengeEditDetails({ route }) {
 
           {/* 영상 정보 수정 */}
           <PrimaryButton
+            disabled={!(title && description && isAgreed)}
             onPress={modifyChallengeVideo}
             text="수정"
             buttonStyle={styles.submitButton}
-            disabled={
-              !title ||
-              !title.trim() ||
-              title.length > 15 ||
-              !description ||
-              !description.trim() ||
-              !isAgreed
-            }
+            // disabled={
+            //   !title ||
+            //   !title.trim() ||
+            //   title.length > 15 ||
+            //   !description ||
+            //   !description.trim() ||
+            //   !isAgreed
+            // }
           />
         </SafeAreaView>
       </SPKeyboardAvoidingView>
@@ -286,7 +299,7 @@ const styles = StyleSheet.create({
     gap: 14,
     padding: 16,
     borderRadius: 8,
-    backgroundColor: '#FFE1D2',
+    backgroundColor: 'rgba(255, 124, 16, 0.15)',
   },
   customLabelStyle: {
     fontSize: 16,

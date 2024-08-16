@@ -508,10 +508,10 @@ function NearbyAcademy({ route }) {
                               styles.classTypeBtn,
                               {
                                 backgroundColor: selectedClassType?.[item.value]
-                                  ? '#FF671F'
+                                  ? '#FF7C10'
                                   : 'rgba(135, 141, 150, 0.16)',
                                 borderColor: selectedClassType?.[item.value]
-                                  ? '#FF671F'
+                                  ? '#FF7C10'
                                   : 'rgba(135, 141, 150, 0.16)',
                               },
                             ]}>
@@ -561,10 +561,10 @@ function NearbyAcademy({ route }) {
                                 backgroundColor: selectedTeachingType?.[
                                   item.value
                                 ]
-                                  ? '#FF671F'
+                                  ? '#FF7C10'
                                   : 'rgba(135, 141, 150, 0.16)',
                                 borderColor: selectedTeachingType?.[item.value]
-                                  ? '#FF671F'
+                                  ? '#FF7C10'
                                   : 'rgba(135, 141, 150, 0.16)',
                               },
                             ]}>
@@ -614,10 +614,10 @@ function NearbyAcademy({ route }) {
                                 backgroundColor: selectedServiceType?.[
                                   item.value
                                 ]
-                                  ? '#FF671F'
+                                  ? '#FF7C10'
                                   : 'rgba(135, 141, 150, 0.16)',
                                 borderColor: selectedServiceType?.[item.value]
-                                  ? '#FF671F'
+                                  ? '#FF7C10'
                                   : 'rgba(135, 141, 150, 0.16)',
                               },
                             ]}>
@@ -774,7 +774,7 @@ const styles = StyleSheet.create({
     flex: 2,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#FF671F',
+    backgroundColor: '#FF7C10',
     height: 48,
     borderRadius: 10,
     paddingHorizontal: 28,

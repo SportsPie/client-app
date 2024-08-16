@@ -180,7 +180,7 @@ export default function SPInput({
             borderColor: error
               ? COLORS.error
               : focus
-              ? '#FF671F'
+              ? '#FF7C10'
               : COLORS.border0,
           },
           inputBoxStyle,

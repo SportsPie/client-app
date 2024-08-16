@@ -15,7 +15,7 @@ import NavigationService from '../../../navigation/NavigationService';
 import { navName } from '../../../common/constants/navName';
 import Utils from '../../../utils/Utils';
 
-function ChallengeContentItem({ challenge }) {
+function ChallengeContentItem({ challenge, pageKey }) {
   const { width, height } = useWindowDimensions();
   let imageWidth = 153;
   let imageHeight = 86;
@@ -31,6 +31,7 @@ function ChallengeContentItem({ challenge }) {
       onPress={() =>
         NavigationService.push(navName.challengeDetail, {
           videoIdx: challenge.videoIdx,
+          pageKey: pageKey ? `${Number(pageKey) + 1}` : '1',
         })
       }
       style={styles.container}>

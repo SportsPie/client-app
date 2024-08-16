@@ -6,7 +6,7 @@ function CheckBadge(props) {
     <Svg width={24} height={24} viewBox="0 0 24 24" fill="none" {...props}>
       <Path
         d="M3 6.162a3 3 0 0 1 2.051-2.846l6.317-2.105a2 2 0 0 1 1.265 0l6.316 2.105A3 3 0 0 1 21 6.162v6.557a8 8 0 0 1-3.562 6.656l-4.329 2.886a2 2 0 0 1-2.218 0l-4.329-2.886A8 8 0 0 1 3 12.72z"
-        fill="#FF671F"
+        fill="#FF7C10"
       />
       <Path
         fillRule="evenodd"

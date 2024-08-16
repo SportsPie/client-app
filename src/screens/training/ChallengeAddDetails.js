@@ -268,7 +268,7 @@ const styles = StyleSheet.create({
     gap: 14,
     padding: 16,
     borderRadius: 8,
-    backgroundColor: '#FFE1D2',
+    backgroundColor: 'rgba(255, 124, 16, 0.15)',
   },
   customLabelStyle: {
     fontSize: 16,

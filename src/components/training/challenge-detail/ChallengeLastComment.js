@@ -16,12 +16,16 @@ import { apiGetChallengeVideoCommentList } from '../../../api/RestAPI';
 import { handleError } from '../../../utils/HandleError';
 import { format } from 'date-fns';
 import { RefreshControl } from 'react-native-gesture-handler';
+import { store } from '../../../redux/store';
+import { challengeListAction } from '../../../redux/reducers/list/challengeListSlice';
+import { useDispatch } from 'react-redux';
 
 // 상수값
 const PAGE_SIZE = 20; // 페이지 사이즈
 
 // 트레이닝 챌린지 영상 댓글
 function ChallengeLastComment({ videoIdx = '' }) {
+  const dispatch = useDispatch();
   const commentSectionRef = useRef();
   const textRef = useRef(null);
 
@@ -66,6 +70,16 @@ function ChallengeLastComment({ videoIdx = '' }) {
     }, 500);
   };
 
+  const commentModify = (idx, item) => {
+    const modifiedComment = commentList.find(v => v.commentIdx === idx);
+    if (modifiedComment) {
+      const obj = { ...modifiedComment, ...item };
+      const index = commentList.findIndex(v => v.commentIdx === obj.commentIdx);
+      commentList[index] = obj;
+    }
+    setCommentList(prev => [...prev]);
+  };
+
   // [ api ] 트레이닝 챌린지 영상 댓글 리스트 조회
   const getChallengeVideoCommentList = async () => {
     try {
@@ -80,6 +94,21 @@ function ChallengeLastComment({ videoIdx = '' }) {
       if (data) {
         setIsLast(data.data.isLast);
         setTotalCount(data.data.totalCnt);
+        const findChallengeVideo = store
+          .getState()
+          .challengeList.list.find(
+            item => Number(item.videoIdx) === Number(videoIdx),
+          );
+        if (findChallengeVideo) {
+          findChallengeVideo.cntComment = data.data.totalCnt;
+          dispatch(
+            challengeListAction.modifyItem({
+              idxName: 'videoIdx',
+              idx: videoIdx,
+              item: findChallengeVideo,
+            }),
+          );
+        }
 
         if (+page > 1) {
           setCommentList([...commentList, ...data.data.list]);
@@ -167,6 +196,7 @@ function ChallengeLastComment({ videoIdx = '' }) {
         videoIdx={videoIdx}
         commentList={commentList}
         onSubmit={onRefresh}
+        onModify={commentModify}
         onEndReached={getNextPage}
         ListFooterComponent={
           loading

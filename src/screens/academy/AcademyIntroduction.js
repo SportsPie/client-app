@@ -46,26 +46,26 @@ function MatchingBox({ data }) {
   // 경기 완료일때 matchingBoxStyle, genderStyle, numberStyle, statusStyle, statusTextStyle 색상이 변경됨
   const matchingBoxStyle = isReady
     ? styles.matchingBox
-    : { ...styles.matchingBox, backgroundColor: 'rgba(49, 55, 121, 0.08)' }; // 상태에 따라 변경된 스타일 적용
+    : { ...styles.matchingBox, backgroundColor: 'rgba(0, 38, 114, 0.05)' }; // 상태에 따라 변경된 스타일 적용
   const genderStyle = isReady
     ? styles.matchingGender
     : {
         ...styles.matchingGender,
-        backgroundColor: 'rgba(49, 55, 121, 0.08)',
+        backgroundColor: 'rgba(0, 38, 114, 0.10)',
         borderWidth: 0,
       };
   const numberStyle = isReady
     ? styles.matchingNumber
     : {
         ...styles.matchingNumber,
-        backgroundColor: 'rgba(49, 55, 121, 0.08)',
+        backgroundColor: 'rgba(0, 38, 114, 0.10)',
         borderWidth: 0,
       };
   const statusStyle = isReady
     ? styles.matchingStatus
     : {
         ...styles.matchingStatus,
-        backgroundColor: 'rgba(49, 55, 121, 0.08)',
+        backgroundColor: 'rgba(135, 141, 150, 0.16)',
       };
   const statusTextStyle = isReady
     ? styles.matchingStatusText
@@ -437,7 +437,7 @@ const styles = {
   topAddress: {
     fontSize: 13,
     fontWeight: '500',
-    color: '#FF671F',
+    color: '#FF7C10',
     lineHeight: 18,
     letterSpacing: 0.252,
   },
@@ -561,7 +561,7 @@ const styles = {
     letterSpacing: 0.302,
   },
   matchingStatus: {
-    backgroundColor: 'rgba(255, 103, 31, 0.16)',
+    backgroundColor: 'rgba(255, 124, 16, 0.15)',
     borderRadius: 4,
     paddingHorizontal: 8,
     paddingVertical: 4,
@@ -569,7 +569,7 @@ const styles = {
   matchingStatusText: {
     fontSize: 12,
     fontWeight: 600,
-    color: '#FF671F',
+    color: '#FF7C10',
     lineHeight: 16,
     letterSpacing: 0.302,
   },

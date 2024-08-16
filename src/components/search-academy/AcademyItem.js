@@ -65,12 +65,14 @@ function AcademyItem({ item, containerStyle }) {
             <Text style={styles.addressText}>리뷰 {item?.reviewCnt}</Text>
           </View>
         </View>
-        <Text style={styles.phoneText}>
-          대표번호{' '}
-          <Text style={{ color: COLORS.labelNormal }}>
-            {Utils.addHypenToPhoneNumber(item?.phoneNo)}
+        {item?.phoneNo && (
+          <Text style={styles.phoneText}>
+            대표번호{' '}
+            <Text style={{ color: COLORS.labelNormal }}>
+              {Utils.addHypenToPhoneNumber(item?.phoneNo)}
+            </Text>
           </Text>
-        </Text>
+        )}
       </View>
     </Pressable>
   );

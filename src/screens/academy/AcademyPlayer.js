@@ -191,7 +191,7 @@ function AcademyPlayer({ route }) {
                             <Text
                               style={[
                                 styles.contentTitle,
-                                { color: '#FF671F' },
+                                { color: '#FF7C10' },
                               ]}>
                               {playersGroups[item].length}
                             </Text>

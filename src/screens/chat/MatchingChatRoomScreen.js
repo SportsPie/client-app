@@ -51,6 +51,8 @@ function MatchingChatRoomScreen({ navigation }) {
    */
   const chatListRef = useRef();
   const trlRef = useRef({ current: { disabled: false } });
+  const [keyboardAvoidingViewRefresh, setKeyboardAvoidingViewRefresh] =
+    useState(false);
   const [fstCall, setFstCall] = useState(false);
   const { roomId } = useRoute().params;
   const chatState = useSelector(state => state.chat);
@@ -62,7 +64,7 @@ function MatchingChatRoomScreen({ navigation }) {
   const [matchDetail, setMatchDetail] = useState({});
   const [targetUserDetail, setTargetUserDetail] = useState({});
 
-  const [timeId, setTimeId] = useState(new Date().getTime()); // 방 접근 시간
+  const [timeId, setTimeId] = useState(); // 방 접근 시간
   const [chatRoom, setChatRoom] = useState({});
   const [inputValue, setInputValue] = useState('');
   const [page, setPage] = useState(1);
@@ -306,8 +308,11 @@ function MatchingChatRoomScreen({ navigation }) {
     useCallback(() => {
       updateAcademyAndMatchAndCheckAdmin();
       ChatUtils.enterChatRoom(roomId);
+      setKeyboardAvoidingViewRefresh(prev => !prev);
+      setTimeId(new Date().getTime());
       return () => {
         setPage(1);
+        setTimeId(null);
         ChatUtils.outChatRoom();
       };
     }, [roomId]),
@@ -315,8 +320,10 @@ function MatchingChatRoomScreen({ navigation }) {
 
   useFocusEffect(
     useCallback(() => {
-      getChatList(page, roomId);
-    }, [page, refreshing, roomId]),
+      if (timeId) {
+        getChatList(page, roomId);
+      }
+    }, [page, refreshing, roomId, timeId]),
   );
 
   useFocusEffect(
@@ -357,6 +364,7 @@ function MatchingChatRoomScreen({ navigation }) {
         }
       />
       <SPKeyboardAvoidingView
+        key={keyboardAvoidingViewRefresh ? 'key1' : 'key2'}
         behavior="padding"
         isResize
         keyboardVerticalOffset={0}
@@ -472,11 +480,10 @@ function MatchingChatRoomScreen({ navigation }) {
               }}
               placeholder="메시지 보내기"
               multiline
-              numberOfLines={3}
               autoCorrect={false}
               autoComplete="off"
               autoCapitalize="none"
-              style={[styles.input, { height: inputHeight }]}
+              style={[styles.input, { height: inputHeight, maxHeight: 120 }]}
             />
             {inputValue !== '' && (
               <TouchableOpacity style={styles.sendButton} onPress={send}>
@@ -655,7 +662,7 @@ function Chat({
                         </Text>
                       </View>
                       <View
-                        style={[styles.msgBox, { backgroundColor: '#FF671F' }]}>
+                        style={[styles.msgBox, { backgroundColor: '#FF7C10' }]}>
                         <Text style={[styles.msgText, { color: '#FFF' }]}>
                           {item.msg}
                         </Text>
@@ -762,7 +769,7 @@ export default memo(MatchingChatRoomScreen);
 
 const styles = StyleSheet.create({
   inputBox: {
-    // minHeight: 44,
+    minHeight: 44,
     flex: 1,
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -903,7 +910,7 @@ const styles = StyleSheet.create({
   },
   msgBox: {
     flexShrink: 1,
-    backgroundColor: '#FFE1D2',
+    backgroundColor: '#FFEFD4',
     borderRadius: 8,
     paddingHorizontal: 8,
     paddingVertical: 4,
@@ -929,7 +936,7 @@ const styles = StyleSheet.create({
   msgTimeText: {
     fontSize: 11,
     fontWeight: 500,
-    color: '#FF671F',
+    color: '#FF7C10',
     lineHeight: 14,
     letterSpacing: 0.342,
     textAlign: 'right',

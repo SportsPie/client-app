@@ -34,7 +34,7 @@ function HomeHeader() {
 
   return (
     <View style={styles.container}>
-      <SPSvgs.SportPieLogo />
+      <SPSvgs.SportsPieLogo />
 
       <View style={styles.rightContent}>
         {isLogin && (

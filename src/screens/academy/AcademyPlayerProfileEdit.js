@@ -159,11 +159,11 @@ function AcademyPlayerProfileEdit({ route }) {
                         {
                           backgroundColor:
                             selectedPositionType === item.value
-                              ? '#FF671F'
+                              ? '#FF7C10'
                               : 'rgba(135, 141, 150, 0.16)',
                           borderColor:
                             selectedPositionType === item.value
-                              ? '#FF671F'
+                              ? '#FF7C10'
                               : 'rgba(135, 141, 150, 0.16)',
                         },
                       ]}>
@@ -261,11 +261,11 @@ function AcademyPlayerProfileEdit({ route }) {
                         {
                           backgroundColor:
                             selectedFootType === item.value
-                              ? '#FF671F'
+                              ? '#FF7C10'
                               : 'rgba(135, 141, 150, 0.16)',
                           borderColor:
                             selectedFootType === item.value
-                              ? '#FF671F'
+                              ? '#FF7C10'
                               : 'rgba(135, 141, 150, 0.16)',
                         },
                       ]}>
@@ -336,7 +336,7 @@ const styles = {
     letterSpacing: 0.203,
   },
   subBtn: {
-    backgroundColor: '#FF671F',
+    backgroundColor: '#FF7C10',
     borderRadius: 10,
     paddingHorizontal: 28,
     paddingVertical: 12,

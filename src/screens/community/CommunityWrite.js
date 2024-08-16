@@ -469,11 +469,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 7,
     paddingVertical: 3,
     borderRadius: 999,
-    backgroundColor: COLORS.indigo90,
+    backgroundColor: '#E6E9F1',
+    // backgroundColor: COLORS.indigo90,
   },
   hashtagText: {
     ...fontStyles.fontSize12_Medium,
-    color: COLORS.darkBlue,
+    color: '#002672',
+    // color: COLORS.darkBlue,
   },
   pickImageButton: {
     width: 48,

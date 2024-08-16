@@ -92,13 +92,13 @@ function AcademyMatchingRegistration({ route }) {
     switch (status) {
       case PROGRESS_STATUS.WAIT.value:
         return {
-          backgroundColor: 'rgba(255, 103, 31, 0.08)',
-          color: '#FF671F',
+          backgroundColor: 'rgba(255, 124, 16, 0.15)',
+          color: '#FF7C10',
         };
       case PROGRESS_STATUS.COMPLETE.value:
         return {
-          backgroundColor: 'rgba(49, 55, 121, 0.08)',
-          color: '#313779',
+          backgroundColor: 'rgba(0, 38, 114, 0.10)',
+          color: '#002672',
         };
       case PROGRESS_STATUS.REJECTED.value:
         return {
@@ -267,10 +267,10 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   unresolvedStatusBox: {
-    backgroundColor: 'rgba(255, 103, 31, 0.08)',
+    backgroundColor: 'rgba(255, 124, 16, 0.15)',
   },
   resolvedStatusBox: {
-    backgroundColor: 'rgba(49, 55, 121, 0.08)',
+    backgroundColor: 'rgba(0, 38, 114, 0.10)',
   },
   statusText: {
     fontSize: 11,
@@ -279,10 +279,10 @@ const styles = StyleSheet.create({
     letterSpacing: 0.342,
   },
   unresolvedStatusText: {
-    color: '#FF671F',
+    color: '#FF7C10',
   },
   resolvedStatusText: {
-    color: '#313779',
+    color: '#002672',
   },
   dateText: {
     fontSize: 12,

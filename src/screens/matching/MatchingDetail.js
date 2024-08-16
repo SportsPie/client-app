@@ -299,7 +299,7 @@ function MatchingDetail({ route }) {
         }
         return {
           backgroundColor: 'rgba(255, 103, 31, 0.16)',
-          color: '#FF671F',
+          color: '#FF7C10',
           desc: '경기예정',
         };
       case MATCH_STATE.REVIEW.code:
@@ -353,7 +353,7 @@ function MatchingDetail({ route }) {
       case MATCH_STATE.FINISH.code:
         return {
           backgroundColor: 'rgba(255, 103, 31, 0.18)',
-          color: '#FF671F',
+          color: '#FF7C10',
           desc: '승인요청중',
         };
       default:
@@ -1427,7 +1427,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   completeBox: {
-    backgroundColor: 'rgba(49, 55, 121, 0.08)',
+    backgroundColor: 'rgba(0, 38, 114, 0.10)',
     borderRadius: 4,
     paddingHorizontal: 12,
     paddingVertical: 6,
@@ -1435,7 +1435,7 @@ const styles = StyleSheet.create({
   completeText: {
     fontSize: 14,
     fontWeight: 600,
-    color: '#313779',
+    color: '#002672',
     lineHeight: 20,
     letterSpacing: 0.203,
   },
@@ -1455,7 +1455,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   matchingStatus: {
-    backgroundColor: 'rgba(49, 55, 121, 0.08)',
+    backgroundColor: 'rgba(0, 38, 114, 0.10)',
     borderRadius: 4,
     paddingHorizontal: 8,
     paddingVertical: 4,
@@ -1540,7 +1540,7 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     flex: 1,
-    backgroundColor: '#FF671F',
+    backgroundColor: '#FF7C10',
     borderRadius: 10,
     margin: 3,
     marginTop: 20,
@@ -1688,7 +1688,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   joinBtn: {
-    backgroundColor: '#FF671F',
+    backgroundColor: '#FF7C10',
     borderRadius: 8,
     paddingHorizontal: 20,
     paddingVertical: 9,
@@ -1786,7 +1786,7 @@ const styles = StyleSheet.create({
   },
   appealBtn: {
     flex: 1,
-    backgroundColor: '#FF671F',
+    backgroundColor: '#FF7C10',
     borderRadius: 10,
     paddingHorizontal: 12,
     paddingVertical: 12,
@@ -1818,7 +1818,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   mainBtn: {
-    backgroundColor: '#FF671F',
+    backgroundColor: '#FF7C10',
     borderRadius: 10,
     paddingHorizontal: 28,
     paddingVertical: 12,
@@ -1989,7 +1989,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.252,
   },
   contentReviewBottom: {
-    backgroundColor: '#FFE1D2',
+    backgroundColor: 'rgba(255, 124, 16, 0.15)',
     borderRadius: 8,
     padding: 16,
   },

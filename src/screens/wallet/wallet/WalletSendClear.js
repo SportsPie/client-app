@@ -87,7 +87,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   moveBtn: {
-    backgroundColor: '#FF671F',
+    backgroundColor: '#FF7C10',
     borderRadius: 10,
     paddingHorizontal: 28,
     paddingVertical: 12,
