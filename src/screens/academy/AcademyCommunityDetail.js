@@ -316,7 +316,9 @@ function AcademyCommunityDetail({ route }) {
       };
       const { data } = await apiPostCommunityComment(params);
       feedDetail.cntComment += 1;
-      setFeedDetail(prev => prev);
+      setFeedDetail(prev => {
+        return { ...prev };
+      });
       Keyboard.dismiss();
       dispatch(
         academyCommunityListAction.modifyItem({
@@ -875,7 +877,8 @@ function AcademyCommunityDetail({ route }) {
               <View style={{ flex: 1, padding: 16 }}>
                 <TextInput
                   // style={styles.textInput}
-                  defaultValue={modifyComment}
+                  // defaultValue={modifyComment}
+                  value={modifyComment}
                   onChangeText={e => {
                     if (e?.length > 1000) return;
                     setModifyComment(e);

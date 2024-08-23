@@ -220,7 +220,7 @@ function MoreMyInfo() {
           titleTextStyle={styles.customTitleText}
         />
         <MenuSection
-          title="아티클"
+          title="스포츠파이 인사이트"
           onPress={() => {
             NavigationService.navigate(navName.moreArticle);
           }}

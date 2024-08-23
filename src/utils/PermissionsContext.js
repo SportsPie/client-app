@@ -2,9 +2,9 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import {
-  requestPermission,
   checkMultiplePermissions,
   requestMultiplePermissions,
+  requestPermission,
 } from './PermissionUtils';
 import SPModal from '../components/SPModal';
 import { TranslationContext } from './TranslationContext';

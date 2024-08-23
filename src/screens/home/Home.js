@@ -3,18 +3,16 @@ import { useFocusEffect, useRoute } from '@react-navigation/native';
 import moment from 'moment/moment';
 import React, { memo, useCallback, useRef, useState } from 'react';
 import {
-  Dimensions,
   FlatList,
   Image,
   ImageBackground,
-  Linking,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
-  View,
   useWindowDimensions,
+  View,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -22,10 +20,8 @@ import Carousel from 'react-native-snap-carousel';
 import Swiper from 'react-native-swiper';
 import { useSelector } from 'react-redux';
 import {
-  apiGetArticleDetail,
   apiGetHomeInit,
   apiGetHomeOpen,
-  apiGetNoticesDetail,
   apiPatchBannerViewCnt,
 } from '../../api/RestAPI';
 import SPIcons from '../../assets/icon';
@@ -34,13 +30,13 @@ import { ACTIVE_OPACITY } from '../../common/constants/constants';
 import { navName } from '../../common/constants/navName';
 import MainPopup from '../../components/MainPopup';
 import SPLoading from '../../components/SPLoading';
-import { SPToast } from '../../components/SPToast';
 import Header from '../../components/header';
 import NavigationService from '../../navigation/NavigationService';
-import { getFcmToken } from '../../utils/FirebaseMessagingService';
 import GeoLocationUtils from '../../utils/GeoLocationUtils';
 import { handleError } from '../../utils/HandleError';
 import Utils from '../../utils/Utils';
+import { COLORS } from '../../styles/colors';
+import fontStyles from '../../styles/fontStyles';
 
 // 아카데미 소개
 const introductionData = [
@@ -152,12 +148,12 @@ function Home() {
   const mainPopupRef = useRef();
   const isLogin = useSelector(selector => selector.auth)?.isLogin;
   const { width, height } = useWindowDimensions();
-  const aspectRatio = 16 / 9;
+  const aspectRatio = 2 / 3;
   const dynamicHeight = Math.max(144, Math.min(300, width / 3));
   // const hometownHeight = Math.max(156, width / 3);
   const imageHeight = width <= 480 ? 225 : (width * 9) / 16;
   const subImageHeight = width > 480 ? Math.max(91, width / 4) : 91;
-  const magazineHeight = width <= 480 ? 225 : width / aspectRatio;
+  const magazineHeight = ((width - 16 - 32) / 2) * aspectRatio;
   const [homeTownData, setHomeTownData] = useState([]);
   const [magazineData, setMagazineData] = useState([]);
   const [newsData, setNewsData] = useState([]);
@@ -621,8 +617,15 @@ function Home() {
             ))}
           </View>
           {/* 스포츠 꿀팁 매거진 */}
-          <View style={styles.common}>
-            <View style={[styles.topBox, { marginBottom: 20 }]}>
+          <View
+            style={[
+              { paddingHorizontal: 0, paddingTop: 24, paddingBottom: 8 },
+            ]}>
+            <View
+              style={[
+                styles.topBox,
+                { paddingHorizontal: 16, marginBottom: 20 },
+              ]}>
               <Text style={styles.topTitle}>#스포츠 꿀팁 매거진</Text>
               <TouchableOpacity
                 activeOpacity={ACTIVE_OPACITY}
@@ -633,7 +636,7 @@ function Home() {
                 <Text style={styles.topBtn}>모두 보기</Text>
               </TouchableOpacity>
             </View>
-            <View>
+            <View style={{ paddingBottom: 16 }}>
               <FlatList
                 data={
                   magazineData.length % 2 === 1
@@ -641,8 +644,13 @@ function Home() {
                     : magazineData
                 }
                 scrollEnabled={false}
+                contentContainerStyle={styles.articleContent}
                 renderItem={({ item, index }) => (
-                  <View style={[styles.contentsBox, homeTownMargin(index)]}>
+                  <View
+                    style={[
+                      styles.contentsBox,
+                      { marginLeft: index % 2 === 0 ? 0 : 8 },
+                    ]}>
                     {item.isEmpty ? (
                       <View
                         style={{
@@ -651,28 +659,28 @@ function Home() {
                         }}
                       />
                     ) : (
-                      <Pressable onPress={() => articlePage(item)}>
+                      <Pressable
+                        style={[styles.articleContainer]}
+                        onPress={() => {
+                          articlePage(item);
+                        }}>
                         <View
                           style={[
                             styles.contentsImage,
                             { height: magazineHeight },
                           ]}>
-                          <ImageBackground
+                          <Image
                             source={{ uri: item.filePath }}
-                            style={[styles.image, styles.magazineImageBox]}>
-                            <LinearGradient
-                              colors={['transparent', 'rgba(0,0,0,0.35)']}
-                              style={styles.gradient}>
-                              <View style={styles.magazineTitleBox}>
-                                <Text
-                                  numberOfLines={2}
-                                  ellipsizeMode="tail"
-                                  style={styles.magazineTitle}>
-                                  {item.title}
-                                </Text>
-                              </View>
-                            </LinearGradient>
-                          </ImageBackground>
+                            style={[styles.image, styles.magazineImageBox]}
+                          />
+                        </View>
+                        <View style={styles.content}>
+                          <Text numberOfLines={2} style={styles.title}>
+                            {item.title}
+                          </Text>
+                          <Text style={styles.timeText}>
+                            {moment(item?.regDate).format('YYYY.MM.DD')}
+                          </Text>
                         </View>
                       </Pressable>
                     )}
@@ -1055,5 +1063,56 @@ const styles = StyleSheet.create({
   },
   moreBtn: {
     paddingVertical: 10,
+  },
+  articleContent: {
+    // rowGap: 16,
+    gap: 16,
+    paddingBottom: 16,
+    paddingHorizontal: 16,
+  },
+  articleContainer: {
+    // width: (SCREEN_WIDTH - 41) / 2,
+    flex: 1,
+    borderRadius: 16,
+    backgroundColor: COLORS.white,
+    shadowColor: COLORS.black,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.23,
+    shadowRadius: 2.62,
+    elevation: 4,
+    overflow: 'hidden',
+  },
+  hideArticleBox: {
+    flex: 1,
+    backgroundColor: COLORS.gray,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  hideArticleText: {
+    ...fontStyles.fontSize16_Medium,
+    color: COLORS.white,
+  },
+  // image: {
+  //   borderTopLeftRadius: 16,
+  //   borderTopRightRadius: 16,
+  // },
+  content: {
+    flex: 1,
+    padding: 12,
+    rowGap: 20,
+    justifyContent: 'space-between',
+  },
+  title: {
+    ...fontStyles.fontSize14_Semibold,
+    letterSpacing: 0.2,
+    color: '#121212',
+  },
+  timeText: {
+    ...fontStyles.fontSize12_Regular,
+    letterSpacing: 0.3,
+    color: 'rgba(0, 0, 0, 0.60)',
   },
 });

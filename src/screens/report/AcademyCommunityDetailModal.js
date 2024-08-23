@@ -283,7 +283,9 @@ function AcademyCommunityDetailModal({ route, type = REPORT_TYPE.FEED, idx }) {
       };
       const { data } = await apiPostCommunityComment(params);
       feedDetail.cntComment += 1;
-      setFeedDetail(prev => prev);
+      setFeedDetail(prev => {
+        return { ...prev };
+      });
       setCommentList(prev => [data.data, ...prev]);
       Keyboard.dismiss();
       setCommentRegist(true);

@@ -112,13 +112,13 @@ function MoreArticle({ route }) {
   }, [page, refreshing, isFocus, noParamReset]);
 
   const renderEmptyList = useCallback(() => {
-    return <ListEmptyView text="아티클이 존재하지 않습니다." />;
+    return <ListEmptyView text="스포츠파이 인사이트가 존재하지 않습니다." />;
   }, []);
 
   return (
     <SafeAreaView style={styles.container}>
       <Header
-        title="아티클"
+        title="스포츠파이 인사이트"
         {...(isLogin
           ? {
               rightContent: (

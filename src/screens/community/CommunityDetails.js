@@ -265,7 +265,9 @@ function CommunityDetails({
       };
       const { data } = await apiPostCommunityComment(params);
       feedDetail.cntComment += 1;
-      setFeedDetail(prev => prev);
+      setFeedDetail(prev => {
+        return { ...prev };
+      });
       Keyboard.dismiss();
       dispatch(
         communityListAction.modifyItem({
@@ -492,7 +494,7 @@ function CommunityDetails({
         </View>
       </View>
     );
-  }, [commentList, loading]);
+  }, [commentList, feedDetail, loading]);
 
   const renderFeed = useMemo(() => {
     return (

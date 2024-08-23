@@ -383,7 +383,10 @@ function AcademyIntroduction({ route }) {
             <TouchableOpacity
               style={styles.matchingMoreBtn}
               onPress={() => {
-                NavigationService.navigate(navName.matchingSchedule);
+                NavigationService.navigate(navName.matchingSchedule, {
+                  activeTab: '매칭',
+                  paramReset: true,
+                });
               }}>
               <Text style={styles.buttonText}>경기일정 더보기</Text>
             </TouchableOpacity>
@@ -399,7 +402,10 @@ function AcademyIntroduction({ route }) {
               <View style={styles.moreBtn}>
                 <TouchableOpacity
                   onPress={() =>
-                    NavigationService.navigate(navName.matchingSchedule)
+                    NavigationService.navigate(navName.matchingSchedule, {
+                      activeTab: '매칭',
+                      paramReset: true,
+                    })
                   }
                   style={styles.moreBtnBox}>
                   <Text style={styles.moreBtnText}>경기매칭 둘러보기</Text>

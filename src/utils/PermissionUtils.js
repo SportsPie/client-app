@@ -74,9 +74,11 @@ export const requestPermission = async permission => {
 };
 
 // 권한 배열을 생성합니다.
-const permissionsArray = Object.values(SP_PERMISSIONS).map(item => {
-  return item.permission;
-});
+const permissionsArray = Object.values(SP_PERMISSIONS)
+  .filter(item => !!item?.permission)
+  .map(item => {
+    return item.permission;
+  });
 
 export const checkPermissions = permission => {
   return check(permission);

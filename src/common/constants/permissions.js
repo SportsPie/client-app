@@ -2,6 +2,13 @@ import { Platform } from 'react-native';
 import { PERMISSIONS } from 'react-native-permissions';
 
 export const SP_PERMISSIONS = {
+  TRACKING: {
+    permission: Platform.select({
+      ios: PERMISSIONS.IOS.APP_TRACKING_TRANSPARENCY,
+    }),
+    explanation: '앱 추적 권한',
+    errorMsg: 'noGrantedTrackingPermission', // 위치 정보 사용 권한이 허용되지 않았습니다.
+  },
   PHOTO_LIBRARY: {
     permission: Platform.select({
       android:

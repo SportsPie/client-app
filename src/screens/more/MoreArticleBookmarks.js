@@ -151,7 +151,7 @@ function MoreArticleBookmarks({ route }) {
   }, []);
 
   const renderEmptyList = useCallback(() => {
-    return <ListEmptyView text="아티클이 존재하지 않습니다." />;
+    return <ListEmptyView text="스포츠파이 인사이트가 존재하지 않습니다." />;
   }, []);
 
   return (

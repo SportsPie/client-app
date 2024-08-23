@@ -96,13 +96,19 @@ const MainPopup = forwardRef(({ data }, ref) => {
         break;
       case 'POPUP_MATCH':
         // 매치 페이지로 이동
-        ref?.current?.hide();
-        NavigationService.navigate(navName.matchingSchedule);
+        setIsVisivle(false);
+        NavigationService.navigate(navName.matchingSchedule, {
+          activeTab: '매칭',
+          paramReset: true,
+        });
         break;
       case 'POPUP_TRAINING':
         // 트레이닝 페이지로 이동
-        ref?.current?.hide();
-        NavigationService.navigate(navName.training);
+        setIsVisivle(false);
+        NavigationService.navigate(navName.training, {
+          activeTab: '기초튼튼 훈련',
+          paramReset: true,
+        });
         break;
       default:
         break;

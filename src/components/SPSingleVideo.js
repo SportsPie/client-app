@@ -91,8 +91,9 @@ const SPSingleVideo = forwardRef(
         const videoRatio = heightNumber / widthNumber;
         setVideoHeight(windowWidth * videoRatio);
       }
+      if (videoRef.current) videoRef.current.player.ref.seek(0);
 
-      setPause(isPaused);
+      if (!isVideoLoaded) setPause(isPaused);
       setIsVideoLoaded(true);
     };
 
@@ -102,7 +103,8 @@ const SPSingleVideo = forwardRef(
     };
 
     // [ util ] 풀 스크린 이벤트
-    const toggleFullScreen = () => {
+    const toggleFullScreen = e => {
+      e.stopPropagation();
       setIsFullScreen(prev => {
         // 릴스 이동
         if (
@@ -204,7 +206,8 @@ const SPSingleVideo = forwardRef(
                 position: 'relative',
               }}
               // 터치 이벤트
-              onPress={() => {
+              onPress={e => {
+                e.stopPropagation();
                 setPause(prev => !prev);
               }}>
               {/* 시작/정지 버튼 */}

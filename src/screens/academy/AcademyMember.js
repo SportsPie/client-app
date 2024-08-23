@@ -836,7 +836,10 @@ function Academy({ navigation }) {
                     <TouchableOpacity
                       activeOpacity={ACTIVE_OPACITY}
                       onPress={() => {
-                        NavigationService.navigate(navName.matchingSchedule);
+                        NavigationService.navigate(navName.matchingSchedule, {
+                          activeTab: '매칭',
+                          paramReset: true,
+                        });
                       }}
                       style={styles.moreArrowBtn}>
                       <Image source={SPIcons.icArrowRightNoraml} />
@@ -858,7 +861,13 @@ function Academy({ navigation }) {
                       <View style={styles.moreBtn}>
                         <TouchableOpacity
                           onPress={() =>
-                            NavigationService.navigate(navName.matchingSchedule)
+                            NavigationService.navigate(
+                              navName.matchingSchedule,
+                              {
+                                activeTab: '매칭',
+                                paramReset: true,
+                              },
+                            )
                           }
                           style={styles.moreBtnBox}>
                           <Text

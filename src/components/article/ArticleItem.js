@@ -3,11 +3,10 @@ import {
   Pressable,
   StyleSheet,
   Text,
-  View,
   useWindowDimensions,
+  View,
 } from 'react-native';
 import React, { memo } from 'react';
-import { apiGetArticleDetail } from '../../api/RestAPI';
 import NavigationService from '../../navigation/NavigationService';
 import { navName } from '../../common/constants/navName';
 import { handleError } from '../../utils/HandleError';
@@ -16,7 +15,7 @@ import { COLORS } from '../../styles/colors';
 import moment from 'moment';
 import fontStyles from '../../styles/fontStyles';
 
-function ArticleItem({ item, containerStyle, onPressHiddenItem, test }) {
+function ArticleItem({ item, containerStyle, onPressHiddenItem }) {
   const { width } = useWindowDimensions();
   const imageWidth = (SCREEN_WIDTH - 40) / 2;
   let imageHeight = 107;
@@ -46,11 +45,15 @@ function ArticleItem({ item, containerStyle, onPressHiddenItem, test }) {
       <View style={{ width: imageWidth, height: imageHeight }}>
         {item.deleted ? (
           <View style={styles.hideArticleBox}>
-            <Text style={styles.hideArticleText}>삭제된 아티클</Text>
+            <Text style={styles.hideArticleText}>
+              삭제된 스포츠파이 인사이트
+            </Text>
           </View>
         ) : item.hide ? (
           <View style={styles.hideArticleBox}>
-            <Text style={styles.hideArticleText}>비공개 아티클</Text>
+            <Text style={styles.hideArticleText}>
+              비공개 스포츠파이 인사이트
+            </Text>
           </View>
         ) : (
           item.files &&
@@ -113,8 +116,10 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 16,
   },
   content: {
+    flex: 1,
     padding: 12,
     rowGap: 20,
+    justifyContent: 'space-between',
   },
   title: {
     ...fontStyles.fontSize14_Semibold,

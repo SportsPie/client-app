@@ -47,6 +47,7 @@ import { store } from '../../redux/store';
 import { COLORS } from '../../styles/colors';
 import { SPSvgs } from '../../assets/svg';
 import { SCREEN_WIDTH } from '@gorhom/bottom-sheet';
+import Swiper from 'react-native-swiper';
 
 // 커뮤니티 이미지 슬라이드
 function CarouselSection({ challengeData, openImageModal, setSelectedImage }) {
@@ -55,11 +56,11 @@ function CarouselSection({ challengeData, openImageModal, setSelectedImage }) {
   const minHeight = 200; // 최소 높이
   const calculatedHeight = screenWidth / aspectRatio; // 디바이스 크기에 비례하는 높이
   const dynamicHeight = Math.max(minHeight, calculatedHeight);
-  const renderItem = ({ item }) => (
+  const renderItem = ({ item, index }) => (
     <Pressable
       onPress={() => {
-        setSelectedImage(item.fileUrl);
-        openImageModal();
+        setSelectedImage(challengeData); // 전체 이미지 리스트를 설정
+        openImageModal(index); // 선택한 이미지의 인덱스를 넘겨줌
       }}>
       <Image
         source={{ uri: item.fileUrl }}
@@ -145,6 +146,7 @@ function AcademyCommunity({ route }) {
   const [selectedImage, setSelectedImage] = useState(null);
 
   const [changeEvent, setChangeEvent] = useState(false);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
   const userIdx = route?.params.userIdx;
   /**
@@ -280,7 +282,8 @@ function AcademyCommunity({ route }) {
   };
   const closeModal = () => setModalVisible(false);
 
-  const openImageModal = () => {
+  const openImageModal = index => {
+    setSelectedImageIndex(index);
     setImageModalShow(true);
   };
 
@@ -712,14 +715,24 @@ function AcademyCommunity({ route }) {
                 alignItems: 'center',
               }}>
               {selectedImage && (
-                <Image
-                  source={{ uri: selectedImage }}
-                  style={{
-                    width: '100%',
-                    height: '100%',
-                    resizeMode: 'contain',
-                  }}
-                />
+                <Swiper
+                  loop={false}
+                  index={selectedImageIndex} // 선택된 이미지 인덱스에서 시작
+                  showsPagination={true} // 페이지네이션 보이기
+                >
+                  {selectedImage.map((item, index) => (
+                    <View key={index} style={{ flex: 1 }}>
+                      <Image
+                        source={{ uri: item.fileUrl }}
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          resizeMode: 'contain',
+                        }}
+                      />
+                    </View>
+                  ))}
+                </Swiper>
               )}
             </View>
           </SafeAreaView>

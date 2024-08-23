@@ -45,7 +45,7 @@ const GeoLocationUtils = {
           }
           reject(error);
         },
-        { enableHighAccuracy: true, timeout: 7000, maximumAge: 60 * 1000 },
+        { enableHighAccuracy: true, timeout: 15000, maximumAge: 60 * 1000 },
       );
     });
   },
