@@ -104,6 +104,10 @@ function AcademyRecruitmentDetail({ route, type }) {
         }),
       );
     } catch (error) {
+      if (error.code === 4907 || error.code === 9999) {
+        dispatch(academyRecruitmentListAction.refresh());
+        dispatch(academyRecruitmentForAdminListAction.refresh());
+      }
       handleError(error);
     }
   };

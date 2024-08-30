@@ -77,7 +77,8 @@ export const challengeDetailSlice = createSlice({
         challengeDetail: JSON.parse(JSON.stringify(challengeDetailInit)),
         list: [],
         refreshing: true,
-        pagingKey: 0,
+        pagingKey: state.data[actions.payload].pagingKey,
+        // pagingKey: 0,
         page: 1,
         isLast: false,
       };

@@ -28,20 +28,16 @@ import {
 import Carousel from 'react-native-snap-carousel';
 import { useDispatch, useSelector } from 'react-redux';
 import {
-  apiGetCommunityCommentList,
-  apiGetCommunityDetail,
-  apiGetCommunityFindFeed,
-  apiGetCommunityOpenCommentList,
-  apiGetCommunityOpenDetail,
+  apiGetHolderCommunityComment,
+  apiGetHolderCommunityDetail,
   apiGetMyInfo,
-  apiPatchCommunityLike,
-  apiPatchCommunityUnLike,
-  apiPostCommunityComment,
-  apiPutCommunityComment,
+  apiPatchHolderCommunityCommentLike,
+  apiPatchHolderCommunityCommentUnlike,
+  apiPostHolderCommunityComment,
+  apiPutHolderCommunityComment,
 } from '../../api/RestAPI';
 import SPIcons from '../../assets/icon';
 import { SPSvgs } from '../../assets/svg';
-import { REPORT_TYPE } from '../../common/constants/reportType';
 import Avatar from '../../components/Avatar';
 import DismissKeyboard from '../../components/DismissKeyboard';
 import Divider from '../../components/Divider';
@@ -59,28 +55,28 @@ import fontStyles from '../../styles/fontStyles';
 import { handleError } from '../../utils/HandleError';
 import Utils from '../../utils/Utils';
 import SPKeyboardAvoidingView from '../../components/SPKeyboardAvoidingView';
-import { communityListAction } from '../../redux/reducers/list/communityListSlice';
-import { communityCommentListAction } from '../../redux/reducers/list/communityCommentListSlice';
+import { communityFavPlayerListAction } from '../../redux/reducers/list/communityFavPlayerListSlice';
 import { store } from '../../redux/store';
 import { navName } from '../../common/constants/navName';
-import { moreCommunityListAction } from '../../redux/reducers/list/moreCommunityListSlice';
+import { moreCommunityFavPlayerListAction } from '../../redux/reducers/list/moreCommunityFavPlayerListSlice';
 import ListEmptyView from '../../components/ListEmptyView';
 import { MODAL_CLOSE_EVENT } from '../../common/constants/modalCloseEvent';
+import { communityFavPlayerCommentListAction } from '../../redux/reducers/list/communityFavPlayerCommentListSlice';
 
-function CommunityDetails({ route }) {
+function CommunityFavPlayerDetails({ route }) {
   const {
     page,
     list: commentList,
     refreshing,
     loading,
     isLast,
-  } = useSelector(selector => selector.communityCommentList);
+  } = useSelector(selector => selector.communityFavPlayerCommentList);
   const dispatch = useDispatch();
   // --------------------------------------------------
   // [ State ]
   // --------------------------------------------------
   const noParamReset = route?.params?.noParamReset;
-  const action = communityCommentListAction;
+  const action = communityFavPlayerCommentListAction;
   const flatListRef = useRef();
   const insets = useSafeAreaInsets();
 
@@ -138,21 +134,12 @@ function CommunityDetails({ route }) {
 
   const getDetail = async () => {
     try {
-      let response = null;
-      if (isLogin) {
-        response = await apiGetCommunityDetail(contentsIdx);
-      } else {
-        response = await apiGetCommunityOpenDetail(contentsIdx);
-      }
-      const detail = response?.data?.data;
-      setFeedDetail(detail || {});
-
-      if (detail) {
-        setIsMyFeed(detail.isMine);
-      }
+      const { data } = await apiGetHolderCommunityDetail(contentsIdx);
+      setFeedDetail(data.data || {});
+      setIsMyFeed(data.data.isMine);
     } catch (error) {
       if (error.code === 4906 || error.code === 9999) {
-        dispatch(communityListAction.refresh());
+        dispatch(communityFavPlayerListAction.refresh());
       }
       handleError(error);
     }
@@ -166,34 +153,28 @@ function CommunityDetails({ route }) {
         page,
         size,
       };
-      let response = null;
-      if (isLogin) {
-        response = await apiGetCommunityCommentList(feedDetail.feedIdx, params);
-      } else {
-        response = await apiGetCommunityOpenCommentList(
-          feedDetail.feedIdx,
-          params,
-        );
-      }
-      const data = response?.data;
+      const { data } = await apiGetHolderCommunityComment(
+        feedDetail.feedIdx,
+        params,
+      );
       dispatch(action.setTotalCnt(data.data.totalCnt));
       dispatch(action.setIsLast(data.data.isLast));
       if (page === 1) {
         dispatch(action.setList(data.data.list));
       } else {
-        const prevList = store.getState().communityCommentList.list;
+        const prevList = store.getState().communityFavPlayerCommentList.list;
         dispatch(action.setList([...prevList, ...data.data.list]));
       }
       feedDetail.cntComment = data.data.totalCnt;
       dispatch(
-        communityListAction.modifyItem({
+        communityFavPlayerListAction.modifyItem({
           idxName: 'feedIdx',
           idx: feedDetail.feedIdx,
           item: feedDetail,
         }),
       );
       dispatch(
-        moreCommunityListAction.modifyItem({
+        moreCommunityFavPlayerListAction.modifyItem({
           idxName: 'feedIdx',
           idx: feedDetail.feedIdx,
           item: feedDetail,
@@ -219,11 +200,11 @@ function CommunityDetails({ route }) {
       return;
     }
     if (feedDetail.isLike) {
-      await apiPatchCommunityUnLike(feedDetail.feedIdx);
+      await apiPatchHolderCommunityCommentUnlike(feedDetail.feedIdx);
 
       feedDetail.cntLike -= 1;
     } else {
-      await apiPatchCommunityLike(feedDetail.feedIdx);
+      await apiPatchHolderCommunityCommentLike(feedDetail.feedIdx);
 
       feedDetail.cntLike += 1;
     }
@@ -233,14 +214,14 @@ function CommunityDetails({ route }) {
       return { ...prev };
     });
     dispatch(
-      communityListAction.modifyItem({
+      communityFavPlayerListAction.modifyItem({
         idxName: 'feedIdx',
         idx: feedDetail.feedIdx,
         item: feedDetail,
       }),
     );
     dispatch(
-      moreCommunityListAction.modifyItem({
+      moreCommunityFavPlayerListAction.modifyItem({
         idxName: 'feedIdx',
         idx: feedDetail.feedIdx,
         item: feedDetail,
@@ -267,21 +248,21 @@ function CommunityDetails({ route }) {
         feedIdx: feedDetail.feedIdx,
         comment,
       };
-      const { data } = await apiPostCommunityComment(params);
+      const { data } = await apiPostHolderCommunityComment(params);
       feedDetail.cntComment += 1;
       setFeedDetail(prev => {
         return { ...prev };
       });
       Keyboard.dismiss();
       dispatch(
-        communityListAction.modifyItem({
+        communityFavPlayerListAction.modifyItem({
           idxName: 'feedIdx',
           idx: feedDetail.feedIdx,
           item: feedDetail,
         }),
       );
       dispatch(
-        moreCommunityListAction.modifyItem({
+        moreCommunityFavPlayerListAction.modifyItem({
           idxName: 'feedIdx',
           idx: feedDetail.feedIdx,
           item: feedDetail,
@@ -304,7 +285,7 @@ function CommunityDetails({ route }) {
         commentIdx: selectedComment.commentIdx,
         comment: modifyComment,
       };
-      const { data } = await apiPutCommunityComment(params);
+      const { data } = await apiPutHolderCommunityComment(params);
       selectedComment.comment = modifyComment;
       dispatch(
         action.modifyItem({
@@ -367,7 +348,7 @@ function CommunityDetails({ route }) {
   const loadMoreProjects = () => {
     setTimeout(() => {
       if (!isLast) {
-        const prevPage = store.getState().communityCommentList.page;
+        const prevPage = store.getState().communityFavPlayerCommentList.page;
         dispatch(action.setPage(prevPage + 1));
       }
     }, 0);
@@ -382,7 +363,7 @@ function CommunityDetails({ route }) {
       if (!noParamReset) {
         dispatch(action.reset());
         setIsFocus(true);
-        NavigationService.replace(navName.communityDetails, {
+        NavigationService.replace(navName.communityFavPlayerDetails, {
           ...(route?.params || {}),
           noParamReset: true,
         });
@@ -620,7 +601,7 @@ function CommunityDetails({ route }) {
           {listCall ? (
             <View style={{ flex: 1 }}>
               <FlatList
-                key={loading ? 'loading' : 'loaded'}
+                // key={loading ? 'loading' : 'loaded'}
                 ref={flatListRef}
                 data={commentList}
                 style={{ flex: 1 }}
@@ -710,12 +691,12 @@ function CommunityDetails({ route }) {
         visible={modalVisible}
         onClose={closeModal}
         isAdmin={false}
-        type={MODAL_MORE_TYPE.FEED}
+        type={MODAL_MORE_TYPE.HOLDER_FEED}
         idx={contentsIdx}
         targetUserIdx={feedDetail?.userIdx}
         onDelete={() => {
-          dispatch(communityListAction.refresh());
-          dispatch(moreCommunityListAction.refresh());
+          dispatch(communityFavPlayerListAction.refresh());
+          dispatch(moreCommunityFavPlayerListAction.refresh());
         }}
         onConfirm={() => {
           NavigationService.goBack();
@@ -725,6 +706,7 @@ function CommunityDetails({ route }) {
             ? [MODAL_MORE_BUTTONS.EDIT, MODAL_MORE_BUTTONS.REMOVE]
             : [MODAL_MORE_BUTTONS.REPORT]
         }
+        fromFavPlayer
       />
 
       {/* 더보기 모달 :: 댓글 */}
@@ -732,12 +714,12 @@ function CommunityDetails({ route }) {
         visible={commentModalVisible}
         onClose={closeCommentModal}
         isAdmin={false}
-        type={MODAL_MORE_TYPE.FEED_COMMENT}
+        type={MODAL_MORE_TYPE.HOLDER_FEED_COMMENT}
         idx={selectedComment?.commentIdx}
         targetUserIdx={selectedComment?.userIdx}
         onModify={openModifyCommentModal}
         onDelete={() => {
-          dispatch(moreCommunityListAction.refresh());
+          dispatch(moreCommunityFavPlayerListAction.refresh());
         }}
         onConfirm={() => {
           setChangeEvent(prev => !prev);
@@ -858,7 +840,7 @@ function CommunityDetails({ route }) {
   );
 }
 
-export default memo(CommunityDetails);
+export default memo(CommunityFavPlayerDetails);
 
 const styles = StyleSheet.create({
   container: {

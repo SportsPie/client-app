@@ -46,6 +46,7 @@ import { isBefore } from 'date-fns';
 import SPLoading from '../../components/SPLoading';
 import { JOIN_TYPE } from '../../common/constants/joinType';
 import { matchingScheduleListAction } from '../../redux/reducers/list/matchingScheduleListSlice';
+import { COLORS } from '../../styles/colors';
 
 function BlurWrapper({ onJoinPress, joinType }) {
   return (
@@ -1435,7 +1436,7 @@ const styles = StyleSheet.create({
   completeText: {
     fontSize: 14,
     fontWeight: 600,
-    color: '#002672',
+    color: COLORS.darkBlue,
     lineHeight: 20,
     letterSpacing: 0.203,
   },

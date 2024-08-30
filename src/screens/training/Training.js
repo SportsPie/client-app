@@ -538,6 +538,7 @@ function Training({ route }) {
                 renderItem={renderChallengeItem}
                 onEndReached={loadMoreProjects}
                 onEndReachedThreshold={0.5}
+                contentContainerStyle={{ gap: 16 }}
                 ListFooterComponent={
                   challengeLoading
                     ? () => {

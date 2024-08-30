@@ -32,7 +32,7 @@ import SPMoreModal, {
 import { MODAL_CLOSE_EVENT } from '../../common/constants/modalCloseEvent';
 import Swiper from 'react-native-swiper';
 
-function FeedItem({ item, onDelete, isLogin, onRefresh }) {
+function FeedItem({ item, onDelete, isLogin, onRefresh, fromFavPlayer }) {
   const [isLike, setIsLike] = useState(item.isLike);
   const [cntLike, setCntLike] = useState(item.cntLike);
 
@@ -72,13 +72,19 @@ function FeedItem({ item, onDelete, isLogin, onRefresh }) {
   };
 
   const moveToFeedDetail = () => {
-    if (!isLogin) {
-      showJoinModal();
-      return;
+    // if (!isLogin) {
+    //   showJoinModal();
+    //   return;
+    // }
+    if (fromFavPlayer) {
+      NavigationService.navigate(navName.communityFavPlayerDetails, {
+        feedIdx: item.feedIdx,
+      });
+    } else {
+      NavigationService.navigate(navName.communityDetails, {
+        feedIdx: item.feedIdx,
+      });
     }
-    NavigationService.navigate(navName.communityDetails, {
-      feedIdx: item.feedIdx,
-    });
   };
 
   const showJoinModal = () => {
@@ -306,7 +312,9 @@ function FeedItem({ item, onDelete, isLogin, onRefresh }) {
         visible={modalVisible}
         onClose={closeModal}
         isAdmin={false}
-        type={MODAL_MORE_TYPE.FEED}
+        type={
+          fromFavPlayer ? MODAL_MORE_TYPE.HOLDER_FEED : MODAL_MORE_TYPE.FEED
+        }
         idx={selectedItem?.feedIdx}
         targetUserIdx={selectedItem.userIdx}
         onConfirm={deleteFeed}
@@ -315,6 +323,7 @@ function FeedItem({ item, onDelete, isLogin, onRefresh }) {
             ? [MODAL_MORE_BUTTONS.EDIT, MODAL_MORE_BUTTONS.REMOVE]
             : [MODAL_MORE_BUTTONS.REPORT]
         }
+        fromFavPlayer={fromFavPlayer}
       />
     </View>
   );

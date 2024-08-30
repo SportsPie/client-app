@@ -14,6 +14,7 @@ import fontStyles from '../../styles/fontStyles';
 import { COLORS } from '../../styles/colors';
 import NavigationUtils from '../../utils/NavigationUtils';
 import NavigationService from '../../navigation/NavigationService';
+import CommunityFavPlayer from '../community/CommunityFavPlayer';
 
 const Tab = createBottomTabNavigator();
 
@@ -39,6 +40,12 @@ function BottomTab() {
         return <SPSvgs.BottomTabMatchingOutline width={24} height={24} />;
 
       case navName.community:
+        if (isFocused) {
+          return <SPSvgs.BottomTabCommunity width={24} height={24} />;
+        }
+        return <SPSvgs.BottomTabCommunityOutline width={24} height={24} />;
+
+      case navName.communityFavPlayer:
         if (isFocused) {
           return <SPSvgs.BottomTabCommunity width={24} height={24} />;
         }
@@ -84,37 +91,44 @@ function BottomTab() {
       <View>
         <Divider lineColor="rgba(135, 141, 150, 0.08)" />
         <View style={styles.tabContainer}>
-          {state.routes.map((route, index) => {
-            const isFocused = state.index === index;
-            let navParams = {};
-            if (route?.name === navName.matchingSchedule) {
-              navParams = { activeTab: '매칭', paramReset: true };
-            } else if (route?.name === navName.training) {
-              navParams = { activeTab: '기초튼튼 훈련', paramReset: true };
-            } else if (route?.name === navName.community) {
-              navParams = { paramReset: true };
-            }
+          {state.routes
+            // .filter(v => v.name !== navName.communityFavPlayer)
+            .map((route, index) => {
+              let isFocused = state.index === index;
+              if (state.index === 4 && index === 3) {
+                isFocused = true;
+              }
+              let navParams = {};
+              if (route?.name === navName.matchingSchedule) {
+                navParams = { activeTab: '매칭', paramReset: true };
+              } else if (route?.name === navName.training) {
+                navParams = { activeTab: '기초튼튼 훈련', paramReset: true };
+              } else if (route?.name === navName.community) {
+                navParams = { paramReset: true };
+              }
 
-            return (
-              <Pressable
-                onPress={() => {
-                  navigation.navigate(route?.name, navParams);
-                }}
-                style={styles.tabWrapper}
-                key={route?.key}>
-                {renderIcon(route.name, isFocused)}
-                <Text
-                  style={[
-                    styles.tabButtonText,
-                    isFocused && {
-                      color: COLORS.orange,
-                    },
-                  ]}>
-                  {getRouteName(route?.name, isFocused)}
-                </Text>
-              </Pressable>
-            );
-          })}
+              return (
+                route?.name !== navName.communityFavPlayer && (
+                  <Pressable
+                    onPress={() => {
+                      navigation.navigate(route?.name, navParams);
+                    }}
+                    style={styles.tabWrapper}
+                    key={route?.key}>
+                    {renderIcon(route.name, isFocused)}
+                    <Text
+                      style={[
+                        styles.tabButtonText,
+                        isFocused && {
+                          color: COLORS.orange,
+                        },
+                      ]}>
+                      {getRouteName(route?.name, isFocused)}
+                    </Text>
+                  </Pressable>
+                )
+              );
+            })}
         </View>
       </View>
     );
@@ -160,6 +174,10 @@ function BottomTab() {
           component={MatchingSchedule}
         />
         <Tab.Screen name={navName.community} component={Community} />
+        <Tab.Screen
+          name={navName.communityFavPlayer}
+          component={CommunityFavPlayer}
+        />
         <Tab.Screen name={navName.training} component={Training} />
       </Tab.Navigator>
     </SafeAreaView>

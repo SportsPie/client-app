@@ -6,19 +6,10 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import {
-  FlatList,
-  Pressable,
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { FlatList, Pressable, StyleSheet, View } from 'react-native';
 import { PrimaryButton } from '../../components/PrimaryButton';
 import Header from '../../components/header';
 import ChallengeLastComment from '../../components/training/challenge-detail/ChallengeLastComment';
-import ChallengeContent from '../../components/training/challenge-detail/ChallengeContent';
 import NavigationService from '../../navigation/NavigationService';
 import { navName } from '../../common/constants/navName';
 import { handleError } from '../../utils/HandleError';
@@ -47,6 +38,7 @@ import { challengeDetailAction } from '../../redux/reducers/list/challengeDetail
 import Utils from '../../utils/Utils';
 import ChallengeContentItem from '../../components/training/challenge-detail/ChallengeContentItem';
 import ListEmptyView from '../../components/ListEmptyView';
+import { moreChallengeCommentListAction } from '../../redux/reducers/list/moreChallengeCommentListSlice';
 
 // 챌린지 영상 상세
 export function ChallengeDetail({ route }) {
@@ -78,7 +70,6 @@ export function ChallengeDetail({ route }) {
   const action = challengeDetailAction;
 
   // [ state ]
-  const [loading, setLoading] = useState(true); // 데이터 로딩
   const [isScrollable, setIsScrollable] = useState(true); // 스크롤 동작
 
   // [ state ] 모달
@@ -215,9 +206,16 @@ export function ChallengeDetail({ route }) {
         );
       }
     } catch (error) {
+      if (error.code === 4907 || error.code === 9999) {
+        dispatch(moreChallengeCommentListAction.refresh());
+        dispatch(moreChallengeVideoListAction.refresh());
+        if (Number(pageKey) > 1) {
+          dispatch(action.refresh(Number(pageKey) - 1));
+        }
+      }
       handleError(error);
     }
-    setLoading(false);
+    dispatch(action.setLoading({ key: pageKey, data: false }));
   };
 
   // [ api ] 챌린지 영상 '삭제'
@@ -434,7 +432,7 @@ export function ChallengeDetail({ route }) {
         />
       )}
       <View style={{ flex: 1 }}>
-        {loading ? (
+        {videoLoading ? (
           <SPLoading />
         ) : (
           <View style={{ flex: 1, position: 'relative' }}>

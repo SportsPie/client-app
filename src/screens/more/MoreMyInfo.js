@@ -15,6 +15,7 @@ import fontStyles from '../../styles/fontStyles';
 import { handleError } from '../../utils/HandleError';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
+import Utils from '../../utils/Utils';
 
 function MoreMyInfo() {
   const [member, setMember] = useState({});
@@ -168,7 +169,10 @@ function MoreMyInfo() {
           <View style={styles.tokenWrapper}>
             <Text
               style={[fontStyles.fontSize18_Semibold, { color: COLORS.white }]}>
-              {point?.pointBalance ? point.pointBalance : '0'} P
+              {point?.pointBalance
+                ? Utils.changeNumberComma(point.pointBalance)
+                : '0'}{' '}
+              P
             </Text>
 
             <Pressable

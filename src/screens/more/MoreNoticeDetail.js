@@ -12,12 +12,13 @@ import { COLORS } from '../../styles/colors';
 import fontStyles from '../../styles/fontStyles';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Header from '../../components/header';
-import NavigationService from '../../navigation/NavigationService';
-import { navName } from '../../common/constants/navName';
 import { apiGetNoticesDetail } from '../../api/RestAPI';
 import { handleError } from '../../utils/HandleError';
+import { moreNoticeListAction } from '../../redux/reducers/list/moreNoticeListSlice';
+import { useDispatch } from 'react-redux';
 
 function MoreNoticeDetail() {
+  const dispatch = useDispatch();
   const route = useRoute();
   const { boardIdx } = route.params;
   const [noticeDetail, setNoticeDetail] = useState({});
@@ -40,6 +41,9 @@ function MoreNoticeDetail() {
       const { data } = await apiGetNoticesDetail(boardIdx);
       setNoticeDetail(data.data);
     } catch (error) {
+      if (error.code === 4906 || error.code === 9999) {
+        dispatch(moreNoticeListAction.refresh());
+      }
       handleError(error);
     }
   };

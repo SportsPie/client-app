@@ -14,6 +14,8 @@ import {
   apiDeleteAcademyLeave,
   apiDeleteCommunity,
   apiDeleteCommunityComment,
+  apiDeleteHolderCommunity,
+  apiDeleteHolderCommunityComment,
   apiPatchCommunityMngFix,
   apiPatchCommunityMngUnFix,
 } from '../api/RestAPI';
@@ -30,6 +32,7 @@ import { ACTIVE_OPACITY } from '../common/constants/constants';
 import { SPSvgs } from '../assets/svg';
 import { communityListAction } from '../redux/reducers/list/communityListSlice';
 import { academyCommunityListAction } from '../redux/reducers/list/academyCommunityListSlice';
+import { SPToast } from './SPToast';
 
 export const MODAL_MORE_TYPE = {
   // 아카데미
@@ -37,6 +40,8 @@ export const MODAL_MORE_TYPE = {
   RECRUIT: 'RECRUIT', // "아카데미 회원 모집",
   FEED: 'FEED', // "아카데미 커뮤티니 게시글"
   FEED_COMMENT: 'FEED_COMMENT', // "아카데미 커뮤티니 게시글 댓글"
+  HOLDER_FEED: 'HOLDER_FEED', // "홀더 커뮤티니 게시글"
+  HOLDER_FEED_COMMENT: 'HOLDER_FEED_COMMENT', // "홀더 커뮤티니 게시글 댓글"
   VIDEO: 'VIDEO', // "영상"
   VIDEO_COMMENT: 'VIDEO_COMMENT', // "영상 댓글"
 
@@ -77,6 +82,7 @@ function SPMoreModal({
   shareLink,
   shareTitle,
   shareDescription,
+  fromFavPlayer,
 }) {
   const dispatch = useDispatch();
   const { isLogin, userIdx } = useSelector(selector => selector.auth);
@@ -114,12 +120,32 @@ function SPMoreModal({
           if (onDelete) onDelete();
           if (onConfirm) onConfirm();
           break;
-        case MODAL_MORE_TYPE.FEED_COMMENT:
-          await apiDeleteCommunityComment(idx);
+        case MODAL_MORE_TYPE.HOLDER_FEED:
+          await apiDeleteHolderCommunity(idx);
           Utils.openModal({
             title: '성공',
             body: '삭제되었습니다.',
           });
+          if (onDelete) onDelete();
+          if (onConfirm) onConfirm();
+          break;
+        case MODAL_MORE_TYPE.FEED_COMMENT:
+          await apiDeleteCommunityComment(idx);
+          // Utils.openModal({
+          //   title: '성공',
+          //   body: '삭제되었습니다.',
+          // });
+          SPToast.show({ text: '댓글을 삭제했어요.' });
+          if (onDelete) onDelete();
+          if (onConfirm) onConfirm();
+          break;
+        case MODAL_MORE_TYPE.HOLDER_FEED_COMMENT:
+          await apiDeleteHolderCommunityComment(idx);
+          // Utils.openModal({
+          //   title: '성공',
+          //   body: '삭제되었습니다.',
+          // });
+          SPToast.show({ text: '댓글을 삭제했어요.' });
           if (onDelete) onDelete();
           if (onConfirm) onConfirm();
           break;
@@ -181,11 +207,14 @@ function SPMoreModal({
           recruitIdx: idx,
         });
         break;
+      case MODAL_MORE_TYPE.HOLDER_FEED:
       case MODAL_MORE_TYPE.FEED:
         NavigationService.navigate(navName.communityEdit, {
           feedIdx: idx,
+          fromFavPlayer,
         });
         break;
+      case MODAL_MORE_TYPE.HOLDER_FEED_COMMENT:
       case MODAL_MORE_TYPE.FEED_COMMENT:
         if (onModify) onModify();
         break;

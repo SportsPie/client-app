@@ -84,6 +84,13 @@ function MoreModifyChallenge() {
       // NavigationService.navigate(navName.moreActiveHistory);
       NavigationService.goBack();
     } catch (error) {
+      if (error.code === 4907 || error.code === 9999) {
+        if (type === 'master') {
+          dispatch(moreClassMaterVideoListAction.refresh());
+        } else {
+          dispatch(moreChallengeVideoListAction.refresh());
+        }
+      }
       handleError(error);
     } finally {
       trlRef.current.disabled = false; // 스로틀링 종료

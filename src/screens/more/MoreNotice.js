@@ -1,5 +1,4 @@
-import { useFocusEffect } from '@react-navigation/native';
-import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
+import React, { memo, useCallback, useEffect, useState } from 'react';
 import { FlatList, RefreshControl, StyleSheet, Text, View } from 'react-native';
 import { apiGetNotices } from '../../api/RestAPI';
 import Loading from '../../components/SPLoading';
@@ -10,7 +9,6 @@ import { handleError } from '../../utils/HandleError';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Header from '../../components/header';
 import { useDispatch, useSelector } from 'react-redux';
-import { matchingHistoryListAction } from '../../redux/reducers/list/matchingHistoryListSlice';
 import { moreNoticeListAction } from '../../redux/reducers/list/moreNoticeListSlice';
 import { store } from '../../redux/store';
 import NavigationService from '../../navigation/NavigationService';

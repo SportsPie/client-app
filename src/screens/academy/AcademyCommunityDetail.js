@@ -202,6 +202,9 @@ function AcademyCommunityDetail({ route }) {
         setIsAdminFeed(detail.isAcademyCreator || detail.isAcademyAdmin);
       }
     } catch (error) {
+      if (error.code === 4906 || error.code === 9999) {
+        dispatch(academyCommunityListAction.refresh());
+      }
       handleError(error);
     }
     setIsFocus(false);
@@ -463,7 +466,7 @@ function AcademyCommunityDetail({ route }) {
   useEffect(() => {
     if (noParamReset) {
       if ((!isFocus && refreshing) || (!refreshing && page > 1)) {
-        getCommentList();
+        if (feedDetail?.feedIdx) getCommentList();
       }
     }
   }, [page, isFocus, refreshing, noParamReset]);

@@ -10,6 +10,7 @@ import moreChallengeVideoList from './list/moreChallengeVideoListSlice';
 import moreClassMasterCommentList from './list/moreClassMasterCommentListSlice';
 import moreClassMasterVideoList from './list/moreClassMasterVideoListSlice';
 import moreCommunityList from './list/moreCommunityListSlice';
+import moreCommunityFavPlayerList from './list/moreCommunityFavPlayerListSlice';
 import academyCommunityList from './list/academyCommunityListSlice';
 import academyCommunityCommentList from './list/academyCommunityCommentListSlice';
 import academyMatchingRegistrationList from './list/academyMatchingRegistrationListSlice';
@@ -22,6 +23,8 @@ import searchAcademyList from './list/searchAcademyListSlice';
 import alarmList from './list/alarmListSlice';
 import communityList from './list/communityListSlice';
 import communityCommentList from './list/communityCommentListSlice';
+import communityFavPlayerList from './list/communityFavPlayerListSlice';
+import communityFavPlayerCommentList from './list/communityFavPlayerCommentListSlice';
 import matchingHistoryList from './list/matchingHistoryListSlice';
 import matchingReviewList from './list/matchingReviewListSlice';
 import matchingScheduleList from './list/matchingScheduleListSlice';
@@ -49,6 +52,7 @@ export default {
   moreClassMasterCommentList,
   moreClassMasterVideoList,
   moreCommunityList,
+  moreCommunityFavPlayerList,
   academyCommunityList,
   academyCommunityCommentList,
   academyMatchingRegistrationList,
@@ -61,6 +65,8 @@ export default {
   alarmList,
   communityList,
   communityCommentList,
+  communityFavPlayerList,
+  communityFavPlayerCommentList,
   matchingHistoryList,
   matchingReviewList,
   matchingScheduleList,

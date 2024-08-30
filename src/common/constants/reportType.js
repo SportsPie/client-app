@@ -6,6 +6,8 @@ export const REPORT_TYPE = {
   VIDEO_COMMENT: 'VIDEO_COMMENT', // "영상 댓글 신고",
   FEED: 'FEED', // "커뮤니티 게시글 신고",
   FEED_COMMENT: 'FEED_COMMENT', // "커뮤니티 게시글 댓글 신고",
+  HOLDER_FEED: 'HOLDER_FEED', // "홀더 커뮤티니 게시글"
+  HOLDER_FEED_COMMENT: 'HOLDER_FEED_COMMENT', // "홀더 커뮤티니 게시글 댓글"
   MASTER_VIDEO: 'MASTER_VIDEO', // "PIE 트래이닝 > 마스터 영상"
   MASTER_VIDEO_COMMENT: 'MASTER_VIDEO_COMMENT', // "PIE 트래이닝 > 마스터 영상 댓글"
   CHALLENGE_VIDEO: 'CHALLENGE_VIDEO', // "PIE 트래이닝 > 챌린지 영상"

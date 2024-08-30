@@ -7,13 +7,12 @@ const initialState = {
   list: [],
   totalCnt: 0,
   refreshing: false,
-  noRecruitmentRefreshing: false,
   loading: true,
   isLast: false,
 };
 
-export const academyRecruitmentForAdminListSlice = createSlice({
-  name: 'academyRecruitmentForAdminList',
+export const communityFavPlayerCommentListSlice = createSlice({
+  name: 'communityFavPlayerCommentList',
   initialState,
   reducers: {
     setList: (state, actions) => {
@@ -27,9 +26,6 @@ export const academyRecruitmentForAdminListSlice = createSlice({
     },
     setRefreshing: (state, actions) => {
       state.refreshing = actions.payload;
-    },
-    setNoRecruitmentRefreshing: (state, actions) => {
-      state.noRecruitmentRefreshing = actions.payload;
     },
     setLoading: (state, actions) => {
       state.loading = actions.payload;
@@ -56,7 +52,6 @@ export const academyRecruitmentForAdminListSlice = createSlice({
       state.isLast = false;
       state.list = [];
       state.refreshing = false;
-      state.noRecruitmentRefreshing = false;
     },
     removeItem: (state, actions) => {
       if (state.list && state.list.length > 0) {
@@ -79,7 +74,7 @@ export const academyRecruitmentForAdminListSlice = createSlice({
     },
   },
 });
-export const academyRecruitmentForAdminListAction =
-  academyRecruitmentForAdminListSlice.actions;
+export const communityFavPlayerCommentListAction =
+  communityFavPlayerCommentListSlice.actions;
 
-export default academyRecruitmentForAdminListSlice.reducer;
+export default communityFavPlayerCommentListSlice.reducer;

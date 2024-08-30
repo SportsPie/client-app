@@ -12,6 +12,7 @@ const API_CHAT = `${API_PREFIX}/chat`;
 const API_MORE = `${API_PREFIX}/more`;
 const API_COMMON = `${API_PREFIX}/common`;
 const API_COMMUNITY = `${API_PREFIX}/community`;
+const API_HOLDER_COMMUNITY = `${API_PREFIX}/holder-community`;
 const API_MATCH = `${API_PREFIX}/match`;
 const API_TOURNAMENT = `${API_PREFIX}/tournament`;
 const API_PLAYGROUND = `${API_PREFIX}/playground`;
@@ -560,9 +561,71 @@ export const apiGetCommunityOpenFilters = data => {
   return api.get(`${API_COMMUNITY}/open/filters`);
 };
 
-// SPIC_IF_491 :: 커뮤니티 필터 리스트 조회
+// SPIC_IF_491 :: 커뮤니티 신고하기
 export const apiPostCommunityReport = data => {
   return api.post(`${API_COMMUNITY}/report`, data);
+};
+
+// SPIC_IF_1100 :: 커뮤니티 리스트 조회
+export const apiGetHolderCommunity = data => {
+  return api.get(`${API_HOLDER_COMMUNITY}/open`, { params: data });
+};
+
+// SPIC_IF_1101 :: 커뮤니티 상세 조회
+export const apiGetHolderCommunityDetail = feedIdx => {
+  return api.get(`${API_HOLDER_COMMUNITY}/${feedIdx}`);
+};
+
+// SPIC_IF_1102 :: 커뮤니티 댓글 리스트 조회
+export const apiGetHolderCommunityComment = (feedIdx, data) => {
+  return api.get(`${API_HOLDER_COMMUNITY}/comment/${feedIdx}`, {
+    params: data,
+  });
+};
+
+// SPIC_IF_1103 :: 커뮤니티 피드 등록
+export const apiPostHolderCommunity = data => {
+  return api.post(`${API_HOLDER_COMMUNITY}`, data, formDataConfig);
+};
+
+// SPIC_IF_1104 :: 커뮤니티 피드 수정
+export const apiPutHolderCommunity = data => {
+  return api.put(`${API_HOLDER_COMMUNITY}`, data, formDataConfig);
+};
+
+// SPIC_IF_1105 :: 커뮤니티 피드 삭제
+export const apiDeleteHolderCommunity = feedIdx => {
+  return api.delete(`${API_HOLDER_COMMUNITY}/${feedIdx}`);
+};
+
+// SPIC_IF_1106 :: 커뮤니티 댓글 등록
+export const apiPostHolderCommunityComment = data => {
+  return api.post(`${API_HOLDER_COMMUNITY}/comment`, data);
+};
+
+// SPIC_IF_1107 :: 커뮤니티 댓글 수정
+export const apiPutHolderCommunityComment = data => {
+  return api.put(`${API_HOLDER_COMMUNITY}/comment`, data);
+};
+
+// SPIC_IF_1108 :: 커뮤니티 댓글 삭제
+export const apiDeleteHolderCommunityComment = commentIdx => {
+  return api.delete(`${API_HOLDER_COMMUNITY}/comment/${commentIdx}`);
+};
+
+// SPIC_IF_1109 :: 커뮤니티 좋아요 등록
+export const apiPatchHolderCommunityCommentLike = feedIdx => {
+  return api.patch(`${API_HOLDER_COMMUNITY}/like/${feedIdx}`);
+};
+
+// SPIC_IF_1110 :: 커뮤니티 좋아요 취소
+export const apiPatchHolderCommunityCommentUnlike = feedIdx => {
+  return api.patch(`${API_HOLDER_COMMUNITY}/unlike/${feedIdx}`);
+};
+
+// SPIC_IF_1190 :: 커뮤니티 필터 리스트 조회
+export const apiGetHolderCommunityOpenFilters = () => {
+  return api.get(`${API_HOLDER_COMMUNITY}/open/filters`);
 };
 
 // ----------------------------------------------------------
@@ -966,6 +1029,11 @@ export const apiGetChallengeVideos = data => {
 // SPIC_IF_935 :: 챌린지 내가 올린 영상 수정
 export const apiPutModifyChallengeVideo = data => {
   return api.put(`${API_MORE}/modify/challenge/video`, data);
+};
+
+// SPIC_IF_936 :: VIP(HOLDER) 커뮤니티 내역 리스트 조회
+export const apiGetHolderFeeds = data => {
+  return api.get(`${API_MORE}/holder-feeds`, { params: data });
 };
 
 // SPIC_IF_940 :: 공지사항 리스트 조회

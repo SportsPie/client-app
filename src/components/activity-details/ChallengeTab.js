@@ -1,4 +1,3 @@
-import moment from 'moment';
 import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
 import {
   FlatList,
@@ -11,24 +10,18 @@ import {
 import {
   apiGetChallengeComments,
   apiGetChallengeVideos,
-  apiGetTrainingVideos,
 } from '../../api/RestAPI';
 import { COLORS } from '../../styles/colors';
 import fontStyles from '../../styles/fontStyles';
 import { handleError } from '../../utils/HandleError';
-import Utils from '../../utils/Utils';
 import ListEmptyView from '../ListEmptyView';
 import FeedItemChallenge from './FeedItemChallenge';
 import FeedVideoItemChallenge from './FeedVideoItemChallenge';
-import { useFocusEffect } from '@react-navigation/native';
 import Loading from '../SPLoading';
 import { useDispatch, useSelector } from 'react-redux';
-import { moreClassMaterCommentListAction } from '../../redux/reducers/list/moreClassMasterCommentListSlice';
-import { moreClassMaterVideoListAction } from '../../redux/reducers/list/moreClassMasterVideoListSlice';
 import { moreChallengeCommentListAction } from '../../redux/reducers/list/moreChallengeCommentListSlice';
 import { moreChallengeVideoListAction } from '../../redux/reducers/list/moreChallengeVideoListSlice';
 import { store } from '../../redux/store';
-import FeedVideoItem from './FeedVideoItem';
 
 function ChallengeTab() {
   const dispatch = useDispatch();

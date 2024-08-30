@@ -16,8 +16,11 @@ import { useDispatch, useSelector } from 'react-redux';
 import {
   apiGetCommunityDetail,
   apiGetCommunityOpenFilters,
+  apiGetHolderCommunityDetail,
+  apiGetHolderCommunityOpenFilters,
   apiGetMyInfo,
   apiPutCommunity,
+  apiPutHolderCommunity,
 } from '../../api/RestAPI';
 import SPIcons from '../../assets/icon';
 import { IS_YN } from '../../common/constants/isYN';
@@ -32,6 +35,9 @@ import Utils from '../../utils/Utils';
 import { communityListAction } from '../../redux/reducers/list/communityListSlice';
 import { academyCommunityListAction } from '../../redux/reducers/list/academyCommunityListSlice';
 import { moreCommunityListAction } from '../../redux/reducers/list/moreCommunityListSlice';
+import { communityFavPlayerListAction } from '../../redux/reducers/list/communityFavPlayerListSlice';
+import { moreCommunityFavPlayerListAction } from '../../redux/reducers/list/moreCommunityFavPlayerListSlice';
+import { COLORS } from '../../styles/colors';
 
 // 커뮤니티 이미지 슬라이드
 function CarouselSection({
@@ -112,6 +118,7 @@ function CommunityEdit({ route }) {
    */
   const { isLogin, userIdx } = useSelector(selector => selector.auth);
   const academyIdx = route.params?.academyIdx;
+  const fromFavPlayer = route.params?.fromFavPlayer;
   const feedIdx = route.params?.feedIdx;
   const [isAdmin, setIsAdmin] = useState(false);
   const [topFeed, setTopFeed] = useState(false);
@@ -158,7 +165,15 @@ function CommunityEdit({ route }) {
 
   const getFilterList = async () => {
     try {
-      const { data } = await apiGetCommunityOpenFilters();
+      let data;
+      if (fromFavPlayer) {
+        const { data: holderCommunityFilter } =
+          await apiGetHolderCommunityOpenFilters();
+        data = holderCommunityFilter;
+      } else {
+        const { data: communityFilter } = await apiGetCommunityOpenFilters();
+        data = communityFilter;
+      }
       setTags(data.data);
       let etc = null;
       const list = data.data
@@ -182,7 +197,16 @@ function CommunityEdit({ route }) {
 
   const getCommunityDetail = async () => {
     try {
-      const { data } = await apiGetCommunityDetail(feedIdx);
+      let data;
+      if (fromFavPlayer) {
+        const { data: holderCommunityData } = await apiGetHolderCommunityDetail(
+          feedIdx,
+        );
+        data = holderCommunityData;
+      } else {
+        const { data: communityData } = await apiGetCommunityDetail(feedIdx);
+        data = communityData;
+      }
       setCommunityDetail(data.data);
       setPrevPhotoList(data.data.files);
       setContents(data.data.contents);
@@ -228,19 +252,36 @@ function CommunityEdit({ route }) {
         });
       }
 
-      const { data } = await apiPutCommunity(formData);
-      const detailResponse = await apiGetCommunityDetail(feedIdx);
-      dispatch(communityListAction.setListParamReset(true));
-      dispatch(academyCommunityListAction.setListParamReset(true));
-      const { data: communityDetail } = await apiGetCommunityDetail(feedIdx);
-      setCommunityDetail(communityDetail.data);
-      dispatch(
-        moreCommunityListAction.modifyItem({
-          idxName: 'feedIdx',
-          idx: feedIdx,
-          item: communityDetail.data,
-        }),
-      );
+      if (fromFavPlayer) {
+        const { data } = await apiPutHolderCommunity(formData);
+        dispatch(communityFavPlayerListAction.setListParamReset(true));
+        const { data: communityDetailData } = await apiGetHolderCommunityDetail(
+          feedIdx,
+        );
+        setCommunityDetail(communityDetailData.data);
+        dispatch(
+          moreCommunityFavPlayerListAction.modifyItem({
+            idxName: 'feedIdx',
+            idx: feedIdx,
+            item: communityDetailData.data,
+          }),
+        );
+      } else {
+        const { data } = await apiPutCommunity(formData);
+        dispatch(communityListAction.setListParamReset(true));
+        dispatch(academyCommunityListAction.setListParamReset(true));
+        const { data: communityDetailData } = await apiGetCommunityDetail(
+          feedIdx,
+        );
+        setCommunityDetail(communityDetailData.data);
+        dispatch(
+          moreCommunityListAction.modifyItem({
+            idxName: 'feedIdx',
+            idx: feedIdx,
+            item: communityDetailData.data,
+          }),
+        );
+      }
       Utils.openModal({
         title: '성공',
         body: '게시글 수정이 완료되었습니다.',
@@ -591,7 +632,7 @@ const styles = {
   buttonText: {
     fontSize: 12,
     fontWeight: 500,
-    color: '#002672',
+    color: COLORS.darkBlue,
     lineHeight: 16,
   },
   activeButton: {

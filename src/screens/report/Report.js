@@ -23,9 +23,7 @@ import SPModal from '../../components/SPModal';
 import { useDispatch } from 'react-redux';
 import { communityListAction } from '../../redux/reducers/list/communityListSlice';
 import { academyCommunityListAction } from '../../redux/reducers/list/academyCommunityListSlice';
-import { moreCommunityListAction } from '../../redux/reducers/list/moreCommunityListSlice';
-import { communityCommentListAction } from '../../redux/reducers/list/communityCommentListSlice';
-import { academyCommunityCommentListAction } from '../../redux/reducers/list/academyCommunityCommentListSlice';
+import { communityFavPlayerListAction } from '../../redux/reducers/list/communityFavPlayerListSlice';
 
 function Report({ route }) {
   const reasonRef = useRef();
@@ -60,11 +58,13 @@ function Report({ route }) {
         pageType = pageTypes.USER;
         break;
       case REPORT_TYPE.FEED:
+      case REPORT_TYPE.HOLDER_FEED:
         pageType = pageTypes.FEED;
         break;
       case REPORT_TYPE.VIDEO:
         pageType = pageTypes.FEED;
         break;
+      case REPORT_TYPE.HOLDER_FEED_COMMENT:
       case REPORT_TYPE.FEED_COMMENT:
         pageType = pageTypes.FEED;
         break;
@@ -169,17 +169,20 @@ function Report({ route }) {
           await apiReportChallenge(params);
           break;
         // (아카데미)커뮤니티 > 커뮤니티 신고하기
+        case REPORT_TYPE.HOLDER_FEED:
         case REPORT_TYPE.FEED: {
           if (isReportUser) {
             setUserReportParam(params);
             setShowUserReportCheckModal(true);
           } else {
             await apiPostCommunityReport(params);
+            dispatch(communityListAction.refresh());
+            dispatch(academyCommunityListAction.refresh());
+            dispatch(communityFavPlayerListAction.refresh());
           }
-          dispatch(communityListAction.refresh());
-          dispatch(academyCommunityListAction.refresh());
           break;
         }
+        case REPORT_TYPE.HOLDER_FEED_COMMENT:
         case REPORT_TYPE.FEED_COMMENT:
           if (isReportUser) {
             setUserReportParam(params);
@@ -228,6 +231,7 @@ function Report({ route }) {
       setShowUserReportCheckModal(false);
       dispatch(communityListAction.refresh());
       dispatch(academyCommunityListAction.refresh());
+      dispatch(communityFavPlayerListAction.refresh());
       setTimeout(() => {
         Utils.openModal({
           title: '신고 완료',

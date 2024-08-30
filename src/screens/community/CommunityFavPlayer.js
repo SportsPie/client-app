@@ -18,14 +18,13 @@ import {
   StyleSheet,
   Text,
   TextInput,
-  TouchableOpacity,
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
 import {
-  apiGetCommunityOpen,
-  apiGetCommunityOpenFilters,
+  apiGetHolderCommunity,
+  apiGetHolderCommunityOpenFilters,
   apiGetMyInfo,
 } from '../../api/RestAPI';
 import SPIcons from '../../assets/icon';
@@ -41,8 +40,8 @@ import NavigationService from '../../navigation/NavigationService';
 import { COLORS } from '../../styles/colors';
 import fontStyles from '../../styles/fontStyles';
 import { handleError } from '../../utils/HandleError';
-import { communityListAction } from '../../redux/reducers/list/communityListSlice';
 import { store } from '../../redux/store';
+import { communityFavPlayerListAction } from '../../redux/reducers/list/communityFavPlayerListSlice';
 
 function Community({ route }) {
   const dispatch = useDispatch();
@@ -61,11 +60,10 @@ function Community({ route }) {
     loading,
     isLast,
     listParamReset,
-  } = useSelector(selector => selector.communityList);
-  const action = communityListAction;
+  } = useSelector(selector => selector.communityFavPlayerList);
+  const action = communityFavPlayerListAction;
   const [userInfo, setUserInfo] = useState(null);
   const [showWriteButton, setShowWriteButton] = useState(false);
-  const [showFavPlayerButton, setShowFavPlayerButton] = useState(false);
 
   const [isInit, setIsInit] = useState(true);
   const [isFocus, setIsFocus] = useState(true);
@@ -97,7 +95,6 @@ function Community({ route }) {
       if (data) {
         setUserInfo(data.data);
         setShowWriteButton(true);
-        setShowFavPlayerButton(data.data.holderYn === 'Y');
       }
     } catch (error) {
       handleError(error);
@@ -107,7 +104,7 @@ function Community({ route }) {
 
   const getFilterList = async () => {
     try {
-      const { data } = await apiGetCommunityOpenFilters();
+      const { data } = await apiGetHolderCommunityOpenFilters();
       let etc = null;
       const list = data.data
         .map(item => {
@@ -138,13 +135,13 @@ function Community({ route }) {
         keyword: searchedKeyword,
         tag: selectedFilter,
       };
-      const { data } = await apiGetCommunityOpen(params);
+      const { data } = await apiGetHolderCommunity(params);
       dispatch(action.setTotalCnt(data.data.totalCnt));
       dispatch(action.setIsLast(data.data.isLast));
       if (page === 1) {
         dispatch(action.setList(data.data.list));
       } else {
-        const prevList = store.getState().communityList.list;
+        const prevList = store.getState().communityFavPlayerList.list;
         dispatch(action.setList([...prevList, ...data.data.list]));
       }
     } catch (error) {
@@ -161,7 +158,7 @@ function Community({ route }) {
   const loadMoreProjects = () => {
     setTimeout(() => {
       if (!isLast) {
-        const prevPage = store.getState().communityList.page;
+        const prevPage = store.getState().communityFavPlayerList.page;
         dispatch(action.setPage(prevPage + 1));
       }
     }, 0);
@@ -191,7 +188,7 @@ function Community({ route }) {
         setKeyword();
         dispatch(action.setListParamReset(false));
         if (!listParamReset) {
-          NavigationService.navigate(navName.community);
+          NavigationService.navigate(navName.communityFavPlayer);
         }
       } else {
         await getFilterList();
@@ -253,41 +250,37 @@ function Community({ route }) {
   const renderHeader = useMemo(() => {
     return (
       <Header
-        title="커뮤니티"
+        title="VIP"
         hideLeftIcon
         headerContainerStyle={{
-          backgroundColor: COLORS.darkBlue,
+          backgroundColor: '#080910',
           paddingTop: insets.top,
           paddingHorizontal: 20,
         }}
         headerTextStyle={{
           color: COLORS.white,
         }}
-        {...(showFavPlayerButton
-          ? {
-              rightContent: (
-                <Pressable
-                  style={[styles.headerRightButton]}
-                  onPress={() => {
-                    NavigationService.navigate(navName.communityFavPlayer, {
-                      paramReset: true,
-                    });
-                  }}>
-                  <SPSvgs.OrangeDiamond />
-                  <Text
-                    style={{
-                      ...fontStyles.fontSize14_Medium,
-                      color: '#E6E9F1',
-                    }}>
-                    VIP
-                  </Text>
-                </Pressable>
-              ),
-            }
-          : {})}
+        rightContent={
+          <Pressable
+            style={[styles.headerRightButton, { elevation: 5 }]}
+            onPress={() => {
+              NavigationService.navigate(navName.community, {
+                paramReset: true,
+              });
+            }}>
+            <SPSvgs.PeopleGroupFill />
+            <Text
+              style={{
+                ...fontStyles.fontSize14_Medium,
+                color: '#E6E9F1',
+              }}>
+              커뮤니티
+            </Text>
+          </Pressable>
+        }
       />
     );
-  }, [userInfo, showFavPlayerButton]);
+  }, []);
 
   const renderFilterButtons = useMemo(() => {
     return (
@@ -311,12 +304,12 @@ function Community({ route }) {
                     {
                       backgroundColor:
                         selectedFilter === item.value
-                          ? COLORS.orange
-                          : COLORS.fillStrong,
+                          ? '#E6E9F1'
+                          : COLORS.fillNormal,
                       borderColor:
                         selectedFilter === item.value
-                          ? COLORS.orange
-                          : COLORS.fillMoreStrong,
+                          ? '#E6E9F1'
+                          : COLORS.fillStrong,
                     },
                   ]}
                   onPress={() => setSelectedFilter(item.value)}>
@@ -326,8 +319,8 @@ function Community({ route }) {
                       {
                         color:
                           selectedFilter === item.value
-                            ? COLORS.white
-                            : 'rgba(167, 172, 179, 0.60)',
+                            ? COLORS.darkBlue
+                            : '#605E5A',
                       },
                     ]}>
                     {item.label}
@@ -342,7 +335,14 @@ function Community({ route }) {
 
   const renderFeedItem = useCallback(
     ({ item }) => {
-      return <FeedItem item={item} onDelete={handleDelete} isLogin={isLogin} />;
+      return (
+        <FeedItem
+          item={item}
+          onDelete={handleDelete}
+          isLogin={isLogin}
+          fromFavPlayer
+        />
+      );
     },
     [(feedList, handleDelete)],
   );
@@ -446,7 +446,9 @@ function Community({ route }) {
           <Pressable
             style={styles.wrtieBtn}
             onPress={() => {
-              NavigationService.navigate(navName.communityWrite);
+              NavigationService.navigate(navName.communityWrite, {
+                fromFavPlayer: true,
+              });
             }}>
             <Image source={SPIcons.icCommunityWrite} />
           </Pressable>
@@ -461,7 +463,7 @@ export default memo(Community);
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#002672',
+    backgroundColor: '#080910',
   },
   filterWrapper: {
     flexDirection: 'row',
@@ -547,14 +549,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 8,
-    paddingVertical: 10,
+    padding: 12,
     gap: 8,
     borderRadius: 8,
-    backgroundColor: '#1E3D7A',
+    backgroundColor: '#19191D',
     ...Platform.select({
       android: {
-        elevation: 5, // Android only
+        // elevation: 5, // Android only
       },
       ios: {
         shadowColor: '#000',

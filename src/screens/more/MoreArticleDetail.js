@@ -69,6 +69,10 @@ function MoreArticleDetail({ route }) {
         }),
       );
     } catch (error) {
+      if (error.code === 4906 || error.code === 9999) {
+        dispatch(moreArticleListAction.refresh());
+        dispatch(moreArticleBookmarksListAction.refresh());
+      }
       handleError(error);
     }
   };

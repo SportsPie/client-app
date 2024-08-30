@@ -14,7 +14,7 @@ import { apiGetMyInfo } from '../../api/RestAPI';
 import { handleError } from '../../utils/HandleError';
 import { useFocusEffect } from '@react-navigation/native';
 
-function FeedItem({ item, onDelete }) {
+function FeedItem({ item, onDelete, fromFavPlayer }) {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedItem, setSelectedItem] = useState({});
   const [userInfo, setUserInfo] = useState(null);
@@ -51,6 +51,10 @@ function FeedItem({ item, onDelete }) {
             // `null`과 `undefined`를 동시에 체크
             NavigationService.navigate(navName.academyCommunityDetail, {
               academyIdx: item.academyIdx,
+              feedIdx: item.feedIdx,
+            });
+          } else if (fromFavPlayer) {
+            NavigationService.navigate(navName.communityFavPlayerDetails, {
               feedIdx: item.feedIdx,
             });
           } else {
@@ -135,14 +139,17 @@ function FeedItem({ item, onDelete }) {
           <SPMoreModal
             visible={modalVisible}
             onClose={closeModal}
-            type={MODAL_MORE_TYPE.FEED}
+            type={
+              fromFavPlayer ? MODAL_MORE_TYPE.HOLDER_FEED : MODAL_MORE_TYPE.FEED
+            }
             idx={selectedItem?.feedIdx}
             targetUserIdx={selectedItem?.userIdx}
             onDelete={onDelete}
+            fromFavPlayer={fromFavPlayer}
             memberButtons={[MODAL_MORE_BUTTONS.EDIT, MODAL_MORE_BUTTONS.REMOVE]}
           />
         </View>
-        {!item.isCommented && (
+        {item.isMine && (
           <Pressable
             hitSlop={8}
             style={[

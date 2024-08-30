@@ -18,11 +18,14 @@ import SPHeader from '../../components/SPHeader';
 import SPModal from '../../components/SPModal';
 import { handleError } from '../../utils/HandleError';
 import Utils from '../../utils/Utils';
+import { useDispatch } from 'react-redux';
+import { academyRecruitmentForAdminListAction } from '../../redux/reducers/list/academyRecruitmentForAdminListSlice';
 
 function AcademyPlayerDetail({ route }) {
   /**
    * state
    */
+  const dispatch = useDispatch();
   const userIdx = route?.params?.userIdx;
   const joinIdx = route?.params?.joinIdx;
   const showButton = route?.params?.showButton;
@@ -54,6 +57,11 @@ function AcademyPlayerDetail({ route }) {
       setMatchTotal(data.data.matchTotal || {});
       setCareerList(data.data.careerList);
     } catch (error) {
+      if (error.code === 4907 || error.code === 9999) {
+        dispatch(
+          academyRecruitmentForAdminListAction.setNoRecruitmentRefreshing(true),
+        );
+      }
       handleError(error);
     }
   };
@@ -90,6 +98,9 @@ function AcademyPlayerDetail({ route }) {
         body: '거절되었습니다.',
         closeEvent: MODAL_CLOSE_EVENT.goBack,
       });
+      dispatch(
+        academyRecruitmentForAdminListAction.setNoRecruitmentRefreshing(true),
+      );
     } catch (error) {
       handleError(error);
     }
@@ -105,6 +116,9 @@ function AcademyPlayerDetail({ route }) {
         body: '승인되었습니다.',
         closeEvent: MODAL_CLOSE_EVENT.goBack,
       });
+      dispatch(
+        academyRecruitmentForAdminListAction.setNoRecruitmentRefreshing(true),
+      );
     } catch (error) {
       handleError(error);
     }

@@ -74,6 +74,7 @@ function AcademyRecruitmentForAdmin({ route }) {
     page,
     list: academyRecruitList,
     refreshing,
+    noRecruitmentRefreshing,
     loading,
     isLast,
   } = useSelector(selector => selector[listName]);
@@ -227,6 +228,13 @@ function AcademyRecruitmentForAdmin({ route }) {
   useEffect(() => {
     focus();
   }, [noParamReset]);
+
+  useEffect(() => {
+    if (noRecruitmentRefreshing) {
+      setRefresh(prev => !prev);
+      dispatch(action.setNoRecruitmentRefreshing(false));
+    }
+  }, [noRecruitmentRefreshing]);
 
   useEffect(() => {
     if (noParamReset) getNoRecuirtList();

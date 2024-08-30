@@ -18,6 +18,7 @@ import { moreChallengeCommentListAction } from '../../redux/reducers/list/moreCh
 import { moreClassMaterCommentListAction } from '../../redux/reducers/list/moreClassMasterCommentListSlice';
 import { moreCommunityListAction } from '../../redux/reducers/list/moreCommunityListSlice';
 import { moreClassMaterVideoListAction } from '../../redux/reducers/list/moreClassMasterVideoListSlice';
+import { moreCommunityFavPlayerListAction } from '../../redux/reducers/list/moreCommunityFavPlayerListSlice';
 
 const Tab = createMaterialTopTabNavigator();
 
@@ -30,6 +31,7 @@ function MoreActiveHistory({ route }) {
       if (!noParamReset) {
         setLoading(true);
         dispatch(moreCommunityListAction.reset());
+        dispatch(moreCommunityFavPlayerListAction.reset());
         dispatch(moreClassMaterCommentListAction.reset());
         dispatch(moreClassMaterVideoListAction.reset());
         dispatch(moreChallengeCommentListAction.reset());

@@ -35,6 +35,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { moreClassMaterVideoListAction } from '../../redux/reducers/list/moreClassMasterVideoListSlice';
 import { trainingDetailAction } from '../../redux/reducers/list/trainingDetailSlice';
 import { masterDetailAction } from '../../redux/reducers/list/masterDetailSlice';
+import { moreClassMaterCommentListAction } from '../../redux/reducers/list/moreClassMasterCommentListSlice';
 
 const masterDetailInit = {
   trainingIdx: '',
@@ -154,6 +155,10 @@ function MasterVideoDetail({ route }) {
         );
       }
     } catch (error) {
+      if (error.code === 4907 || error.code === 9999) {
+        dispatch(moreClassMaterCommentListAction.refresh());
+        dispatch(moreClassMaterVideoListAction.refresh());
+      }
       handleError(error);
     }
   };

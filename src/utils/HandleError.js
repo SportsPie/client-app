@@ -7,7 +7,7 @@ import {
 } from '../common/exceptions';
 
 // Util
-// eslint-disable-next-line import/no-cycle
+
 import Utils from './Utils';
 
 // Constant
@@ -24,7 +24,7 @@ export const handleError = (error, callback) => {
       Utils.openModal({
         body: error.message,
         closeEvent:
-          +error.code === 9999
+          +error.code === 9999 || +error.code === 4906 || +error.code === 4907
             ? MODAL_CLOSE_EVENT.goBack
             : MODAL_CLOSE_EVENT.nothing,
       });

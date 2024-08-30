@@ -94,6 +94,8 @@ import AcademySchedule from './AcademySchedule';
 import AcademyPlayer from './AcademyPlayer';
 import Gender from './Gender';
 import ClassRoom from './ClassRoom';
+import OrangeDiamond from './OrangeDiamond';
+import PeopleGroupFill from './PeopleGroupFill';
 
 export class SPSvgs {
   static SportsPieLogo = SportsPieLogo;
@@ -180,6 +182,8 @@ export class SPSvgs {
   static AcademyPlayer = AcademyPlayer;
   static Gender = Gender;
   static ClassRoom = ClassRoom;
+  static OrangeDiamond = OrangeDiamond;
+  static PeopleGroupFill = PeopleGroupFill;
 
   //Bottom tab
   static BottomTabHomeOutline = BottomTabHomeOutline;

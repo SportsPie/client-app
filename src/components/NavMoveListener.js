@@ -14,6 +14,7 @@ const LinkType = {
   REPORT: 'REPORT', // 신고내역 관리,
   ACADEMY_FEED_DETAIL: 'ACADEMY_FEED_DETAIL', // 아카데미 게시글 상세,
   FEED_DETAIL: 'FEED_DETAIL', // 게시글 상세,
+  FEED_DETAIL_HOLDER: 'FEED_DETAIL_HOLDER', // 게시글 상세(홀더),
   MATCHING_DETAIL: 'MATCHING_DETAIL', // 매칭 상세,
   TOURNAMENT_DETAIL: 'TOURNAMENT_DETAIL', // 대회 상세,
   WALLET_DETAIL: 'WALLET_DETAIL', // 지갑 상세,
@@ -57,6 +58,11 @@ function NavMoveListener() {
         }
         case LinkType.FEED_DETAIL:
           NavigationService.navigate(navName.communityDetails, {
+            feedIdx: idx,
+          });
+          break;
+        case LinkType.FEED_DETAIL_HOLDER:
+          NavigationService.navigate(navName.communityFavPlayerDetails, {
             feedIdx: idx,
           });
           break;

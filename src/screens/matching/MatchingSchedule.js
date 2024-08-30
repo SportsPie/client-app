@@ -1575,7 +1575,7 @@ const styles = StyleSheet.create({
     gap: 8,
     paddingHorizontal: 16,
     paddingBottom: 48,
-    backgroundColor: '#313779',
+    backgroundColor: COLORS.darkBlue,
   },
   tabButton: {
     paddingHorizontal: 12,

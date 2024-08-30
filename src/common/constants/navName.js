@@ -93,8 +93,7 @@ const authPage = {
   moreNotice: 'moreNotice',
   moreNoticeDetail: 'moreNoticeDetail',
   unsubscribe: 'Unsubscribe',
-  moreArticle: 'moreArticle',
-  moreArticleDetail: 'moreArticleDetail',
+  communityFavPlayerDetails: 'communityFavPlayerDetails',
 };
 
 // noAuthPage : 로그인과 상관없이 갈 수 있는 페이지
@@ -136,6 +135,8 @@ const noAuthPage = {
   alarmPage: 'alarmPage',
   communityDetails: 'communityDetails',
   playgroundDetail: 'playgroundDetail',
+  moreArticle: 'moreArticle',
+  moreArticleDetail: 'moreArticleDetail',
 };
 
 // bottomPage : 하단 네비게이션 페이지
@@ -144,6 +145,7 @@ const bottomPage = {
   academyMember: 'academyMember',
   matchingSchedule: 'matchingSchedule',
   community: 'community',
+  communityFavPlayer: 'communityFavPlayer',
   training: 'training',
 };
 

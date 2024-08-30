@@ -134,6 +134,7 @@ import { COLORS } from '../styles/colors';
 import Unsubscribe from '../screens/Unsubscribe';
 import { useSelector } from 'react-redux';
 import MoreChangePassword from '../screens/more/MoreChangePassword';
+import CommunityFavPlayerDetails from '../screens/community/CommunityFavPlayerDetails';
 
 function MatchingChatRoomListScreenComponent() {
   return <AuthLayout component={MatchingChatRoomListScreen} />;
@@ -157,8 +158,8 @@ export default function Navigation() {
         contentStyle: {
           backgroundColor: COLORS.white,
         },
-        statusBarStyle: 'dark',
-        statusBarColor: COLORS.white,
+        // statusBarStyle: 'dark',
+        // statusBarColor: COLORS.white,
         animation: 'none',
       }}>
       {isLogin ? (
@@ -239,6 +240,10 @@ export default function Navigation() {
       <Stack.Screen
         name={navName.communityDetails}
         component={CommunityDetails}
+      />
+      <Stack.Screen
+        name={navName.communityFavPlayerDetails}
+        component={CommunityFavPlayerDetails}
       />
       <Stack.Screen name={navName.trainingDetail} component={TrainingDetail} />
       <Stack.Screen

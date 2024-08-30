@@ -15,8 +15,10 @@ import {
 import { useDispatch, useSelector } from 'react-redux';
 import {
   apiGetCommunityOpenFilters,
+  apiGetHolderCommunityOpenFilters,
   apiGetMyInfo,
   apiPostCommunity,
+  apiPostHolderCommunity,
 } from '../../api/RestAPI';
 import { SPSvgs } from '../../assets/svg';
 import { IS_YN } from '../../common/constants/isYN';
@@ -35,6 +37,7 @@ import SPIcons from '../../assets/icon';
 import SPModal from '../../components/SPModal';
 import { communityListAction } from '../../redux/reducers/list/communityListSlice';
 import { academyCommunityListAction } from '../../redux/reducers/list/academyCommunityListSlice';
+import { communityFavPlayerListAction } from '../../redux/reducers/list/communityFavPlayerListSlice';
 
 /**
  * CommunityWrite
@@ -48,6 +51,7 @@ function CommunityWrite({ route }) {
    */
   const { isLogin, userIdx } = useSelector(selector => selector.auth);
   const academyIdx = route.params?.academyIdx;
+  const fromFavPlayer = route.params?.fromFavPlayer;
   const [isAdmin, setIsAdmin] = useState(false);
   const [topFeed, setTopFeed] = useState(false);
   // 기타사항
@@ -83,7 +87,15 @@ function CommunityWrite({ route }) {
 
   const getFilterList = async () => {
     try {
-      const { data } = await apiGetCommunityOpenFilters();
+      let data;
+      if (fromFavPlayer) {
+        const { data: holderCommunityFilter } =
+          await apiGetHolderCommunityOpenFilters();
+        data = holderCommunityFilter;
+      } else {
+        const { data: communityFilter } = await apiGetCommunityOpenFilters();
+        data = communityFilter;
+      }
       let etc = null;
       const list = data.data
         .map(item => {
@@ -129,9 +141,14 @@ function CommunityWrite({ route }) {
         });
       }
 
-      const { data } = await apiPostCommunity(formData);
-      dispatch(communityListAction.setListParamReset(true));
-      dispatch(academyCommunityListAction.setListParamReset(true));
+      if (fromFavPlayer) {
+        const { data } = await apiPostHolderCommunity(formData);
+        dispatch(communityFavPlayerListAction.setListParamReset(true));
+      } else {
+        const { data } = await apiPostCommunity(formData);
+        dispatch(communityListAction.setListParamReset(true));
+        dispatch(academyCommunityListAction.setListParamReset(true));
+      }
       Utils.openModal({
         title: '성공',
         body: '게시글 등록이 완료되었습니다.',
@@ -474,8 +491,7 @@ const styles = StyleSheet.create({
   },
   hashtagText: {
     ...fontStyles.fontSize12_Medium,
-    color: '#002672',
-    // color: COLORS.darkBlue,
+    color: COLORS.darkBlue,
   },
   pickImageButton: {
     width: 48,
