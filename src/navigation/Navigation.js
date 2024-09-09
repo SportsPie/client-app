@@ -135,6 +135,27 @@ import Unsubscribe from '../screens/Unsubscribe';
 import { useSelector } from 'react-redux';
 import MoreChangePassword from '../screens/more/MoreChangePassword';
 import CommunityFavPlayerDetails from '../screens/community/CommunityFavPlayerDetails';
+import Event from '../screens/event/Event';
+import EventDetail from '../screens/event/EventDetail';
+import EventApplyType from '../screens/event/apply/EventApplyType';
+import EventApplyPrevInformation from '../screens/event/apply/EventApplyPrevInformation';
+import EventApplyInputMyInfo from '../screens/event/apply/EventApplyInputMyInfo';
+import EventApplyInputAcademy from '../screens/event/apply/EventApplyInputAcademy';
+import EventApplyInputPerformance from '../screens/event/apply/EventApplyInputPerformance';
+import EventApplyInputDepositInfo from '../screens/event/apply/EventApplyInputDepositInfo';
+import EventApplyInputCheck from '../screens/event/apply/EventApplyInputCheck';
+import eventApplyInputComplete from '../screens/event/apply/EventApplyInputComplete';
+import EventParticipantList from '../screens/event/participant/EventParticipantList';
+import EventParticipantPartList from '../screens/event/participant/EventParticipantPartList';
+import EventParticipantDetail from '../screens/event/participant/EventParticipantDetail';
+import EventParticipantVideoReels from '../screens/event/participant/EventParticipantVideoReels';
+import MoreEvent from '../screens/more/MoreEvent';
+import EventNoticeList from '../screens/event/EventNoticeList';
+import EventNoticeDetail from '../screens/event/EventNoticeDetail';
+import AddVideoDetails from '../screens/video/AddVideoDetails';
+import UploadVideoPlayer from '../screens/video/VideoUploadPlayer';
+import VideoRegistering from '../screens/video/VideoRegistering';
+import VideoUploadComplete from '../screens/video/VideoUploadComplete';
 
 function MatchingChatRoomListScreenComponent() {
   return <AuthLayout component={MatchingChatRoomListScreen} />;
@@ -158,7 +179,7 @@ export default function Navigation() {
         contentStyle: {
           backgroundColor: COLORS.white,
         },
-        // statusBarStyle: 'dark',
+        // statusBarStyle: 'light-content',
         // statusBarColor: COLORS.white,
         animation: 'none',
       }}>
@@ -419,6 +440,62 @@ export default function Navigation() {
         name={navName.moreMatchDetail}
         component={MoreMatchDetail}
       />
+      <Stack.Screen name={navName.event} component={Event} />
+      <Stack.Screen name={navName.eventDetail} component={EventDetail} />
+      <Stack.Screen name={navName.eventApplyType} component={EventApplyType} />
+      <Stack.Screen
+        name={navName.eventApplyPrevInformation}
+        component={EventApplyPrevInformation}
+      />
+      <Stack.Screen
+        name={navName.eventApplyInputMyInfo}
+        component={EventApplyInputMyInfo}
+      />
+      <Stack.Screen
+        name={navName.eventApplyInputAcademy}
+        component={EventApplyInputAcademy}
+      />
+      <Stack.Screen
+        name={navName.eventApplyInputPerformance}
+        component={EventApplyInputPerformance}
+      />
+      <Stack.Screen
+        name={navName.eventApplyInputDepositInfo}
+        component={EventApplyInputDepositInfo}
+      />
+      <Stack.Screen
+        name={navName.eventApplyInputCheck}
+        component={EventApplyInputCheck}
+      />
+      <Stack.Screen
+        name={navName.eventApplyComplete}
+        component={eventApplyInputComplete}
+      />
+      <Stack.Screen
+        name={navName.eventParticipantList}
+        component={EventParticipantList}
+      />
+      <Stack.Screen
+        name={navName.eventParticipantPartList}
+        component={EventParticipantPartList}
+      />
+      <Stack.Screen
+        name={navName.eventParticipantDetail}
+        component={EventParticipantDetail}
+      />
+      <Stack.Screen
+        name={navName.eventParticipantVideoReels}
+        component={EventParticipantVideoReels}
+      />
+      <Stack.Screen name={navName.moreEvent} component={MoreEvent} />
+      <Stack.Screen
+        name={navName.eventNoticeList}
+        component={EventNoticeList}
+      />
+      <Stack.Screen
+        name={navName.eventNoticeDetail}
+        component={EventNoticeDetail}
+      />
       <Stack.Screen
         name={navName.moreActiveHistory}
         component={MoreActiveHistory}
@@ -510,6 +587,20 @@ export default function Navigation() {
       <Stack.Screen name={navName.walletBackup} component={WalletBackup} />
       <Stack.Screen name={navName.walletDetail} component={WalletDetail} />
       <Stack.Screen name={navName.unsubscribe} component={Unsubscribe} />
+
+      <Stack.Screen name={navName.addVideoDetail} component={AddVideoDetails} />
+      <Stack.Screen
+        name={navName.videoUploadPlayer}
+        component={UploadVideoPlayer}
+      />
+      <Stack.Screen
+        name={navName.videoRegistering}
+        component={VideoRegistering}
+      />
+      <Stack.Screen
+        name={navName.videoUploadComplete}
+        component={VideoUploadComplete}
+      />
     </Stack.Navigator>
   );
 }

@@ -200,6 +200,14 @@ function ChallengeRegistering({ route }) {
     compressedVideoPath,
   ]);
 
+  useEffect(() => {
+    console.log('compressionProgress', compressionProgress);
+  }, [compressionProgress]);
+
+  useEffect(() => {
+    console.log('uploadProgress', uploadProgress);
+  }, [uploadProgress]);
+
   // [ return ]
   return (
     <SafeAreaView style={styles.container}>

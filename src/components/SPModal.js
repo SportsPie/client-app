@@ -37,6 +37,10 @@ function SPModal({
   value,
   onChangeText,
   noticeIcon,
+  cancelButtonStyle, // 취소 버튼 스타일
+  confirmButtonStyle, // 확인 버튼 스타일
+  confirmButtonTextStyle,
+  cancelButtonTextStyle,
 }) {
   const [showModal, setShowModal] = useState(visible);
   const [inputText, setInputText] = useState('');
@@ -173,8 +177,9 @@ function SPModal({
                 <TouchableOpacity
                   activeOpacity={ACTIVE_OPACITY}
                   onPress={handleCancelEvent}
-                  style={[styles.cancleButton]}>
-                  <Text style={[styles.cancelButtonText]}>
+                  style={[styles.cancleButton, cancelButtonStyle]}>
+                  <Text
+                    style={[styles.cancelButtonText, cancelButtonTextStyle]}>
                     {cancelButtonText || '취소'}
                   </Text>
                 </TouchableOpacity>
@@ -189,6 +194,7 @@ function SPModal({
                     backgroundColor: isConfirmDisabled ? '#E3E2E1' : '#FF7C10',
                     borderColor: isConfirmDisabled ? '#E3E2E1' : '#FF7C10',
                   },
+                  confirmButtonStyle,
                 ]}>
                 <Text
                   style={[
@@ -198,6 +204,7 @@ function SPModal({
                         ? 'rgba(46, 49, 53, 0.28)'
                         : '#FFF',
                     },
+                    confirmButtonTextStyle,
                   ]}>
                   {confirmButtonText || '확인'}
                 </Text>

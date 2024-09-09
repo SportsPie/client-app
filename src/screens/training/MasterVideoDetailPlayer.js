@@ -68,6 +68,9 @@ function MasterVideoDetailPlayer({ route }) {
     trainingIdx: '',
     pagingKey: '',
   };
+  console.log('videoIdx', videoIdx);
+  console.log('trainingIdx', trainingIdx);
+  console.log('pagingKey', pagingKey);
   if (!videoIdx || !trainingIdx || !pagingKey) {
     handleError(new AccessDeniedException('잘못된 접근입니다.'));
   }

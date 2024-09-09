@@ -10,6 +10,7 @@ import {
   Image,
   Platform,
   Pressable,
+  StatusBar,
   StyleSheet,
   TouchableOpacity,
   View,
@@ -22,6 +23,8 @@ import convertToProxyURL from 'react-native-video-cache';
 import VideoPlayer from 'react-native-video-controls';
 import SPIcons from '../assets/icon';
 import { SPSvgs } from '../assets/svg';
+import { COLORS } from '../styles/colors';
+import backHandlerUtils from '../utils/BackHandlerUtils';
 
 const SPSingleVideo = forwardRef(
   (
@@ -104,8 +107,18 @@ const SPSingleVideo = forwardRef(
 
     // [ util ] 풀 스크린 이벤트
     const toggleFullScreen = e => {
-      e.stopPropagation();
       setIsFullScreen(prev => {
+        if (!prev) {
+          StatusBar.setBarStyle('light-content');
+          if (Platform.OS === 'android') {
+            StatusBar.setBackgroundColor(COLORS.black);
+          }
+        } else {
+          StatusBar.setBarStyle('dark-content');
+          if (Platform.OS === 'android') {
+            StatusBar.setBackgroundColor(COLORS.white);
+          }
+        }
         // 릴스 이동
         if (
           onFullScreen &&
@@ -118,6 +131,15 @@ const SPSingleVideo = forwardRef(
         // 풀 스크린 전환 > 스크롤 Disable
         if (onFullScreen && onFullScreen.name === 'toggleFullScreenMode') {
           onFullScreen(prev);
+          if (!prev) {
+            backHandlerUtils.remove();
+            backHandlerUtils.add(() => {
+              toggleFullScreen(true);
+              return true; // 뒤로가기 이벤트 막기
+            });
+          } else {
+            backHandlerUtils.addDefaultBackHandlerEvent();
+          }
         }
         return !prev;
       });
@@ -227,7 +249,10 @@ const SPSingleVideo = forwardRef(
                   bottom: 12.5,
                   right: 12.5,
                 }}
-                onPress={toggleFullScreen}>
+                onPress={e => {
+                  e.stopPropagation();
+                  toggleFullScreen();
+                }}>
                 <SPSvgs.FullScreen />
               </Pressable>
             </TouchableOpacity>

@@ -1,6 +1,5 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import React, { memo } from 'react';
-import { apiGetNoticesDetail } from '../../api/RestAPI';
 import NavigationService from '../../navigation/NavigationService';
 import { navName } from '../../common/constants/navName';
 import { handleError } from '../../utils/HandleError';
@@ -9,12 +8,19 @@ import Divider from '../Divider';
 import fontStyles from '../../styles/fontStyles';
 import { COLORS } from '../../styles/colors';
 
-function NoticeItem({ item }) {
+function NoticeItem({ item, event, eventName }) {
   const detailPage = async notice => {
     try {
-      NavigationService.navigate(navName.moreNoticeDetail, {
-        boardIdx: notice.boardIdx,
-      });
+      if (event) {
+        NavigationService.navigate(navName.eventNoticeDetail, {
+          noticeIdx: notice.noticeIdx,
+          eventName,
+        });
+      } else {
+        NavigationService.navigate(navName.moreNoticeDetail, {
+          boardIdx: notice.boardIdx,
+        });
+      }
     } catch (error) {
       handleError(error);
     }

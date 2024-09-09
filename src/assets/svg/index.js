@@ -7,6 +7,8 @@ import Bell from './Bell';
 import BubbleChatOutline from './BubbleChatOutline';
 import Camera from './Camera';
 import Check from './Check';
+import CheckGray from './CheckGray';
+import CheckOrange from './CheckOrange';
 import ChevronDown from './ChevronDown';
 import Clock from './Clock';
 import Close from './Close';
@@ -105,6 +107,8 @@ export class SPSvgs {
   static Apple = Apple;
   static Facebook = Facebook;
   static Check = Check;
+  static CheckGray = CheckGray;
+  static CheckOrange = CheckOrange;
   static WarningCircle = WarningCircle;
   static Avatar = Avatar;
   static Camera = Camera;

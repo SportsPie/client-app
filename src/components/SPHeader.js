@@ -263,6 +263,17 @@ export default function SPHeader({
           </TouchableOpacity>
         </View>
       )}
+      {rightText && (
+        <View style={styles.rightText}>
+          <TouchableOpacity
+            activeOpacity={ACTIVE_OPACITY}
+            onPress={onPressRightText}>
+            <Text style={[styles.rightTextStyle, rightTextStyle]}>
+              {rightText}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      )}
       {rightBasicButton || rightBasicAddButton ? (
         <View style={styles.rightBasicButtonBox}>
           {rightBasicButton && (
@@ -384,6 +395,10 @@ const styles = StyleSheet.create({
   // rightText: { height: 18, minWidth: 18 },
   rightText: {
     padding: 10,
+  },
+  rightTextStyle: {
+    fontSize: 16, // 폰트 크기
+    color: '#000', // 텍스트 색상
   },
   rightBasicButtonBox: {
     height: 60,

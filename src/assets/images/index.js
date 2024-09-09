@@ -2,6 +2,7 @@
 const SPImages = {
   mainLogo: require('./main_logo.png'),
   objectsImage: require('./objects_img.png'),
+  objectsImage0: require('./objects_img_0.png'),
   objectsImage1: require('./objects_img_1.png'),
   objectsImage2: require('./objects_img_2.png'),
   objectsImage3: require('./objects_img_3.png'),
@@ -45,6 +46,9 @@ const SPImages = {
   multipleBadge: require('./multiple_badge.png'),
   clickedMultipleBadge: require('./clicked_multiple_badge.png'),
   defaultAcademyThumb: require('./default_academy_thumb.png'),
+  positionImg: require('./position_img.png'),
+  eventDetailImg: require('./event_detail_img.png'),
+  eventDetailImg2: require('./event_detail_img2.png'),
 };
 
 export default SPImages;

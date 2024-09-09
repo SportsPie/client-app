@@ -1,5 +1,6 @@
 import { CommonActions, StackActions } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { createStackNavigator } from '@react-navigation/stack';
 import { NAV_PREFIX, navName } from '../common/constants/navName';
 import { store } from '../redux/store';
 import Utils from '../utils/Utils';
@@ -9,6 +10,7 @@ import { wifiSliceActions } from '../redux/reducers/wifiSlice';
 
 let navigationRef;
 export const Stack = createNativeStackNavigator();
+// export const Stack = createStackNavigator();
 
 const loginCheck = (routeName, params) => {
   if (routeName?.includes(NAV_PREFIX.auth) && !store.getState().auth.isLogin) {

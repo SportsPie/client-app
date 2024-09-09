@@ -196,7 +196,13 @@ function TraningVideoDetail({ route }) {
   return loading ? (
     <SPLoading />
   ) : (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView
+      style={[
+        styles.container,
+        isScrollable
+          ? { backgroundColor: COLORS.white }
+          : { backgroundColor: COLORS.black },
+      ]}>
       {/* 헤더 */}
       {isScrollable && <Header title={videoDetail.trainingName} />}
 

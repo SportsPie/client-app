@@ -94,6 +94,31 @@ const authPage = {
   moreNoticeDetail: 'moreNoticeDetail',
   unsubscribe: 'Unsubscribe',
   communityFavPlayerDetails: 'communityFavPlayerDetails',
+  event: 'event',
+  eventDetail: 'eventDetail',
+  eventApplyType: 'eventApplyType', // 접수 유형
+  eventApplyPrevInformation: 'eventApplyPrevInformation', // 접수 사전 정보 확인
+  eventApplyInputMyInfo: 'eventApplyInputMyInfo', // 접수 내 정보 입력
+  eventApplyInputAcademy: 'eventApplyInputAcademy', // 접수 소속 아카데미 입력
+  eventApplyInputPerformance: 'eventApplyInputPerformance', // 접수 퍼포먼스 입력
+  eventApplyInputDepositInfo: 'eventApplyInputDepositInfo', // 접수 입금 정보 입력
+  eventApplyInputCheck: 'eventApplyInputCheck', // 접수 최종 확인
+  eventApplyComplete: 'eventApplyComplete', // 접수 최종 확인
+
+  eventParticipantList: 'eventParticipantList', // 참가자 목록
+  eventParticipantPartList: 'eventParticipantPartList', // 참가자 목록 더보기
+  eventParticipantDetail: 'eventParticipantDetail', // 참가자 정보
+  eventParticipantVideoReels: 'eventParticipantVideoReels', // 참가자 영상
+
+  eventNoticeList: 'eventNoticeList',
+  eventNoticeDetail: 'eventNoticeDetail',
+
+  moreEvent: 'moreEvent', // 더보기 > 이벤트 참여 내역
+
+  addVideoDetail: 'addVideoDetail',
+  videoUploadPlayer: 'videoUploadPlayer',
+  videoRegistering: 'videoRegistering',
+  videoUploadComplete: 'videoUploadComplete',
 };
 
 // noAuthPage : 로그인과 상관없이 갈 수 있는 페이지

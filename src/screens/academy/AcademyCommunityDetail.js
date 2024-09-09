@@ -7,7 +7,9 @@ import {
   Image,
   Keyboard,
   Modal,
+  Platform,
   SafeAreaView,
+  StatusBar,
   Text,
   TextInput,
   TouchableOpacity,
@@ -395,10 +397,18 @@ function AcademyCommunityDetail({ route }) {
   };
 
   const openImageModal = () => {
+    StatusBar.setBarStyle('light-content');
+    if (Platform.OS === 'android') {
+      StatusBar.setBackgroundColor(COLORS.black);
+    }
     setImageModalShow(true);
   };
 
   const closeImageModal = () => {
+    StatusBar.setBarStyle('dark-content');
+    if (Platform.OS === 'android') {
+      StatusBar.setBackgroundColor(COLORS.white);
+    }
     setImageModalShow(false);
   };
 

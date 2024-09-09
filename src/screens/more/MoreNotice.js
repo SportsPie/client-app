@@ -108,7 +108,7 @@ function MoreNotice({ route }) {
               textAlign: 'center',
             },
           ]}>
-          질문이 존재하지 않습니다.
+          공지사항이 존재하지 않습니다.
         </Text>
       </View>
     );

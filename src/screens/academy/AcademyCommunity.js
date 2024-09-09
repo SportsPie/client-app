@@ -1,13 +1,15 @@
 /* eslint-disable react/no-unstable-nested-components */
-import React, { memo, useEffect, useRef, useState } from 'react';
+import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Dimensions,
   FlatList,
   Image,
   Modal,
+  Platform,
   Pressable,
   RefreshControl,
+  StatusBar,
   Text,
   TextInput,
   TouchableOpacity,
@@ -48,6 +50,7 @@ import { COLORS } from '../../styles/colors';
 import { SPSvgs } from '../../assets/svg';
 import { SCREEN_WIDTH } from '@gorhom/bottom-sheet';
 import Swiper from 'react-native-swiper';
+import { useFocusEffect } from '@react-navigation/native';
 
 // 커뮤니티 이미지 슬라이드
 function CarouselSection({ challengeData, openImageModal, setSelectedImage }) {
@@ -283,11 +286,19 @@ function AcademyCommunity({ route }) {
   const closeModal = () => setModalVisible(false);
 
   const openImageModal = index => {
+    StatusBar.setBarStyle('light-content');
+    if (Platform.OS === 'android') {
+      StatusBar.setBackgroundColor(COLORS.black);
+    }
     setSelectedImageIndex(index);
     setImageModalShow(true);
   };
 
   const closeImageModal = () => {
+    StatusBar.setBarStyle('dark-content');
+    if (Platform.OS === 'android') {
+      StatusBar.setBackgroundColor(COLORS.white);
+    }
     setImageModalShow(false);
   };
 

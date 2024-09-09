@@ -2,8 +2,10 @@ import {
   Dimensions,
   Image,
   Modal,
+  Platform,
   Pressable,
   SafeAreaView,
+  StatusBar,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -46,11 +48,26 @@ function FeedItem({ item, onDelete, isLogin, onRefresh, fromFavPlayer }) {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
   const openImageModal = index => {
+    StatusBar.setBarStyle('light-content');
+    if (Platform.OS === 'android') {
+      StatusBar.setBackgroundColor(COLORS.black);
+    }
     setSelectedImageIndex(index);
     setImageModalShow(true);
   };
 
   const closeImageModal = () => {
+    if (fromFavPlayer) {
+      StatusBar.setBarStyle('light-content');
+      if (Platform.OS === 'android') {
+        StatusBar.setBackgroundColor('#080910');
+      }
+    } else {
+      StatusBar.setBarStyle('light-content');
+      if (Platform.OS === 'android') {
+        StatusBar.setBackgroundColor(COLORS.darkBlue);
+      }
+    }
     setImageModalShow(false);
   };
 
@@ -264,7 +281,7 @@ function FeedItem({ item, onDelete, isLogin, onRefresh, fromFavPlayer }) {
         transparent
         visible={imageModalShow}
         onRequestClose={closeImageModal}>
-        <SafeAreaView style={{ flex: 1, backgroundColor: '#000' }}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.black }}>
           <View>
             <TouchableOpacity
               onPress={closeImageModal}

@@ -1,0 +1,49 @@
+import React from 'react';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import Header from '../../../components/header';
+import NavigationService from '../../../navigation/NavigationService';
+import { navName } from '../../../common/constants/navName';
+import fontStyles from '../../../styles/fontStyles';
+import { PrimaryButton } from '../../../components/PrimaryButton';
+import { COLORS } from '../../../styles/colors';
+import DismissKeyboard from '../../../components/DismissKeyboard';
+import SPKeyboardAvoidingView from '../../../components/SPKeyboardAvoidingView';
+
+function EventParticipantList() {
+  return (
+    <SafeAreaView style={styles.container}>
+      <Header title="참가자 목록" />
+      <ScrollView style={{ flex: 1 }}>
+        <PrimaryButton
+          onPress={() => {
+            NavigationService.navigate(navName.eventParticipantDetail);
+          }}
+          buttonStyle={styles.button}
+          text="한 사람 클릭시"
+        />
+        <PrimaryButton
+          onPress={() => {
+            NavigationService.navigate(navName.eventParticipantPartList);
+          }}
+          buttonStyle={styles.button}
+          text="더보기(>) 클릭 시"
+        />
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+  bottomButtonWrap: {
+    paddingVertical: 24,
+    paddingHorizontal: 16,
+  },
+  button: {},
+});
+
+export default EventParticipantList;

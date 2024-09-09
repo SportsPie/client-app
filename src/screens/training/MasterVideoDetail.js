@@ -77,7 +77,7 @@ function MasterVideoDetail({ route }) {
     masterVideoList: otherVideoList,
     refreshing,
     loading,
-    videoPagingKey: otherVideoPagingKey,
+    pagingKey: otherVideoPagingKey,
   } = pageState;
   const masterDetail = pageState?.masterDetail || {};
   const action = masterDetailAction;

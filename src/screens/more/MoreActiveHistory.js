@@ -26,9 +26,11 @@ function MoreActiveHistory({ route }) {
   const dispatch = useDispatch();
   const noParamReset = route?.params?.noParamReset;
   const [loading, setLoading] = useState(true);
+  console.log('loading', loading);
   useFocusEffect(
     useCallback(() => {
       if (!noParamReset) {
+        console.log('test');
         setLoading(true);
         dispatch(moreCommunityListAction.reset());
         dispatch(moreCommunityFavPlayerListAction.reset());

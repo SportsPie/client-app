@@ -39,6 +39,7 @@ import Utils from '../../utils/Utils';
 import ChallengeContentItem from '../../components/training/challenge-detail/ChallengeContentItem';
 import ListEmptyView from '../../components/ListEmptyView';
 import { moreChallengeCommentListAction } from '../../redux/reducers/list/moreChallengeCommentListSlice';
+import { COLORS } from '../../styles/colors';
 
 // 챌린지 영상 상세
 export function ChallengeDetail({ route }) {
@@ -168,11 +169,9 @@ export function ChallengeDetail({ route }) {
 
   // [ util ] 동영상 풀 스크린 토글
   const toggleFullScreenMode = value => {
-    // scrollRef.current.scrollTo({
-    //   x: 0,
-    //   y: 0,
-    //   animated: false,
-    // });
+    if (flatListRef.current) {
+      flatListRef.current.scrollToOffset({ offset: 0, animated: false });
+    }
     setIsScrollable(value);
   };
 
@@ -417,7 +416,13 @@ export function ChallengeDetail({ route }) {
 
   // [ return ]
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView
+      style={[
+        styles.container,
+        isScrollable
+          ? { backgroundColor: COLORS.white }
+          : { backgroundColor: COLORS.black },
+      ]}>
       {/* 헤더 */}
       {isScrollable && (
         <Header

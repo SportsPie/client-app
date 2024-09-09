@@ -20,6 +20,7 @@ const API_TRAINING = `${API_PREFIX}/training`;
 const API_CHALLENGE = `${API_PREFIX}/challenge`;
 const API_ACADEMY = `${API_PREFIX}/acdmy`;
 const API_ACADEMY_CONFIG = `${API_PREFIX}/acdmy-config`;
+const API_EVENT = `${API_PREFIX}/event`;
 const API_TEST = `${API_PREFIX}/open/test`;
 
 // Request > Headers > multipart/form-data
@@ -874,6 +875,19 @@ export const apiSaveChallengeVideo = data => {
   return api.post(`${API_CHALLENGE}/videos`, data, formDataConfigInfinity);
 };
 
+// TODO :: 이미지 업로드 테스트 샘플 추후 삭제 필요
+export const apiTestSample = (data, setter) => {
+  return api.post(`${API_CHALLENGE}/videos`, data, {
+    ...formDataConfigInfinity,
+    onUploadProgress: progressEvent => {
+      const percentCompleted = Math.round(
+        (progressEvent.loaded * 100) / progressEvent.total,
+      );
+      if (setter) setter(percentCompleted);
+    },
+  });
+};
+
 // SPIC_IF_660 :: 챌린지 영상 수정
 export const apiModifyChallengeVideo = data => {
   return api.put(`${API_CHALLENGE}/videos`, data);
@@ -1114,6 +1128,98 @@ export const apiGetMoreWalletMinWithdrawAmount = data => {
   return api.get(`${API_MORE}/wallet/min-withdraw-amount`, { params: data });
 };
 
+// ----------------------------------------------------------
+// [ EVENT ]
+// ----------------------------------------------------------
+
+// SPIC_IF_1200	:: 이벤트 리스트 조회
+export const apiGetEventList = data => {
+  return api.get(`${API_EVENT}/open`, { params: data });
+};
+// SPIC_IF_1201	:: 이벤트 상세 조회
+export const apiGetEventDetail = eventIdx => {
+  return api.get(`${API_EVENT}/open/${eventIdx}`);
+};
+// SPIC_IF_1202	:: 이벤트 접수 유형 조회
+export const apiGetEventApplyType = eventIdx => {
+  return api.get(`${API_EVENT}/apply-type/${eventIdx}`);
+};
+// SPIC_IF_1203	:: 이벤트 접수
+export const apiPostEventApplyType = data => {
+  return api.post(`${API_EVENT}/apply`, data);
+};
+// SPIC_IF_1204	:: 공지사항 리스트 조회
+export const apiGetEventNoticeList = data => {
+  return api.get(`${API_EVENT}/open/notices`, { params: data });
+};
+// SPIC_IF_1205	:: 공지사항 상세 조회
+export const apiGetEventNoticeDetail = noticeIdx => {
+  return api.get(`${API_EVENT}/open/notices/${noticeIdx}`);
+};
+// SPIC_IF_1206	:: 지원자 리스트 조회
+export const apiGetEventApplicantList = data => {
+  return api.get(`${API_EVENT}/open/applicants`, { params: data });
+};
+// SPIC_IF_1207	:: 이벤트 지원자 좋아요 등록
+export const apiPatchEventLike = participationIdx => {
+  return api.patch(`${API_EVENT}/like/${participationIdx}`);
+};
+// SPIC_IF_1208	:: 이벤트 지원자 좋아요 취소
+export const apiPatchEventUnLike = participationIdx => {
+  return api.patch(`${API_EVENT}/unlike/${participationIdx}`);
+};
+// SPIC_IF_1209	:: 이벤트 응원댓글 리스트 조회
+export const apiGetEventCommentList = data => {
+  return api.get(`${API_EVENT}/open/comments`, { params: data });
+};
+// SPIC_IF_1210	:: 이벤트 응원댓글 등록
+export const apiPostEventComment = data => {
+  return api.post(`${API_EVENT}/comments`, data);
+};
+// SPIC_IF_1211	:: 이벤트 응원댓글 수정
+export const apiPutEventComment = data => {
+  return api.put(`${API_EVENT}/comments`, data);
+};
+// SPIC_IF_1212	:: 이벤트 응원댓글 삭제
+export const apiDeleteEventComment = commentIdx => {
+  return api.delete(`${API_EVENT}/comments/${commentIdx}`);
+};
+// SPIC_IF_1213	:: 이벤트 접수 이름 받기
+export const apiGetEventapplyName = data => {
+  return api.get(`${API_EVENT}/apply-name`, { params: data });
+};
+// SPIC_IF_1214	:: 이벤트 참가자 정보 조회
+export const apiGetEventOpenApplicantList = participationIdx => {
+  return api.get(`${API_EVENT}/open/applicants/${participationIdx}`);
+};
+// SPIC_IF_1215	:: 이벤트 영상 목록 조회
+export const apiGetEventOpenVideoList = data => {
+  return api.get(`${API_EVENT}/open/videos`, { params: data });
+};
+// SPIC_IF_1216	:: 이벤트 영상 등록
+export const apiPostEventVideo = data => {
+  return api.post(`${API_EVENT}/videos`, data, formDataConfigInfinity);
+};
+// SPIC_IF_1217	:: 이벤트 영상 상단 고정
+export const apiPatchEventVideoFix = videoIdx => {
+  return api.patch(`${API_EVENT}/videos/fix/${videoIdx}`);
+};
+// SPIC_IF_1218	:: 이벤트 영상 상단 고정 해제
+export const apiPatchEventVideoUnFix = videoIdx => {
+  return api.patch(`${API_EVENT}/videos/unfix/${videoIdx}`);
+};
+// SPIC_IF_1219	:: 이벤트 참가자 정보 조회 (본인)
+export const apiGetEventApply = eventIdx => {
+  return api.get(`${API_EVENT}/apply/${eventIdx}`);
+};
+// SPIC_IF_1220	:: 이벤트 영상 목록 조회 (본인)
+export const apiGetEventVideoList = data => {
+  return api.get(`${API_EVENT}/videos`, { params: data });
+};
+// SPIC_IF_1221	:: 이벤트 접수 상태 조회	event/apply-state/{eventIdx}
+export const apiGetEventApplyState = eventIdx => {
+  return api.get(`${API_EVENT}/apply-state/${eventIdx}`);
+};
 // ----------------------------------------------------------
 // [ OPEN ]
 // ----------------------------------------------------------

@@ -163,6 +163,8 @@ function Home() {
   const [popupData, setPopupData] = useState([]);
   const [hasGeoLocationPermission, setHasGeoLocationPermission] =
     useState(false);
+  const [openEvent, setOpenEvent] = useState(false);
+  const [eventIdx, setEventIdx] = useState();
   const [init, setInit] = useState(false);
   const moreChallenge = () => {
     NavigationService.navigate(navName.training, {
@@ -228,6 +230,10 @@ function Home() {
       setNewsData(response.data.data.notice);
       setSlidesData(response.data.data.tournament);
       setChallengeData(response.data.data.videoList);
+      setEventIdx(response.data.data.eventIdx);
+      setOpenEvent(
+        response.data.data.openEvent === 'Y' && response.data.data.eventIdx,
+      );
     } catch (error) {
       handleError(error);
     }
@@ -406,6 +412,22 @@ function Home() {
 
           {/* 아카데미 소개 */}
           <View style={styles.introduction}>
+            {openEvent && (
+              <TouchableOpacity
+                style={styles.introductionEvent}
+                onPress={() =>
+                  NavigationService.navigate(navName.eventDetail, { eventIdx })
+                }>
+                <View>
+                  <Text style={styles.introductionTitle}>이벤트</Text>
+                  <Text style={styles.introductionText}>
+                    이벤트가 오픈되었습니다{'\n'}특별한 기회를 만나보세요
+                  </Text>
+                </View>
+                <Image source={SPImages.objectsImage0} alt="object event" />
+              </TouchableOpacity>
+            )}
+
             <FlatList
               data={introductionData}
               scrollEnabled={false}
@@ -579,12 +601,12 @@ function Home() {
                           flex: 1,
                         }}>
                         <View style={styles.swiperBackgroundBox}>
-                          <Text style={styles.swiperBackgroundTitle}>
-                            {slide.title}
-                          </Text>
-                          <Text style={styles.swiperBackgroundText}>
-                            {slide.contents}
-                          </Text>
+                          {/* <Text style={styles.swiperBackgroundTitle}> */}
+                          {/*  {slide.title} */}
+                          {/* </Text> */}
+                          {/* <Text style={styles.swiperBackgroundText}> */}
+                          {/*  {slide.contents} */}
+                          {/* </Text> */}
                         </View>
                       </View>
                     </ImageBackground>
@@ -819,6 +841,15 @@ const styles = StyleSheet.create({
     minHeight: 144,
     height, // 동적 높이
   }),
+  introductionEvent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#F1F5FF',
+    borderRadius: 8,
+    padding: 16,
+    marginBottom: 8,
+  },
   introductionTitle: {
     fontSize: 20,
     fontWeight: 600,
