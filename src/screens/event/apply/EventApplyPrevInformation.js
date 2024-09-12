@@ -133,26 +133,30 @@ function EventApplyPrevInformation() {
           </View>
 
           <View style={styles.titleTextBox}>
-            <Text style={styles.nameText}>{member?.userName}</Text>
-            <Text style={styles.dateText}>
+            <Text style={styles.nameText} textAlign="center">
+              {member?.userName}
+            </Text>
+            <Text style={styles.dateText} textAlign="center">
               {member?.userBirthday &&
                 moment(member?.userBirthday).format('YYYY.MM.DD')}
             </Text>
           </View>
 
           {/* 소속 */}
-          <View
-            style={{
-              backgroundColor: 'rgba(255, 124, 16, 0.15)',
-              paddingHorizontal: 8,
-              paddingVertical: 4,
-              borderRadius: 4,
-            }}>
-            <Text
-              style={[fontStyles.fontSize12_Semibold, { color: '#FF7C10' }]}>
-              {member?.acdmyNm}
-            </Text>
-          </View>
+          {member?.acdmyNm && (
+            <View
+              style={{
+                backgroundColor: 'rgba(255, 124, 16, 0.15)',
+                paddingHorizontal: 8,
+                paddingVertical: 4,
+                borderRadius: 4,
+              }}>
+              <Text
+                style={[fontStyles.fontSize12_Semibold, { color: '#FF7C10' }]}>
+                {member?.acdmyNm}
+              </Text>
+            </View>
+          )}
         </View>
 
         <Divider lineHeight={8} lineColor={COLORS.indigo90} />
@@ -162,16 +166,20 @@ function EventApplyPrevInformation() {
           <Text style={styles.contentsTitle}>퍼포먼스</Text>
 
           <View style={styles.basicInfoWrapper}>
-            <MenuTile title="포지션" value={stats?.position} />
-            <MenuTile title="지역" value={member?.userRegion} />
+            <MenuTile title="포지션" value={stats?.position || '-'} />
+            <MenuTile title="지역" value={member?.userRegion || '-'} />
             <MenuTile
               title="성별"
               value={member.userGender ? GENDER[member.userGender].desc : '-'}
             />
             <MenuTile
               title="나이"
-              value={age}
-              subValue={moment(member.userBirthday).format('YYYY.MM.DD')}
+              value={age || '-'}
+              subValue={
+                member.userBirthday
+                  ? moment(member.userBirthday).format('YYYY.MM.DD')
+                  : '-'
+              }
             />
             <MenuTile
               title="주 발"
@@ -352,7 +360,6 @@ const styles = StyleSheet.create({
     color: '#121212',
     lineHeight: 24,
     letterSpacing: 0.091,
-    textAlgin: 'center',
   },
   dateText: {
     fontSize: 12,
@@ -360,7 +367,6 @@ const styles = StyleSheet.create({
     color: 'rgba(46, 49, 53, 0.60)',
     lineHeight: 16,
     letterSpacing: 0.302,
-    textAlgin: 'center',
   },
   contentsBox: {
     paddingHorizontal: 16,

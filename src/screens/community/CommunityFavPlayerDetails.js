@@ -64,6 +64,7 @@ import { moreCommunityFavPlayerListAction } from '../../redux/reducers/list/more
 import ListEmptyView from '../../components/ListEmptyView';
 import { MODAL_CLOSE_EVENT } from '../../common/constants/modalCloseEvent';
 import { communityFavPlayerCommentListAction } from '../../redux/reducers/list/communityFavPlayerCommentListSlice';
+import BackHandlerUtils from '../../utils/BackHandlerUtils';
 
 function CommunityFavPlayerDetails({ route }) {
   const {
@@ -324,6 +325,11 @@ function CommunityFavPlayerDetails({ route }) {
   };
 
   const closeModifyCommentModal = () => {
+    BackHandlerUtils.remove();
+    BackHandlerUtils.add(() => {
+      NavigationService.goBack();
+      return true; // 뒤로가기 이벤트 실행
+    });
     setModifyCommentModalVisible(false);
   };
 
@@ -795,7 +801,6 @@ function CommunityFavPlayerDetails({ route }) {
         <SafeAreaView style={{ flex: 1, paddingTop: insets.top }}>
           <SPHeader
             title="댓글 수정"
-            rightCancelText
             rightText="완료"
             rightTextStyle={{
               fontSize: 16,
@@ -805,6 +810,7 @@ function CommunityFavPlayerDetails({ route }) {
               letterSpacing: 0.091,
               minHeight: 28,
             }}
+            onPressLeftBtn={closeModifyCommentModal}
             onPressRightText={() => {
               if (modifyComment) {
                 editComment();

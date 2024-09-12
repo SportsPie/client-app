@@ -15,7 +15,12 @@ import { challengeListAction } from '../redux/reducers/list/challengeListSlice';
 import { useFocusEffect } from '@react-navigation/native';
 import { challengeDetailAction } from '../redux/reducers/list/challengeDetailSlice';
 
-function HeartCounter({ heartNum = 0, videoIdx = '', isLike = false }) {
+function HeartCounter({
+  heartNum = 0,
+  videoIdx = '',
+  isLike = false,
+  wrapper = false,
+}) {
   const dispatch = useDispatch();
   const isLogin = useSelector(selector => selector.auth)?.isLogin;
 
@@ -204,7 +209,7 @@ function HeartCounter({ heartNum = 0, videoIdx = '', isLike = false }) {
         top: 10,
         bottom: 10,
       }}
-      style={styles.wrapper}
+      style={wrapper ? null : styles.wrapper}
       onPress={touchLikeHandler}>
       <View style={styles.container}>
         {isLiked ? <SPSvgs.Heart /> : <SPSvgs.HeartOutline />}

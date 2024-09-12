@@ -68,6 +68,7 @@ import { navName } from '../../common/constants/navName';
 import { moreCommunityListAction } from '../../redux/reducers/list/moreCommunityListSlice';
 import ListEmptyView from '../../components/ListEmptyView';
 import { MODAL_CLOSE_EVENT } from '../../common/constants/modalCloseEvent';
+import BackHandlerUtils from '../../utils/BackHandlerUtils';
 
 function CommunityDetails({ route }) {
   const {
@@ -343,6 +344,11 @@ function CommunityDetails({ route }) {
   };
 
   const closeModifyCommentModal = () => {
+    BackHandlerUtils.remove();
+    BackHandlerUtils.add(() => {
+      NavigationService.goBack();
+      return true; // 뒤로가기 이벤트 실행
+    });
     setModifyCommentModalVisible(false);
   };
 
@@ -813,8 +819,8 @@ function CommunityDetails({ route }) {
         <SafeAreaView style={{ flex: 1, paddingTop: insets.top }}>
           <SPHeader
             title="댓글 수정"
-            rightCancelText
             rightText="완료"
+            onPressLeftBtn={closeModifyCommentModal}
             rightTextStyle={{
               fontSize: 16,
               fontWeight: '600',

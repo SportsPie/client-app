@@ -15,6 +15,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useDispatch } from 'react-redux';
 import { trainingDetailAction } from '../../redux/reducers/list/trainingDetailSlice';
 import { VIDEO_UPLOAD_TYPE } from '../../common/constants/VideoUploadType';
+import { moreEventVideoListAction } from '../../redux/reducers/list/moreEventVideoListSlice';
 
 function VideoUploadComplete({ route }) {
   const dispatch = useDispatch();
@@ -47,7 +48,7 @@ function VideoUploadComplete({ route }) {
   useFocusEffect(
     useCallback(() => {
       // redux에 저장된 리스트 정보 refresh
-      // dispatch(trainingDetailAction.refresh());
+      dispatch(moreEventVideoListAction.refresh());
     }, []),
   );
 

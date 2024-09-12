@@ -1,21 +1,23 @@
-import React, { useEffect, useState, memo } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
+  Dimensions,
+  ImageBackground,
+  Modal,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
-  View,
-  TouchableOpacity,
-  Dimensions,
-  ImageBackground,
-  Modal,
   TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 import Header from '../../../components/header';
 import NavigationService from '../../../navigation/NavigationService';
 import { navName } from '../../../common/constants/navName';
-import { MAIN_FOOT } from '../../../common/constants/mainFoot';
 import { SCHOOL_LEVEL } from '../../../common/constants/schoolLevel';
 import { PrimaryButton } from '../../../components/PrimaryButton';
 import { COLORS } from '../../../styles/colors';
@@ -27,27 +29,42 @@ import SPImages from '../../../assets/images';
 import SPInput from '../../../components/SPInput';
 import Selector from '../../../components/Selector';
 import Utils from '../../../utils/Utils';
+import { MAIN_FOOT_TYPE } from '../../../common/constants/mainFootType';
+import { POSITION_DETAIL_TYPE } from '../../../common/constants/positionDetailType';
+import { CAREER_TYPE } from '../../../common/constants/careerType';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 
 function EventApplyInputPerformance() {
+  /**
+   * state
+   */
+  const insets = useSafeAreaInsets();
   const { applyData, setApplyData } = useAppState();
   const [cancelModalVisible, setCancelModalVisible] = useState(false); // 헤더 취소 모달
   const [positionModalVisible, setPositionModalVisible] = useState(false); // 포지션 선택 모달
-  const [isPositionSaved, setIsPositionSaved] = useState(false); // 포지션이 저장되었는지 여부
-  const [tall, setTall] = useState('');
-  const [footSize, setFootSize] = useState('');
-  const [weight, setWeight] = useState('');
-  const [backNumber, setBackNumber] = useState('');
-  const [career, setCareer] = useState([]);
-  const [mainFoot, setMainFoot] = useState('');
-  const [memo, setMemo] = useState('');
   const [isButtonDisabled, setIsButtonDisabled] = useState(true);
+  const [selectedPositions, setSelectedPositions] = useState({
+    firstWish: null,
+    secondWish: null,
+    thirdWish: null,
+  });
+
+  /**
+   * function
+   */
 
   // 모달 열기
   const openCancelModal = () => setCancelModalVisible(true);
-  const openPositionModal = () => setPositionModalVisible(true);
+  const openPositionModal = () => {
+    setSelectedPositions({
+      firstWish: applyData.firstWish,
+      secondWish: applyData.secondWish,
+      thirdWish: applyData.thirdWish,
+    }); // 현재 선택된 포지션을 저장
+    setPositionModalVisible(true);
+  };
 
   // 모달 닫기
   const closeCancelModal = () => setCancelModalVisible(false);
@@ -61,24 +78,12 @@ function EventApplyInputPerformance() {
     }); // home 페이지로 이동
   };
 
-  const [selectedPositions, setSelectedPositions] = useState({
-    first: null,
-    second: null,
-    third: null,
-  });
-
-  const [savedPositions, setSavedPositions] = useState({
-    first: null,
-    second: null,
-    third: null,
-  }); // 저장된 포지션 상태
-
   const updatePosition = position => {
     setSelectedPositions(prev => {
       // 1지망이 비어있으면 1지망에 넣고, 아니면 2지망, 그다음 3지망 순서로 채움
-      if (!prev.first) return { ...prev, first: position };
-      if (!prev.second) return { ...prev, second: position };
-      if (!prev.third) return { ...prev, third: position };
+      if (!prev.firstWish) return { ...prev, firstWish: position };
+      if (!prev.secondWish) return { ...prev, secondWish: position };
+      if (!prev.thirdWish) return { ...prev, thirdWish: position };
       return prev; // 3지망까지 모두 선택되면 더 이상 업데이트하지 않음
     });
   };
@@ -86,49 +91,103 @@ function EventApplyInputPerformance() {
   // 초기화 함수
   const resetPositions = () => {
     setSelectedPositions({
-      first: null,
-      second: null,
-      third: null,
+      firstWish: null,
+      secondWish: null,
+      thirdWish: null,
     });
   };
 
   // 저장 버튼 클릭 시 선택된 포지션을 저장
   const handleSavePositions = () => {
-    setSavedPositions(selectedPositions);
-    setIsPositionSaved(true); // 포지션이 저장되었음을 나타냄
+    setApplyData({ ...applyData, ...selectedPositions });
     setPositionModalVisible(false); // 모달 닫기
   };
 
   const handleTallChange = text => {
     const tallValue = Utils.changeDecimalForInput(text, 1);
-    setTall(tallValue);
+    setApplyData({ ...applyData, height: tallValue });
   };
 
   const handleWeightChange = text => {
     const weightValue = Utils.changeDecimalForInput(text, 1);
-    setWeight(weightValue);
+    setApplyData({ ...applyData, weight: weightValue });
   };
 
   // 필수 입력 항목 확인 함수
   const checkAllRequiredFieldsFilled = () => {
     return (
-      !!savedPositions.first && // 포지션 1지망
-      !!tall && // 키
-      !!weight && // 몸무게
-      !!footSize && // 발 사이즈
-      !!mainFoot // 주 사용 발
+      !!applyData?.firstWish && // 포지션 1지망
+      !!applyData?.height && // 키
+      !!applyData?.weight && // 몸무게
+      !!applyData?.shoeSize && // 발 사이즈
+      !!applyData?.mainFoot && // 주 사용 발
+      !!applyData?.careerList
     );
   };
+
+  /**
+   * useEffect
+   */
+
+  useEffect(() => {
+    // setSelectedPositions({
+    //   firstWish: null,
+    //   secondWish: null,
+    //   thirdWish: null,
+    // });
+    // setApplyData({
+    //   ...applyData,
+    //   firstWish: null,
+    //   secondWish: null,
+    //   thirdWish: null,
+    //   height: null,
+    //   weight: null,
+    //   shoeSize: null,
+    //   mainFoot: null,
+    //   backNo: null,
+    //   careerList: [CAREER_TYPE.NONE.value],
+    //   awards: null,
+    //   preferredPlay: null,
+    // });
+    if (!applyData?.careerList) {
+      setApplyData({
+        ...applyData,
+        careerList: [CAREER_TYPE.NONE.value],
+      });
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!applyData?.careerList || applyData?.careerList.length === 0) {
+      setApplyData({
+        ...applyData,
+        careerList: [CAREER_TYPE.NONE.value],
+      });
+    }
+  }, [applyData?.careerList]);
 
   // 필수 입력 항목의 변화를 감지하여 버튼 상태 업데이트
   useEffect(() => {
     const isValid = checkAllRequiredFieldsFilled();
     setIsButtonDisabled(!isValid); // 모든 필수 항목이 채워졌을 때만 버튼 활성화
-  }, [savedPositions, tall, weight, footSize, mainFoot]);
+  }, [
+    applyData?.firstWish,
+    applyData?.secondWish,
+    applyData?.thirdWish,
+    applyData?.height,
+    applyData?.weight,
+    applyData?.shoeSize,
+    applyData?.mainFoot,
+  ]);
+
+  /**
+   * render
+   */
 
   return (
     <DismissKeyboard>
       <SPKeyboardAvoidingView
+        key="eventApplyInputPerformance"
         behavior="padding"
         isResize
         keyboardVerticalOffset={0}
@@ -155,7 +214,7 @@ function EventApplyInputPerformance() {
               <View>
                 <Text style={styles.subTitle}>포지션</Text>
 
-                {!isPositionSaved ? (
+                {!applyData?.firstWish ? (
                   // 포지션이 저장되지 않았다면 포지션 선택 버튼만 표시
                   <TouchableOpacity
                     style={styles.openButton}
@@ -170,7 +229,7 @@ function EventApplyInputPerformance() {
                         style={[styles.positionBox, { borderRightWidth: 0 }]}>
                         <Text style={styles.positionTitle}>1지망</Text>
                         <Text style={styles.positionText}>
-                          {savedPositions.first || '-'}
+                          {applyData?.firstWish || '-'}
                         </Text>
                       </View>
 
@@ -178,7 +237,7 @@ function EventApplyInputPerformance() {
                         style={[styles.positionBox, { borderRightWidth: 0 }]}>
                         <Text style={styles.positionTitle}>2지망(선택)</Text>
                         <Text style={styles.positionText}>
-                          {savedPositions.second || '-'}
+                          {applyData?.secondWish || '-'}
                         </Text>
                       </View>
 
@@ -186,7 +245,7 @@ function EventApplyInputPerformance() {
                         style={[styles.positionBox, { borderRightWidth: 0 }]}>
                         <Text style={styles.positionTitle}>3지망(선택)</Text>
                         <Text style={styles.positionText}>
-                          {savedPositions.third || '-'}
+                          {applyData?.thirdWish || '-'}
                         </Text>
                       </View>
                     </View>
@@ -201,12 +260,12 @@ function EventApplyInputPerformance() {
 
               {/* Tall */}
               <SPInput
-                placeholder=""
+                placeholder="키를 입력해주세요."
                 title="키"
                 subPlaceholder="cm"
                 maxLength={5}
                 keyboardType="number-pad"
-                value={tall}
+                value={applyData?.height || ''}
                 onChangeText={handleTallChange}
                 textAlign="right"
                 onlyDecimal
@@ -214,12 +273,12 @@ function EventApplyInputPerformance() {
 
               {/* Weight */}
               <SPInput
-                placeholder=""
+                placeholder="몸무게를 입력해주세요."
                 title="몸무게"
                 subPlaceholder="kg"
                 maxLength={5}
                 keyboardType="number-pad"
-                value={weight}
+                value={applyData?.weight || ''}
                 onChangeText={handleWeightChange}
                 textAlign="right"
                 onlyDecimal
@@ -227,13 +286,15 @@ function EventApplyInputPerformance() {
 
               {/* Foot size */}
               <SPInput
-                placeholder=""
+                placeholder="발 사이즈를 입력해주세요."
                 title="발 사이즈"
                 subPlaceholder="mm"
                 maxLength={3}
                 keyboardType="number-pad"
-                value={Utils.onlyNumber(footSize)}
-                onChangeText={setFootSize}
+                value={Utils.onlyNumber(applyData?.shoeSize)}
+                onChangeText={text => {
+                  setApplyData({ ...applyData, shoeSize: text });
+                }}
                 textAlign="right"
                 onlyNumber
               />
@@ -241,26 +302,30 @@ function EventApplyInputPerformance() {
               {/* Main foot */}
               <Selector
                 title="주 사용발"
-                options={Object.values(MAIN_FOOT).map(item => {
+                options={Object.values(MAIN_FOOT_TYPE).map(item => {
                   return {
                     id: Utils.UUIDV4(),
                     label: item?.desc,
-                    value: item?.value,
+                    value: item?.name,
                   };
                 })}
-                onItemPress={setMainFoot}
-                selectedItem={mainFoot}
+                onItemPress={value => {
+                  setApplyData({ ...applyData, mainFoot: value });
+                }}
+                selectedOnItem={applyData?.mainFoot}
               />
 
               {/* Back number */}
               <SPInput
-                placeholder=""
+                placeholder="등 번호를 입력해주세요"
                 title="등 번호(선택)"
                 maxLength={2}
-                value={Utils.onlyNumber(backNumber)}
-                onChangeText={setBackNumber}
+                value={Utils.onlyNumber(applyData?.backNo)}
+                onChangeText={text => {
+                  setApplyData({ ...applyData, backNo: text });
+                }}
                 keyboardType="number-pad"
-                textAlign="right"
+                textAlign="left"
                 onlyNumber
               />
 
@@ -272,8 +337,14 @@ function EventApplyInputPerformance() {
                   label: item?.desc,
                   value: item?.value,
                 }))}
-                onItemPress={setCareer}
-                selectedItem={career}
+                onItemPress={value => {
+                  setApplyData({ ...applyData, careerList: value });
+                }}
+                selectedOnItem={
+                  applyData?.careerList
+                    ? [...applyData.careerList]
+                    : [SCHOOL_LEVEL.NONE.value]
+                }
                 multiple={true}
               />
 
@@ -281,7 +352,11 @@ function EventApplyInputPerformance() {
               <View style={{ gap: 4 }}>
                 <Text style={styles.subTitle}>수상 경력(선택)</Text>
                 <TextInput
-                  value={memo}
+                  value={applyData?.awards || ''}
+                  onChangeText={text => {
+                    if (text?.length > 1000) return;
+                    setApplyData({ ...applyData, awards: text });
+                  }}
                   multiline
                   scrollEnabled={false}
                   textAlignVertical="top"
@@ -297,7 +372,11 @@ function EventApplyInputPerformance() {
               <View style={{ gap: 4 }}>
                 <Text style={styles.subTitle}>선호 플레이(선택)</Text>
                 <TextInput
-                  value={memo}
+                  value={applyData?.preferredPlay || ''}
+                  onChangeText={text => {
+                    if (text?.length > 1000) return;
+                    setApplyData({ ...applyData, preferredPlay: text });
+                  }}
                   multiline
                   scrollEnabled={false}
                   textAlignVertical="top"
@@ -315,6 +394,11 @@ function EventApplyInputPerformance() {
           <View style={styles.bottomButtonWrap}>
             <PrimaryButton
               onPress={() => {
+                setApplyData({
+                  ...applyData,
+                  height: Number(applyData.height),
+                  weight: Number(applyData.weight),
+                });
                 NavigationService.navigate(navName.eventApplyInputDepositInfo);
               }}
               buttonStyle={styles.button}
@@ -352,8 +436,9 @@ function EventApplyInputPerformance() {
             transparent={true}
             visible={positionModalVisible}
             onRequestClose={closePositionModal}>
-            <View style={styles.modalContainer}>
-              <View style={styles.imageContainer}>
+            <SafeAreaView
+              style={[styles.modalContainer, { paddingTop: insets.top }]}>
+              <View style={[styles.imageContainer]}>
                 <View style={styles.titleGroup}>
                   <Text style={styles.titleText}>포지션 선택</Text>
                   <TouchableOpacity
@@ -370,10 +455,12 @@ function EventApplyInputPerformance() {
                   <View style={[styles.bgButtonBox, styles.atButtonBox]}>
                     <TouchableOpacity
                       style={[styles.button, styles.atButton]}
-                      onPress={() => updatePosition('ST/CF/SS')}
+                      onPress={() =>
+                        updatePosition(POSITION_DETAIL_TYPE.ST_CF_SS.code)
+                      }
                       hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
                       <Text style={[styles.buttonText, styles.whiteText]}>
-                        ST/CF/SS
+                        {POSITION_DETAIL_TYPE.ST_CF_SS.enDesc}
                       </Text>
                     </TouchableOpacity>
                   </View>
@@ -382,28 +469,36 @@ function EventApplyInputPerformance() {
                     <View style={[styles.bgButtonBox]}>
                       <TouchableOpacity
                         style={[styles.button, styles.atButton]}
-                        onPress={() => updatePosition('RWF/RW')}
+                        onPress={() =>
+                          updatePosition(POSITION_DETAIL_TYPE.LWF_LW.code)
+                        }
                         hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
                         <Text style={[styles.buttonText, styles.whiteText]}>
-                          RWF/RW
+                          {POSITION_DETAIL_TYPE.LWF_LW.enDesc}
                         </Text>
                       </TouchableOpacity>
                     </View>
                     <View style={[styles.bgButtonBox]}>
                       <TouchableOpacity
                         style={[styles.button, styles.mdButton]}
-                        onPress={() => updatePosition('CAM')}
+                        onPress={() =>
+                          updatePosition(POSITION_DETAIL_TYPE.CAM.code)
+                        }
                         hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-                        <Text style={[styles.buttonText]}>CAM</Text>
+                        <Text style={[styles.buttonText]}>
+                          {POSITION_DETAIL_TYPE.CAM.enDesc}
+                        </Text>
                       </TouchableOpacity>
                     </View>
                     <View style={[styles.bgButtonBox]}>
                       <TouchableOpacity
                         style={[styles.button, styles.atButton]}
-                        onPress={() => updatePosition('LWF/LW')}
+                        onPress={() =>
+                          updatePosition(POSITION_DETAIL_TYPE.RWF_RW.code)
+                        }
                         hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
                         <Text style={[styles.buttonText, styles.whiteText]}>
-                          LWF/LW
+                          {POSITION_DETAIL_TYPE.RWF_RW.enDesc}
                         </Text>
                       </TouchableOpacity>
                     </View>
@@ -414,25 +509,37 @@ function EventApplyInputPerformance() {
                     <View style={[styles.bgButtonBox]}>
                       <TouchableOpacity
                         style={[styles.button, styles.mdButton]}
-                        onPress={() => updatePosition('RM')}
+                        onPress={() =>
+                          updatePosition(POSITION_DETAIL_TYPE.LM.code)
+                        }
                         hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-                        <Text style={[styles.buttonText]}>RM</Text>
+                        <Text style={[styles.buttonText]}>
+                          {POSITION_DETAIL_TYPE.LM.enDesc}
+                        </Text>
                       </TouchableOpacity>
                     </View>
                     <View style={[styles.bgButtonBox]}>
                       <TouchableOpacity
                         style={[styles.button, styles.mdButton]}
-                        onPress={() => updatePosition('CM')}
+                        onPress={() =>
+                          updatePosition(POSITION_DETAIL_TYPE.CM.code)
+                        }
                         hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-                        <Text style={[styles.buttonText]}>CM</Text>
+                        <Text style={[styles.buttonText]}>
+                          {POSITION_DETAIL_TYPE.CM.enDesc}
+                        </Text>
                       </TouchableOpacity>
                     </View>
                     <View style={[styles.bgButtonBox]}>
                       <TouchableOpacity
                         style={[styles.button, styles.mdButton]}
-                        onPress={() => updatePosition('LM')}
+                        onPress={() =>
+                          updatePosition(POSITION_DETAIL_TYPE.RM.code)
+                        }
                         hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-                        <Text style={[styles.buttonText]}>LM</Text>
+                        <Text style={[styles.buttonText]}>
+                          {POSITION_DETAIL_TYPE.RM.enDesc}
+                        </Text>
                       </TouchableOpacity>
                     </View>
                   </View>
@@ -440,9 +547,13 @@ function EventApplyInputPerformance() {
                   <View style={[styles.bgButtonBox, styles.mdButtonBox]}>
                     <TouchableOpacity
                       style={[styles.button, styles.mdButton]}
-                      onPress={() => updatePosition('CDM')}
+                      onPress={() =>
+                        updatePosition(POSITION_DETAIL_TYPE.CDM.code)
+                      }
                       hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-                      <Text style={styles.buttonText}>CDM</Text>
+                      <Text style={styles.buttonText}>
+                        {POSITION_DETAIL_TYPE.CDM.enDesc}
+                      </Text>
                     </TouchableOpacity>
                   </View>
 
@@ -451,25 +562,37 @@ function EventApplyInputPerformance() {
                     <View style={[styles.bgButtonBox]}>
                       <TouchableOpacity
                         style={[styles.button, styles.dfButton]}
-                        onPress={() => updatePosition('RB/RWB')}
+                        onPress={() =>
+                          updatePosition(POSITION_DETAIL_TYPE.LB_LWB.code)
+                        }
                         hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-                        <Text style={[styles.buttonText]}>RB/RWB</Text>
+                        <Text style={[styles.buttonText]}>
+                          {POSITION_DETAIL_TYPE.LB_LWB.enDesc}
+                        </Text>
                       </TouchableOpacity>
                     </View>
                     <View style={[styles.bgButtonBox]}>
                       <TouchableOpacity
                         style={[styles.button, styles.dfButton]}
-                        onPress={() => updatePosition('CB')}
+                        onPress={() =>
+                          updatePosition(POSITION_DETAIL_TYPE.CB.code)
+                        }
                         hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-                        <Text style={[styles.buttonText]}>CB</Text>
+                        <Text style={[styles.buttonText]}>
+                          {POSITION_DETAIL_TYPE.CB.enDesc}
+                        </Text>
                       </TouchableOpacity>
                     </View>
                     <View style={[styles.bgButtonBox]}>
                       <TouchableOpacity
                         style={[styles.button, styles.dfButton]}
-                        onPress={() => updatePosition('LB/LWB')}
+                        onPress={() =>
+                          updatePosition(POSITION_DETAIL_TYPE.RB_RWB.code)
+                        }
                         hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-                        <Text style={[styles.buttonText]}>LB/LWB</Text>
+                        <Text style={[styles.buttonText]}>
+                          {POSITION_DETAIL_TYPE.RB_RWB.enDesc}
+                        </Text>
                       </TouchableOpacity>
                     </View>
                   </View>
@@ -478,10 +601,12 @@ function EventApplyInputPerformance() {
                   <View style={[styles.bgButtonBox, styles.gkButtonBox]}>
                     <TouchableOpacity
                       style={[styles.button, styles.gkButton]}
-                      onPress={() => updatePosition('GK')}
+                      onPress={() =>
+                        updatePosition(POSITION_DETAIL_TYPE.GK.code)
+                      }
                       hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
                       <Text style={[styles.buttonText, styles.whiteText]}>
-                        GK
+                        {POSITION_DETAIL_TYPE.GK.enDesc}
                       </Text>
                     </TouchableOpacity>
                   </View>
@@ -491,21 +616,21 @@ function EventApplyInputPerformance() {
                   <View style={styles.positionBox}>
                     <Text style={styles.positionTitle}>1지망</Text>
                     <Text style={styles.positionText}>
-                      {selectedPositions.first || '-'}
+                      {selectedPositions.firstWish || '-'}
                     </Text>
                   </View>
 
                   <View style={styles.positionBox}>
                     <Text style={styles.positionTitle}>2지망(선택)</Text>
                     <Text style={styles.positionText}>
-                      {selectedPositions.second || '-'}
+                      {selectedPositions.secondWish || '-'}
                     </Text>
                   </View>
 
                   <View style={[styles.positionBox, { borderRightWidth: 0 }]}>
                     <Text style={styles.positionTitle}>3지망(선택)</Text>
                     <Text style={styles.positionText}>
-                      {selectedPositions.third || '-'}
+                      {selectedPositions.thirdWish || '-'}
                     </Text>
                   </View>
                 </View>
@@ -523,7 +648,7 @@ function EventApplyInputPerformance() {
                   </TouchableOpacity>
                 </View>
               </View>
-            </View>
+            </SafeAreaView>
           </Modal>
         </SafeAreaView>
       </SPKeyboardAvoidingView>
@@ -605,11 +730,12 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)', // 반투명한 배경
+    // backgroundColor: 'rgba(0, 0, 0, 0.5)', // 반투명한 배경
+    backgroundColor: '#fff', // 배경색은 흰색으로 설정
   },
   imageContainer: {
     width: SCREEN_WIDTH,
-    height: SCREEN_HEIGHT,
+    flex: 1,
     backgroundColor: '#fff', // 배경색은 흰색으로 설정
     padding: 24,
     // borderRadius: 16,

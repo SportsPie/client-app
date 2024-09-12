@@ -50,6 +50,8 @@ export const MODAL_MORE_TYPE = {
   MASTER_VIDEO_COMMENT: 'MASTER_VIDEO_COMMENT', // "마스터 영상 댓글"
   CHALLENGE_VIDEO: 'CHALLENGE_VIDEO', // "챌린지 영상"
   CHALLENGE_VIDEO_COMMENT: 'CHALLENGE_VIDEO_COMMENT', // "챌린지 영상 댓글"
+  EVENT_VIDEO: 'EVENT_VIDEO', // "이벤트 영상"
+  EVENT_COMMENT: 'EVENT_COMMENT', // "이벤트 영상 댓글"
 
   // 채팅
   CHAT: 'CHAT',
@@ -168,6 +170,14 @@ function SPMoreModal({
           if (onDelete) onDelete();
           if (onConfirm) onConfirm();
           break;
+        case MODAL_MORE_TYPE.EVENT_VIDEO:
+          if (onDelete) onDelete();
+          if (onConfirm) onConfirm();
+          break;
+        case MODAL_MORE_TYPE.EVENT_COMMENT:
+          if (onDelete) onDelete();
+          if (onConfirm) onConfirm();
+          break;
         default:
           break;
       }
@@ -233,6 +243,9 @@ function SPMoreModal({
         if (onModify) onModify();
         break;
       case MODAL_MORE_TYPE.CHALLENGE_VIDEO_COMMENT:
+        if (onModify) onModify();
+        break;
+      case MODAL_MORE_TYPE.EVENT_COMMENT:
         if (onModify) onModify();
         break;
       default:

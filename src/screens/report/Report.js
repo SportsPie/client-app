@@ -83,6 +83,9 @@ function Report({ route }) {
       case REPORT_TYPE.CHALLENGE_VIDEO_COMMENT:
         pageType = pageTypes.FEED;
         break;
+      case REPORT_TYPE.EVENT_COMMENT:
+        pageType = pageTypes.FEED;
+        break;
       default:
         break;
     }
@@ -184,6 +187,7 @@ function Report({ route }) {
         }
         case REPORT_TYPE.HOLDER_FEED_COMMENT:
         case REPORT_TYPE.FEED_COMMENT:
+        case REPORT_TYPE.EVENT_COMMENT:
           if (isReportUser) {
             setUserReportParam(params);
             setShowUserReportCheckModal(true);

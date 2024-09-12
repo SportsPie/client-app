@@ -54,6 +54,7 @@ import { academyCommunityListAction } from '../../redux/reducers/list/academyCom
 import { navName } from '../../common/constants/navName';
 import { moreCommunityListAction } from '../../redux/reducers/list/moreCommunityListSlice';
 import ListEmptyView from '../../components/ListEmptyView';
+import BackHandlerUtils from '../../utils/BackHandlerUtils';
 
 // 커뮤니티 이미지 슬라이드
 function CarouselSection({ data, openFileterModal, setSelectedImage }) {
@@ -393,6 +394,11 @@ function AcademyCommunityDetail({ route }) {
   };
 
   const closeModifyCommentModal = () => {
+    BackHandlerUtils.remove();
+    BackHandlerUtils.add(() => {
+      NavigationService.goBack();
+      return true; // 뒤로가기 이벤트 실행
+    });
     setModifyCommentModalVisible(false);
   };
 
@@ -866,7 +872,6 @@ function AcademyCommunityDetail({ route }) {
               <SPHeader
                 title="댓글 수정"
                 onPressLeftBtn={closeModifyCommentModal}
-                rightCancelText
                 rightText="완료"
                 rightTextStyle={{
                   fontSize: 16,

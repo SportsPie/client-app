@@ -62,6 +62,9 @@ function MoreMyInfo() {
     return (
       <Header
         closeIcon
+        onLeftIconPress={() => {
+          NavigationService.navigate(navName.home);
+        }}
         rightContent={
           <Pressable
             style={{ padding: 10 }}
@@ -258,11 +261,21 @@ function MoreMyInfo() {
           titleTextStyle={styles.customTitleText}
         />
 
-        {eventApplied && (
+        {/* {eventApplied && ( */}
+        {eventApplied ? (
           <MenuSection
             title="이벤트 참여 내역"
             onPress={() => {
               NavigationService.navigate(navName.moreEvent);
+            }}
+            containerStyle={styles.noBorder}
+            titleTextStyle={styles.customTitleText}
+          />
+        ) : (
+          <MenuSection
+            title="이벤트 참여 내역"
+            onPress={() => {
+              NavigationService.navigate(navName.moreNoneEvent);
             }}
             containerStyle={styles.noBorder}
             titleTextStyle={styles.customTitleText}

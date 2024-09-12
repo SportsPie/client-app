@@ -7,4 +7,5 @@ export const SPGifs = {
   sending: require('./sending.gif'),
   handClap: require('./hand-clap.gif'),
   gift: require('./gift.gif'),
+  check: require('./check.gif'),
 };

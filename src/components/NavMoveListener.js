@@ -4,7 +4,7 @@ import { navName } from '../common/constants/navName';
 import NavigationService from '../navigation/NavigationService';
 import { useDispatch, useSelector } from 'react-redux';
 import { navSliceActions } from '../redux/reducers/navSlice';
-import { apiGetMyInfo } from '../api/RestAPI';
+import { apiGetMyInfo, apiGetEventVideo } from '../api/RestAPI';
 import WalletUtils from '../utils/WalletUtils';
 import Utils from '../utils/Utils';
 
@@ -25,6 +25,7 @@ const LinkType = {
   CHALLENGE_VIDEO_DETAIL: 'CHALLENGE_VIDEO_DETAIL', // 챌린지 영상 상세,
   MASTER_VIDEO_DETAIL: 'MASTER_VIDEO_DETAIL', // 마스터 영상 상세,
   TRAINING_VIDEO_DETAIL: 'TRAINING_VIDEO_DETAIL', // 트레이닝 영상 상세,
+  EVENT_VIDEO_DETAIL: 'EVENT_VIDEO_DETAIL', // 이벤트 영상 상세,
 };
 
 function NavMoveListener() {
@@ -120,6 +121,13 @@ function NavMoveListener() {
             isCurrentStep: true,
           });
           break;
+        case LinkType.EVENT_VIDEO_DETAIL: {
+          const { data } = await apiGetEventVideo(idx);
+          NavigationService.navigate(navName.eventParticipantVideoReels, {
+            video: data.data,
+          });
+          break;
+        }
         default:
           Utils.openOrMoveUrl(url);
           break;

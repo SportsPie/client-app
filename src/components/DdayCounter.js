@@ -1,7 +1,8 @@
 import React, { memo, useCallback, useEffect, useState } from 'react';
-import { Text } from 'react-native';
+import { View, Text } from 'react-native';
 import moment from 'moment';
 import { useFocusEffect } from '@react-navigation/native';
+import { SPSvgs } from '../assets/svg';
 
 function DdayCounter({ targetDate, format, onEnd }) {
   const [ddayStr, setDdayStr] = useState();
@@ -24,14 +25,20 @@ function DdayCounter({ targetDate, format, onEnd }) {
       };
       let str = '';
       const day = timeLeft.days ? `${timeLeft.days}일` : '';
-      const hour = timeLeft.hours ? `${timeLeft.hours}시간` : '';
-      const minute = timeLeft.minutes ? `${timeLeft.minutes}분` : '';
-      const second = timeLeft.seconds ? `${timeLeft.seconds}초` : '';
+      const hour = timeLeft.hours
+        ? String(`${timeLeft.hours}`).padStart(2, '0')
+        : '';
+      const minute = timeLeft.minutes
+        ? String(`${timeLeft.minutes}`).padStart(2, '0')
+        : '';
+      const second = timeLeft.seconds
+        ? String(`${timeLeft.seconds}`).padStart(2, '0')
+        : '';
       if (day) str = `${day}`;
       if (hour) str += str ? ` ${hour}` : hour;
-      if (minute) str += str ? ` ${minute}` : minute;
-      if (second) str += str ? ` ${second}` : second;
-      setDdayStr(`마감까지 ${str}`);
+      if (minute) str += str ? `:${minute}` : minute;
+      if (second) str += str ? `:${second}` : second;
+      setDdayStr(`${str}`);
     } else {
       setDdayStr('');
       setEnd(true);
@@ -52,7 +59,41 @@ function DdayCounter({ targetDate, format, onEnd }) {
     if (end && intervalId) clearInterval(intervalId);
   }, [end, intervalId]);
 
-  return ddayStr && <Text>{ddayStr}</Text>;
+  return (
+    ddayStr && (
+      <View
+        style={{
+          flexDirection: 'row',
+          justifyContent: 'center',
+          alignItems: 'center',
+          gap: 4,
+        }}>
+        <SPSvgs.Time />
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+          <Text
+            style={{
+              fontSize: 14,
+              fontWeight: 400,
+              color: '#1A1C1E',
+              lineHeight: 20,
+              letterSpacing: 0.203,
+            }}>
+            마감까지
+          </Text>
+          <Text
+            style={{
+              fontSize: 16,
+              fontWeight: 600,
+              color: '#002672',
+              lineHeight: 24,
+              letterSpacing: 0.091,
+            }}>
+            {ddayStr}
+          </Text>
+        </View>
+      </View>
+    )
+  );
 }
 
 export default memo(DdayCounter);

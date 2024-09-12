@@ -93,7 +93,7 @@ const Utils = {
 
     // 숫자 '0'의 경우
     if (str === '0') {
-      return 0;
+      return '0';
     }
     // eslint-disable-next-line no-param-reassign
     str = `${str}`;
@@ -448,7 +448,7 @@ const Utils = {
       });
     });
   },
-  openInstagram: async url => {
+  openInstagram: url => {
     if (!url) return;
     if (
       !url.toLowerCase().startsWith('http://www.instagram.com') &&
@@ -458,10 +458,7 @@ const Utils = {
     }
 
     try {
-      const isInstagramInstalled = await Linking.openURL(url); // 앱 URL을 열 수 있는지 확인
-      if (isInstagramInstalled) {
-        Linking.openURL(url);
-      }
+      Linking.openURL(url); // 앱 URL을 열 수 있는지 확인
     } catch (error) {
       handleError(error);
     }
@@ -753,7 +750,7 @@ const Utils = {
       url?.toLowerCase()?.startsWith('https')
     ) {
       Linking.canOpenURL(url).then(isGranted => {
-        if (isGranted) {
+        if (url.includes('instagram') || isGranted) {
           Linking.openURL(url);
         }
       });

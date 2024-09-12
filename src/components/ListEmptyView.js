@@ -3,9 +3,9 @@ import React, { memo } from 'react';
 import fontStyles from '../styles/fontStyles';
 import { COLORS } from '../styles/colors';
 
-function ListEmptyView({ text }) {
+function ListEmptyView({ text, style }) {
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, style]}>
       <Text style={styles.textStyle}>{text ?? ''}</Text>
     </View>
   );

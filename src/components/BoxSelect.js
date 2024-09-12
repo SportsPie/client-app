@@ -76,7 +76,7 @@ function BoxSelect({
           style={[
             styles.text,
             {
-              color: value ? COLORS.labelNormal : '#ccc', // value가 없을 때 placeholder 색상 #ccc로 변경
+              color: value ? COLORS.labelNormal : 'rgba(46, 49, 53, 0.60)', // value가 없을 때 placeholder 색상 #ccc로 변경
             },
           ]}>
           {renderText}

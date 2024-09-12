@@ -23,7 +23,7 @@ function EventApplyType({ route }) {
   /**
    * state
    */
-  const { eventIdx } = route.params;
+  const { eventIdx, eventInfo } = route.params;
   const noParamReset = route?.params?.noParamReset;
   const { applyData, setApplyData, resetApplyData } = useAppState();
   const [selectedId, setSelectedId] = useState(null); // 선택된 항목 ID 저장
@@ -64,7 +64,7 @@ function EventApplyType({ route }) {
   useEffect(() => {
     resetApplyData();
     setApplyData(prev => {
-      return { ...prev, eventIdx };
+      return { ...prev, eventIdx, eventInfo };
     });
   }, []);
 
@@ -87,7 +87,11 @@ function EventApplyType({ route }) {
         ]}
         onPress={() => {
           setApplyData(prev => {
-            return { ...prev, targetIdx: item.targetIdx };
+            return {
+              ...prev,
+              targetIdx: item.targetIdx,
+              targetName: item.targetName,
+            };
           });
           setSelectedId(item.targetIdx);
         }} // 항목 클릭 시 ID 저장

@@ -53,6 +53,7 @@ export default function SPHeader({
   titleColor = 'black',
   leftButtonIcon,
   noBackHandlerEvent,
+  isModal,
   ...props
 }) {
   if (!noBackHandlerEvent) {

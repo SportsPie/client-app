@@ -34,13 +34,14 @@ function EventApplyInputAcademy() {
     }); // home 페이지로 이동
   };
 
-  useEffect(() => {
-    setApplyData({ ...applyData, acdmyName: '' });
-  }, []);
+  // useEffect(() => {
+  //   setApplyData({ ...applyData, acdmyName: '' });
+  // }, []);
 
   return (
     <DismissKeyboard>
       <SPKeyboardAvoidingView
+        key="eventApplyInputAcademy"
         behavior="padding"
         isResize
         keyboardVerticalOffset={0}

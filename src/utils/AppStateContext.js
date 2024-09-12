@@ -9,7 +9,9 @@ export const useAppState = () => {
 
 const initApplyData = {
   eventIdx: null,
+  eventName: null,
   targetIdx: null,
+  targetName: null,
   participationName: null,
   participationBirth: null,
   participationGender: null,
@@ -38,6 +40,8 @@ const initApplyData = {
   careerList: null,
   profilePath: null,
   profileName: null,
+
+  profileImage: null, // file
 };
 
 export function AppStateProvider({ children }) {
@@ -45,6 +49,8 @@ export function AppStateProvider({ children }) {
   const [applyData, setApplyData] = useState(
     JSON.parse(JSON.stringify(initApplyData)),
   );
+  const [fromMore, setFromMore] = useState(false);
+  const [participantInfo, setParticipantInfo] = useState({});
 
   const resetApplyData = () => {
     setApplyData(JSON.parse(JSON.stringify(initApplyData)));
@@ -58,6 +64,10 @@ export function AppStateProvider({ children }) {
         applyData,
         setApplyData,
         resetApplyData,
+        fromMore,
+        setFromMore,
+        participantInfo,
+        setParticipantInfo,
       }}>
       {children}
     </AppStateContext.Provider>

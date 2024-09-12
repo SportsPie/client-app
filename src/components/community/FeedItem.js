@@ -72,6 +72,7 @@ function FeedItem({ item, onDelete, isLogin, onRefresh, fromFavPlayer }) {
   };
 
   const openModal = feed => {
+    console.log('궁금', feed);
     if (!isLogin) {
       showJoinModal();
       return;
@@ -79,6 +80,8 @@ function FeedItem({ item, onDelete, isLogin, onRefresh, fromFavPlayer }) {
     setIsMyFeed(feed.isMine);
     setSelectedItem(feed);
     setModalVisible(true);
+
+    console.log('궁금스', feed.isMine);
   };
 
   const closeModal = () => setModalVisible(false);

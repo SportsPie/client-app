@@ -98,6 +98,15 @@ import Gender from './Gender';
 import ClassRoom from './ClassRoom';
 import OrangeDiamond from './OrangeDiamond';
 import PeopleGroupFill from './PeopleGroupFill';
+import RightArrow from './RightArrow';
+import ProfileRightArrow from './ProfileRightArrow';
+import Time from './Time';
+import IcClock from './IcClock';
+import EventMain from './EventMain';
+import EventClose from './EventClose';
+import EventInfo from './EventInfo';
+import EventDetail from './EventDetail';
+import EventWrite from './EventWrite';
 
 export class SPSvgs {
   static SportsPieLogo = SportsPieLogo;
@@ -188,6 +197,15 @@ export class SPSvgs {
   static ClassRoom = ClassRoom;
   static OrangeDiamond = OrangeDiamond;
   static PeopleGroupFill = PeopleGroupFill;
+  static RightArrow = RightArrow;
+  static ProfileRightArrow = ProfileRightArrow;
+  static Time = Time;
+  static IcClock = IcClock;
+  static EventMain = EventMain;
+  static EventClose = EventClose;
+  static EventInfo = EventInfo;
+  static EventDetail = EventDetail;
+  static EventWrite = EventWrite;
 
   //Bottom tab
   static BottomTabHomeOutline = BottomTabHomeOutline;

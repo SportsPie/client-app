@@ -10,7 +10,11 @@ import {
 import { SPGifs } from '../../assets/gif';
 import { navName } from '../../common/constants/navName';
 import NavigationService from '../../navigation/NavigationService';
-import { apiSaveMasterVideo, apiTestSample } from '../../api/RestAPI';
+import {
+  apiPostEventVideo,
+  apiSaveMasterVideo,
+  apiTestSample,
+} from '../../api/RestAPI';
 import VideoUtils from '../../utils/VideoUtils';
 import {
   AccessDeniedException,
@@ -38,6 +42,7 @@ function VideoRegistering({ route }) {
 
   // 전달 파라미터 > 접근 유효성 검증
   const {
+    eventIdx,
     videoURL,
     videoIdx,
     videoName,
@@ -49,6 +54,7 @@ function VideoRegistering({ route }) {
     isRepresentative,
     uploadType,
   } = route?.params || {
+    eventIdx: '',
     videoURL: '',
     videoIdx: '',
     videoName: '',
@@ -67,6 +73,9 @@ function VideoRegistering({ route }) {
 
   switch (uploadType) {
     case VIDEO_UPLOAD_TYPE.EVENT:
+      if (!eventIdx) {
+        handleError(new AccessDeniedException('잘못된 접근입니다.'));
+      }
       break;
     default: {
       if (!videoIdx) {
@@ -123,19 +132,20 @@ function VideoRegistering({ route }) {
     }
   };
 
-  // [ api ] 마스터 영상 등록
-  const saveMasterVideo = async () => {
+  // [ api ] 영상 등록
+  const saveVideo = async () => {
     try {
       // 파라미터 설정 ( JSON, File )
       const formData = new FormData();
 
       const params = {
+        eventIdx,
         parentVideoIdx: videoIdx,
         title,
         contents: description,
         showYn: isOpenVideo ? 'Y' : 'N',
         videoPlaySec: videoDurationSec,
-        isRepresentative: isRepresentative ? 'Y' : 'N',
+        fixYn: isRepresentative ? 'Y' : 'N',
       };
       formData.append('dto', {
         string: JSON.stringify(params),
@@ -166,14 +176,11 @@ function VideoRegistering({ route }) {
       let data;
       switch (uploadType) {
         case VIDEO_UPLOAD_TYPE.EVENT: {
-          // TODO :: event video upload api로 변경 필요
-          // const { data: videoData } = await apiTestSample(
-          //   formData,
-          //   setUploadProgress,
-          // );
-          // data = videoData;
-          data = {};
-          console.log('video upload params :: ', params);
+          const { data: videoData } = await apiPostEventVideo(
+            formData,
+            setUploadProgress,
+          );
+          data = videoData;
           break;
         }
         default: {
@@ -214,7 +221,7 @@ function VideoRegistering({ route }) {
       videoDurationSec &&
       compressedVideoPath
     ) {
-      saveMasterVideo();
+      saveVideo();
     }
   }, [
     compressionProgress,

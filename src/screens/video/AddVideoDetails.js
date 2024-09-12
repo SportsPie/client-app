@@ -36,8 +36,9 @@ function AddVideoDetails({ route }) {
   }
 
   // 전달 파라미터 > 접근 유효성 검증
-  const { videoURL, videoIdx, videoName, videoType, uploadType } =
+  const { eventIdx, videoURL, videoIdx, videoName, videoType, uploadType } =
     route?.params || {
+      eventIdx: '',
       videoURL: '',
       videoIdx: '',
       videoName: '',
@@ -49,6 +50,9 @@ function AddVideoDetails({ route }) {
   }
   switch (uploadType) {
     case VIDEO_UPLOAD_TYPE.EVENT:
+      if (!eventIdx) {
+        handleError(new AccessDeniedException('잘못된 접근입니다.'));
+      }
       break;
     default: {
       if (!videoIdx) {
@@ -99,6 +103,7 @@ function AddVideoDetails({ route }) {
     }
 
     NavigationService.replace(navName.videoRegistering, {
+      eventIdx,
       videoURL,
       videoIdx,
       videoName,

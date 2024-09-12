@@ -18,6 +18,7 @@ import {
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
 import SPIcons from '../assets/icon';
+import convertToProxyURL from 'react-native-video-cache';
 
 function SPMultipleVideoForReels({
   source = [],
@@ -121,7 +122,7 @@ function SPMultipleVideoForReels({
               key={item.videoIdx}
               repeat={repeat}
               source={{
-                uri: item.videoPath,
+                uri: convertToProxyURL(item.videoPath),
               }}
               onLoad={e => onVideoLoad(e, item.videoIdx)}
               onProgress={progressData => {

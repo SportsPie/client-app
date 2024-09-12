@@ -12,6 +12,7 @@ export const REPORT_TYPE = {
   MASTER_VIDEO_COMMENT: 'MASTER_VIDEO_COMMENT', // "PIE 트래이닝 > 마스터 영상 댓글"
   CHALLENGE_VIDEO: 'CHALLENGE_VIDEO', // "PIE 트래이닝 > 챌린지 영상"
   CHALLENGE_VIDEO_COMMENT: 'CHALLENGE_VIDEO_COMMENT', // "PIE 트래이닝 > 챌린지 영상 댓글"
+  EVENT_COMMENT: 'EVENT_COMMENT', // "이벤트 댓글"
 };
 
 export const REPORT_TYPE_LABEL = {

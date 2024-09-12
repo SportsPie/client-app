@@ -150,6 +150,7 @@ import EventParticipantPartList from '../screens/event/participant/EventParticip
 import EventParticipantDetail from '../screens/event/participant/EventParticipantDetail';
 import EventParticipantVideoReels from '../screens/event/participant/EventParticipantVideoReels';
 import MoreEvent from '../screens/more/MoreEvent';
+import MoreNoneEvent from '../screens/more/MoreNoneEvent';
 import EventNoticeList from '../screens/event/EventNoticeList';
 import EventNoticeDetail from '../screens/event/EventNoticeDetail';
 import AddVideoDetails from '../screens/video/AddVideoDetails';
@@ -488,6 +489,7 @@ export default function Navigation() {
         component={EventParticipantVideoReels}
       />
       <Stack.Screen name={navName.moreEvent} component={MoreEvent} />
+      <Stack.Screen name={navName.moreNoneEvent} component={MoreNoneEvent} />
       <Stack.Screen
         name={navName.eventNoticeList}
         component={EventNoticeList}

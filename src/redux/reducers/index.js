@@ -39,7 +39,10 @@ import trainingDetail from './list/trainingDetailSlice';
 import masterDetail from './list/masterDetailSlice';
 import challengeList from './list/challengeListSlice';
 import challengeDetail from './list/challengeDetailSlice';
-
+import eventParticipantPartList from './list/eventParticipantPartListSlice';
+import eventParticipantVideoList from './list/eventParticipantVideoListSlice';
+import eventParticipantCommentList from './list/eventParticipantCommentListSlice';
+import moreEventVideoList from './list/moreEventVideoListSlice';
 export default {
   auth,
   modal,
@@ -81,4 +84,8 @@ export default {
   masterDetail,
   challengeList,
   challengeDetail,
+  eventParticipantPartList,
+  eventParticipantVideoList,
+  eventParticipantCommentList,
+  moreEventVideoList,
 };

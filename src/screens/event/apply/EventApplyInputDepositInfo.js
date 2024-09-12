@@ -1,21 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import {
+  Modal,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
-  View,
-  TouchableOpacity,
-  Dimensions,
-  ImageBackground,
-  Modal,
   TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Header from '../../../components/header';
 import NavigationService from '../../../navigation/NavigationService';
 import { navName } from '../../../common/constants/navName';
-import fontStyles from '../../../styles/fontStyles';
 import { PrimaryButton } from '../../../components/PrimaryButton';
 import { COLORS } from '../../../styles/colors';
 import SPModal from '../../../components/SPModal';
@@ -24,16 +21,61 @@ import BoxSelect from '../../../components/BoxSelect';
 import DismissKeyboard from '../../../components/DismissKeyboard';
 import SPKeyboardAvoidingView from '../../../components/SPKeyboardAvoidingView';
 import { useAppState } from '../../../utils/AppStateContext';
+import { apiGetBankList, apiGetEventapplyName } from '../../../api/RestAPI';
+import { handleError } from '../../../utils/HandleError';
+import Utils from '../../../utils/Utils';
 
 function EventApplyInputDepositInfo() {
+  /**
+   * state
+   */
   const { applyData, setApplyData } = useAppState();
   const [cancelModalVisible, setCancelModalVisible] = useState(false); // 헤더 취소 모달
   const [depositModalVisible, setDepositModalVisible] = useState(false); // 입금용 번호 생성 모달
-  const [depositorName, setDepositorName] = useState(''); // 사용자가 입력한 입금자 이름
-  const [finalDepositorName, setFinalDepositorName] = useState(''); // 최종적으로 모달에서 확인한 입금자 이름
-  const [isConfirmed, setIsConfirmed] = useState(false); // 입금용 번호 생성 후 확인 여부
-  const [selectedBank, setSelectedBank] = useState(''); // 선택된 은행
+  const [generatedDepositName, setGeneratedDepositName] = useState(''); // 최종적으로 모달에서 확인한 입금자 이름
+  const [bankOptions, setBankOptions] = useState([]); // 은행 선택 옵션
+  const [activeNextButton, setActiveNextButton] = useState(false); // 다음 버튼 활성화 여부
 
+  /**
+   * api
+   */
+  const getBankList = async () => {
+    try {
+      const { data } = await apiGetBankList();
+      if (data.data && data.data.length > 0) {
+        const bankList = data.data.map(item => {
+          return {
+            id: item.codeSub,
+            label: item.codeName,
+            value: item.codeName,
+          };
+        });
+        setBankOptions(bankList);
+      }
+    } catch (error) {
+      handleError(error);
+    }
+  };
+
+  const getDepositName = async () => {
+    if (!applyData?.inputDepositName?.trim()) {
+      Utils.openModal({ title: '확인', body: '입금자 이름을 입력해주세요.' });
+      return;
+    }
+    try {
+      const { data } = await apiGetEventapplyName({
+        depositName: applyData?.inputDepositName.trim(),
+      });
+      setGeneratedDepositName(data.message);
+      openDepositModal();
+    } catch (error) {
+      handleError(error);
+    }
+  };
+
+  /**
+   * function
+   */
   // 모달 열기
   const openCancelModal = () => setCancelModalVisible(true);
   const openDepositModal = () => setDepositModalVisible(true);
@@ -52,19 +94,56 @@ function EventApplyInputDepositInfo() {
 
   // 모달에서 확인 버튼을 눌렀을 때 호출되는 함수
   const handleDepositConfirm = () => {
-    setFinalDepositorName(depositorName); // 모달에서 확인된 입금자 이름 저장
-    setIsConfirmed(true); // 이름이 확인된 상태로 변경
+    setApplyData({ ...applyData, depositName: generatedDepositName }); // 확인된 입금자 이름을 상태에 저장
     closeDepositModal();
   };
 
-  // 은행 선택 옵션 (임시 데이터)
-  const bankOptions = [
-    { id: 1, label: '국민은행', value: '국민은행' },
-    { id: 2, label: '신한은행', value: '신한은행' },
-    { id: 3, label: '하나은행', value: '하나은행' },
-    { id: 4, label: '우리은행', value: '우리은행' },
-    { id: 5, label: '카카오뱅크', value: '카카오뱅크' },
-  ];
+  /**
+   * useEffect
+   */
+  useEffect(() => {
+    // setApplyData({
+    //   ...applyData,
+    //   depositName: null,
+    //   refundName: null,
+    //   refundBank: null,
+    //   refundAccount: null,
+    // });
+    // setIsConfirmed(false);
+    if (!applyData?.depositInfoModify && applyData.depositName) {
+      setGeneratedDepositName(applyData.depositName);
+    }
+    getBankList();
+  }, []);
+
+  useEffect(() => {
+    if (applyData?.depositInfoModify) {
+      setApplyData({
+        ...applyData,
+        depositName: null,
+        depositInfoModify: false,
+      });
+      setGeneratedDepositName('');
+    }
+  }, [applyData?.depositInfoModify]);
+
+  useEffect(() => {
+    setActiveNextButton(
+      applyData.depositName &&
+        applyData.refundName &&
+        applyData.refundBank &&
+        applyData.refundAccount,
+    );
+  }, [
+    applyData.depositName,
+    applyData.refundName,
+    applyData.refundBank,
+    applyData.refundAccount,
+  ]);
+
+  /**
+   * render
+   */
 
   return (
     <DismissKeyboard>
@@ -97,12 +176,14 @@ function EventApplyInputDepositInfo() {
               <View style={styles.contentsSubContainer}>
                 <View style={styles.contentsSubBox}>
                   <Text style={styles.contentsSubTitle}>금액</Text>
-                  <Text style={styles.contentsSubText}>400,000원</Text>
+                  <Text style={styles.contentsSubText}>
+                    {Utils.changeNumberComma(applyData?.eventInfo?.parFee)}원
+                  </Text>
                 </View>
                 <View style={styles.contentsSubBox}>
                   <Text style={styles.contentsSubTitle}>입금 계좌</Text>
                   <Text style={styles.contentsSubText}>
-                    국민은행 1111-11-111111 김하늘
+                    {applyData?.eventInfo?.bankAccount}
                   </Text>
                 </View>
               </View>
@@ -110,7 +191,7 @@ function EventApplyInputDepositInfo() {
             <Divider lineHeight={8} lineColor={COLORS.indigo90} />
 
             {/* 입금자 정보 */}
-            {!isConfirmed ? (
+            {!applyData?.depositName ? (
               <View style={styles.contentsBox}>
                 <Text style={styles.contentsTitle}>입금자 정보</Text>
                 <View style={styles.contentsSubContainer}>
@@ -124,12 +205,17 @@ function EventApplyInputDepositInfo() {
                         autoCorrect={false}
                         autoCapitalize="none"
                         style={[styles.box, { flex: 1.2 }]}
-                        value={depositorName}
-                        onChangeText={setDepositorName} // 입력된 이름을 상태에 저장
+                        value={applyData?.inputDepositName || ''}
+                        onChangeText={text => {
+                          setApplyData({
+                            ...applyData,
+                            inputDepositName: text,
+                          });
+                        }} // 입력된 이름을 상태에 저장
                       />
                       <TouchableOpacity
                         style={styles.infoOutlineBtn}
-                        onPress={openDepositModal}>
+                        onPress={getDepositName}>
                         <Text style={styles.infoOutlineBtnText}>
                           입금용 번호 생성
                         </Text>
@@ -149,7 +235,14 @@ function EventApplyInputDepositInfo() {
                     </Text>
                     <View style={styles.infoBox}>
                       <TextInput
-                        value={finalDepositorName} // 확인된 입금자 이름 표시
+                        value={applyData?.inputDepositName || ''} // 확인된 입금자 이름 표시
+                        onChangeText={text => {
+                          if (text?.length > 15) return;
+                          setApplyData({
+                            ...applyData,
+                            inputDepositName: text,
+                          });
+                        }}
                         keyboardType="numeric"
                         autoCorrect={false}
                         autoCapitalize="none"
@@ -170,7 +263,7 @@ function EventApplyInputDepositInfo() {
                       받는 분 통장 표시
                     </Text>
                     <Text style={styles.depositModalBold}>
-                      {finalDepositorName} 345
+                      {applyData?.depositName}
                     </Text>
                   </View>
                 </View>
@@ -189,8 +282,11 @@ function EventApplyInputDepositInfo() {
                     placeholder="예금주 입력"
                     autoCorrect={false}
                     autoCapitalize="none"
-                    value=""
-                    onChangeText=""
+                    value={applyData?.refundName || ''}
+                    onChangeText={text => {
+                      if (text?.length > 15) return;
+                      setApplyData({ ...applyData, refundName: text });
+                    }}
                     style={styles.box}
                   />
                 </View>
@@ -200,8 +296,10 @@ function EventApplyInputDepositInfo() {
                   <BoxSelect
                     placeholder="은행 선택"
                     arrayOptions={bankOptions} // 은행 선택 옵션 추가
-                    onItemPress={setSelectedBank} // 선택한 은행을 상태에 저장
-                    value={selectedBank} // 선택된 은행 표시
+                    onItemPress={bank => {
+                      setApplyData({ ...applyData, refundBank: bank });
+                    }} // 선택한 은행을 상태에 저장
+                    value={applyData?.refundBank} // 선택된 은행 표시
                   />
                 </View>
 
@@ -212,8 +310,11 @@ function EventApplyInputDepositInfo() {
                     keyboardType="number-pad"
                     autoCorrect={false}
                     autoCapitalize="none"
-                    value=""
-                    onChangeText=""
+                    value={applyData?.refundAccount || ''}
+                    onChangeText={text => {
+                      if (text?.length > 45) return;
+                      setApplyData({ ...applyData, refundAccount: text });
+                    }}
                     style={styles.box}
                   />
                 </View>
@@ -266,6 +367,7 @@ function EventApplyInputDepositInfo() {
                 NavigationService.navigate(navName.eventApplyInputCheck);
               }}
               buttonStyle={styles.button}
+              disabled={!activeNextButton}
               text="다음"
             />
           </View>
@@ -294,49 +396,55 @@ function EventApplyInputDepositInfo() {
 
           {/* Modal */}
           {/* 입금용 번호 생성 모달 */}
-          <SPModal
+          <Modal
             visible={depositModalVisible}
-            title="꼭 제대로 확인해주세요!"
-            contents={
-              <View>
-                <Text style={[styles.depositModalText, { marginBottom: 16 }]}>
-                  입력한 <Text style={styles.depositModalBold}>이름</Text>을
+            transparent={true}
+            animationType="fade"
+            onRequestClose={closeDepositModal} // 뒤로가기 버튼 또는 외부 터치 시 모달 닫기
+          >
+            <View style={styles.modalBackground}>
+              <View style={styles.modalContainer}>
+                <Text style={styles.modalTitle}>꼭 제대로 확인해주세요!</Text>
+                <Text style={styles.modalContent}>
+                  입력한 <Text style={styles.boldText}>이름</Text>을
                   확인해주세요. {'\n'}
-                  <Text style={styles.depositModalBold}>
-                    확인 후 수정이 불가능
-                  </Text>
+                  <Text style={styles.boldText}>확인 후 수정이 불가능</Text>
                   합니다.
                 </Text>
 
-                <Text style={[styles.depositModalText, { marginBottom: 8 }]}>
+                <Text style={[styles.modalContent, { marginBottom: 8 }]}>
                   계좌이체 시, {'\n'}
-                  <Text style={styles.depositModalBold}>
-                    {depositorName} 345
-                  </Text>
+                  <Text style={styles.boldText}>
+                    {generatedDepositName}
+                  </Text>{' '}
                   정확히 입력해 주세요!
                 </Text>
 
-                <Text style={styles.depositModalText}>
+                <Text style={styles.modalContent}>
                   입금 기한(당일 23:59)까지 미입금 시, {'\n'}
                   접수가 자동으로 취소됩니다.
                 </Text>
+
+                {/* 버튼 영역 */}
+                <View style={styles.modalButtonContainer}>
+                  <TouchableOpacity
+                    style={styles.cancelButton}
+                    onPress={closeDepositModal} // 취소 버튼
+                  >
+                    <Text style={[styles.buttonText, { color: '#002672' }]}>
+                      취소
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.confirmButton}
+                    onPress={handleDepositConfirm} // 확인 버튼
+                  >
+                    <Text style={styles.buttonText}>확인</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
-            }
-            cancelButtonText="취소"
-            confirmButtonText="확인"
-            onCancel={closeDepositModal} // 취소 버튼: 모달 닫기
-            onConfirm={handleDepositConfirm}
-            cancelButtonStyle={{
-              backgroundColor: 'transparent',
-              borderColor: 'rgba(135, 141, 150, 0.22)',
-            }} // 취소 버튼 스타일
-            confirmButtonStyle={{
-              backgroundColor: '#FF7C10',
-              borderColor: 'transparent',
-            }} // 확인 버튼 스타일
-            cancelButtonTextStyle={{ color: '#002672' }} // 취소 버튼 텍스트 스타일
-            confirmButtonTextStyle={{ color: '#FFF' }} // 확인 버튼 텍스트 스타일
-          />
+            </View>
+          </Modal>
         </SafeAreaView>
       </SPKeyboardAvoidingView>
     </DismissKeyboard>
@@ -416,6 +524,9 @@ const styles = StyleSheet.create({
   },
   infoOutlineBtn: {
     flex: 0.8,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
     borderRadius: 10,
     paddingHorizontal: 16,
     paddingVertical: 12,
@@ -460,6 +571,67 @@ const styles = StyleSheet.create({
     color: '#1A1C1E',
     lineHeight: 20,
     letterSpacing: 0.203,
+  },
+  modalBackground: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.5)', // 반투명 배경
+  },
+  modalContainer: {
+    maxWidth: 312,
+    backgroundColor: '#fff',
+    borderRadius: 28,
+    padding: 24,
+    alignItems: 'center',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#1A1C1E',
+    marginBottom: 4,
+  },
+  modalContent: {
+    fontSize: 14,
+    fontWeight: 400,
+    color: 'rgba(46, 49, 53, 0.80)',
+    textAlign: 'center',
+    marginBottom: 16,
+    lineHeight: 20,
+  },
+  boldText: {
+    fontWeight: '600',
+    color: '#1A1C1E',
+  },
+  modalButtonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 8,
+    marginTop: 8,
+  },
+  cancelButton: {
+    flex: 1,
+    backgroundColor: 'transparent',
+    borderColor: 'rgba(135, 141, 150, 0.22)',
+    borderWidth: 1,
+    paddingVertical: 8,
+    paddingHorizontal: 11,
+    borderRadius: 8,
+  },
+  confirmButton: {
+    flex: 1,
+    backgroundColor: '#FF7C10',
+    paddingVertical: 8,
+    paddingHorizontal: 11,
+    borderRadius: 8,
+  },
+  buttonText: {
+    fontSize: 15,
+    fontWeight: 600,
+    color: '#FFF',
+    lineHeight: 22,
+    letterSpacing: 0.144,
+    textAlign: 'center',
   },
 });
 

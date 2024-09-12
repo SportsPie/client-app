@@ -1146,7 +1146,7 @@ export const apiGetEventApplyType = eventIdx => {
 };
 // SPIC_IF_1203	:: 이벤트 접수
 export const apiPostEventApplyType = data => {
-  return api.post(`${API_EVENT}/apply`, data);
+  return api.post(`${API_EVENT}/apply`, data, formDataConfig);
 };
 // SPIC_IF_1204	:: 공지사항 리스트 조회
 export const apiGetEventNoticeList = data => {
@@ -1197,8 +1197,16 @@ export const apiGetEventOpenVideoList = data => {
   return api.get(`${API_EVENT}/open/videos`, { params: data });
 };
 // SPIC_IF_1216	:: 이벤트 영상 등록
-export const apiPostEventVideo = data => {
-  return api.post(`${API_EVENT}/videos`, data, formDataConfigInfinity);
+export const apiPostEventVideo = (data, setter) => {
+  return api.post(`${API_EVENT}/videos`, data, {
+    ...formDataConfigInfinity,
+    onUploadProgress: progressEvent => {
+      const percentCompleted = Math.round(
+        (progressEvent.loaded * 100) / progressEvent.total,
+      );
+      if (setter) setter(percentCompleted);
+    },
+  });
 };
 // SPIC_IF_1217	:: 이벤트 영상 상단 고정
 export const apiPatchEventVideoFix = videoIdx => {
@@ -1219,6 +1227,34 @@ export const apiGetEventVideoList = data => {
 // SPIC_IF_1221	:: 이벤트 접수 상태 조회	event/apply-state/{eventIdx}
 export const apiGetEventApplyState = eventIdx => {
   return api.get(`${API_EVENT}/apply-state/${eventIdx}`);
+};
+// SPIC_IF_1222	:: 이벤트 지원자 요약 조회
+export const apiGetEventOpenApplicant = eventIdx => {
+  return api.get(`${API_EVENT}/open/applicants/summary/${eventIdx}`);
+};
+// SPIC_IF_1223 은행 리스트 조회
+export const apiGetBankList = () => {
+  return api.get(`${API_EVENT}/open/bank`);
+};
+// SPIC_IF_1224 은행 리스트 조회
+export const apiGetEventLast = () => {
+  return api.get(`${API_EVENT}/open/last`);
+};
+// SPIC_IF_1226 이벤트 응원댓글 리스트 조회(로그인 유저)
+export const apiGetUserEventCommentList = data => {
+  return api.get(`${API_EVENT}/comments`, { params: data });
+};
+// SPIC_IF_1227	:: 이벤트 참가자 정보 조회(로그인 유저)
+export const apiGetEventUserApplicantList = participationIdx => {
+  return api.get(`${API_EVENT}/applicants/${participationIdx}`);
+};
+// SPIC_IF_1225 이벤트 > 영상 삭제
+export const apiDeleteEventVideo = videoIdx => {
+  return api.delete(`${API_EVENT}/videos/${videoIdx}`);
+};
+// SPIC_IF_1228 이벤트 영상 상세 조회
+export const apiGetEventVideo = videoIdx => {
+  return api.get(`${API_EVENT}/videos/${videoIdx}`);
 };
 // ----------------------------------------------------------
 // [ OPEN ]

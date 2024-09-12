@@ -9,8 +9,9 @@ import { COLORS } from '../../styles/colors';
 import fontStyles from '../../styles/fontStyles';
 
 function VideoUploadPlayer({ route }) {
-  const { videoURL, videoIdx, videoName, videoType, uploadType } =
+  const { eventIdx, videoURL, videoIdx, videoName, videoType, uploadType } =
     route?.params || {
+      eventIdx: '',
       videoURL: '',
       videoIdx: '',
       videoName: '',
@@ -44,6 +45,7 @@ function VideoUploadPlayer({ route }) {
           <Pressable
             onPress={() =>
               NavigationService.replace(navName.addVideoDetail, {
+                eventIdx,
                 videoURL,
                 videoIdx,
                 videoName,

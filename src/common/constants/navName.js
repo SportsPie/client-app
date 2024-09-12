@@ -95,7 +95,6 @@ const authPage = {
   unsubscribe: 'Unsubscribe',
   communityFavPlayerDetails: 'communityFavPlayerDetails',
   event: 'event',
-  eventDetail: 'eventDetail',
   eventApplyType: 'eventApplyType', // 접수 유형
   eventApplyPrevInformation: 'eventApplyPrevInformation', // 접수 사전 정보 확인
   eventApplyInputMyInfo: 'eventApplyInputMyInfo', // 접수 내 정보 입력
@@ -105,20 +104,20 @@ const authPage = {
   eventApplyInputCheck: 'eventApplyInputCheck', // 접수 최종 확인
   eventApplyComplete: 'eventApplyComplete', // 접수 최종 확인
 
-  eventParticipantList: 'eventParticipantList', // 참가자 목록
-  eventParticipantPartList: 'eventParticipantPartList', // 참가자 목록 더보기
-  eventParticipantDetail: 'eventParticipantDetail', // 참가자 정보
-  eventParticipantVideoReels: 'eventParticipantVideoReels', // 참가자 영상
-
-  eventNoticeList: 'eventNoticeList',
-  eventNoticeDetail: 'eventNoticeDetail',
-
   moreEvent: 'moreEvent', // 더보기 > 이벤트 참여 내역
+  moreNoneEvent: 'moreNoneEvent', // 더보기 > 이벤트 참여 내역 (참여 내역 없을때)
 
   addVideoDetail: 'addVideoDetail',
   videoUploadPlayer: 'videoUploadPlayer',
   videoRegistering: 'videoRegistering',
   videoUploadComplete: 'videoUploadComplete',
+
+  // event tab
+  eventMyInfo: 'eventMyInfo',
+  eventSoccerBee: 'eventSoccerBee',
+  eventVideoList: 'eventVideoList',
+  eventComment: 'eventComment',
+  eventParticipantInfo: 'eventParticipantInfo',
 };
 
 // noAuthPage : 로그인과 상관없이 갈 수 있는 페이지
@@ -162,6 +161,13 @@ const noAuthPage = {
   playgroundDetail: 'playgroundDetail',
   moreArticle: 'moreArticle',
   moreArticleDetail: 'moreArticleDetail',
+  eventDetail: 'eventDetail',
+  eventNoticeList: 'eventNoticeList',
+  eventNoticeDetail: 'eventNoticeDetail',
+  eventParticipantList: 'eventParticipantList', // 참가자 목록
+  eventParticipantPartList: 'eventParticipantPartList', // 참가자 목록 더보기
+  eventParticipantDetail: 'eventParticipantDetail', // 참가자 정보
+  eventParticipantVideoReels: 'eventParticipantVideoReels', // 참가자 영상
 };
 
 // bottomPage : 하단 네비게이션 페이지

@@ -31,6 +31,8 @@ import { navName } from '../../common/constants/navName';
 import MainPopup from '../../components/MainPopup';
 import SPLoading from '../../components/SPLoading';
 import Header from '../../components/header';
+import { SPSvgs } from '../../assets/svg';
+import EventFloatingButton from '../../components/EventFloatingButton';
 import NavigationService from '../../navigation/NavigationService';
 import GeoLocationUtils from '../../utils/GeoLocationUtils';
 import { handleError } from '../../utils/HandleError';
@@ -165,6 +167,7 @@ function Home() {
     useState(false);
   const [openEvent, setOpenEvent] = useState(false);
   const [eventIdx, setEventIdx] = useState();
+  const [eventApplied, setEventApplied] = useState(false);
   const [init, setInit] = useState(false);
   const moreChallenge = () => {
     NavigationService.navigate(navName.training, {
@@ -234,6 +237,7 @@ function Home() {
       setOpenEvent(
         response.data.data.openEvent === 'Y' && response.data.data.eventIdx,
       );
+      setEventApplied(response.data.data.eventApplied);
     } catch (error) {
       handleError(error);
     }
@@ -413,19 +417,43 @@ function Home() {
           {/* 아카데미 소개 */}
           <View style={styles.introduction}>
             {openEvent && (
-              <TouchableOpacity
-                style={styles.introductionEvent}
-                onPress={() =>
-                  NavigationService.navigate(navName.eventDetail, { eventIdx })
-                }>
-                <View>
-                  <Text style={styles.introductionTitle}>이벤트</Text>
-                  <Text style={styles.introductionText}>
-                    이벤트가 오픈되었습니다{'\n'}특별한 기회를 만나보세요
-                  </Text>
-                </View>
-                <Image source={SPImages.objectsImage0} alt="object event" />
-              </TouchableOpacity>
+              <LinearGradient
+                colors={['#F12711', '#F5AF19']}
+                start={{ x: 0.1, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={{
+                  padding: 16,
+                  marginBottom: 8,
+                  borderRadius: 8,
+                  overflow: 'hidden',
+                  ...Platform.select({
+                    ios: {
+                      shadowColor: '#000',
+                      shadowOffset: { width: 0, height: 2 },
+                      shadowOpacity: 0.2,
+                      shadowRadius: 3,
+                    },
+                    android: {
+                      elevation: 4,
+                    },
+                  }),
+                }}>
+                <TouchableOpacity
+                  onPress={() =>
+                    NavigationService.navigate(navName.eventDetail, {
+                      eventIdx,
+                    })
+                  }>
+                  <View>
+                    <Text style={styles.eventTitle}>
+                      2024 Football Talent Showcase
+                    </Text>
+                    <Text style={styles.eventText}>
+                      여러분의 가능성을 초대합니다!
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              </LinearGradient>
             )}
 
             <FlatList
@@ -597,7 +625,7 @@ function Home() {
                       <View
                         style={{
                           ...styles.imageOverlay,
-                          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                          // backgroundColor: 'rgba(0, 0, 0, 0.5)',
                           flex: 1,
                         }}>
                         <View style={styles.swiperBackgroundBox}>
@@ -768,6 +796,12 @@ function Home() {
         {/* Main Popup */}
         {Array.isArray(popupData) && popupData.length > 0 && (
           <MainPopup ref={mainPopupRef} data={popupData} />
+        )}
+        {isLogin && (
+          <EventFloatingButton
+            eventIdx={eventIdx}
+            eventApplied={eventApplied}
+          />
         )}
       </SafeAreaView>
     )
@@ -1114,7 +1148,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.23,
     shadowRadius: 2.62,
     elevation: 4,
-    overflow: 'hidden',
+    // overflow: 'hidden',
   },
   hideArticleBox: {
     flex: 1,
@@ -1145,5 +1179,25 @@ const styles = StyleSheet.create({
     ...fontStyles.fontSize12_Regular,
     letterSpacing: 0.3,
     color: 'rgba(0, 0, 0, 0.60)',
+  },
+  eventTitle: {
+    fontSize: 20,
+    fontWeight: 600,
+    color: '#FFF8ED',
+    lineHeight: 28,
+    letterSpacing: -0.24,
+    textAlign: 'center',
+    marginBottom: 8,
+    textShadowColor: 'rgba(0, 0, 0, 0.75)', // 그림자 색상 (어두운 색)
+    textShadowOffset: { width: 1, height: 1 }, // 그림자 위치 (x, y)
+    textShadowRadius: 4, // 그림자의 퍼짐 정도
+  },
+  eventText: {
+    fontSize: 16,
+    fontWeight: 400,
+    color: '#FFF8ED',
+    lineHeight: 24,
+    letterSpacing: 0.091,
+    textAlign: 'center',
   },
 });

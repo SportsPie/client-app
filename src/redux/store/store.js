@@ -56,6 +56,7 @@ const persistConfig = {
     'masterDetail',
     'challengeList',
     'challengeDetail',
+    'moreEventVideoList',
   ],
 };
 

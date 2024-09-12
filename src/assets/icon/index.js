@@ -13,6 +13,7 @@ const SPIcons = {
   rbChecked: require('./rb_checked.png'),
   icNavCancle: require('./ic_nav_cancel.png'),
   icNavBack: require('./ic_nav_back.png'),
+  icArrowEvent: require('./ic_arrow_event.png'),
   icArrowRightBlue: require('./ic_arrow_right_blue.png'),
   icArrowRight: require('./ic_arrow_right.png'),
   icArrowDown: require('./ic_arrow_down.png'),

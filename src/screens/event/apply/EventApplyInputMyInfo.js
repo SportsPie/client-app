@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
 import {
+  Image,
+  Modal,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
-  View,
   TouchableOpacity,
-  Image,
-  Modal,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Header from '../../../components/header';
@@ -21,15 +21,17 @@ import DismissKeyboard from '../../../components/DismissKeyboard';
 import SPKeyboardAvoidingView from '../../../components/SPKeyboardAvoidingView';
 import SPModal from '../../../components/SPModal';
 import SPIcons from '../../../assets/icon';
-import { SPSvgs } from '../../../assets/svg';
 import { COLORS } from '../../../styles/colors';
-import fontStyles from '../../../styles/fontStyles';
 import Utils from '../../../utils/Utils';
 import { useAppState } from '../../../utils/AppStateContext';
-import { Calendar, LocaleConfig } from 'react-native-calendars/src/index';
-import { addMonths, format } from 'date-fns';
+import { LocaleConfig } from 'react-native-calendars/src/index';
+import { addMonths, addYears, format } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import moment from 'moment';
+import SPSearchAddress from '../../../components/SPSearchAddress';
+import { SCREEN_WIDTH } from '@gorhom/bottom-sheet';
+import fontStyles from '../../../styles/fontStyles';
+import DatePicker from 'react-native-date-picker';
 
 // 생년월일 달력 모달 정보
 LocaleConfig.locales.fr = {
@@ -76,17 +78,14 @@ LocaleConfig.locales.fr = {
 
 function EventApplyInputMyInfo() {
   const { applyData, setApplyData } = useAppState();
-  const [member, setMember] = useState({});
-  const [career, setCareer] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [showProfilePhotoSelectModal, setShowProfilePhotoSelectModal] =
     useState(false);
-  const [showFullCalendar, setShowFullCalendar] = useState(false);
-  const [selectedDate, setSelectedDate] = useState(moment().toDate());
-  const [selectedGenderType, setSelectedGenderType] = useState(); // 성별
-  const [name, setName] = useState('');
-  const [guardianName, setGuardianName] = useState(''); // 보호자 이름
-  const [guardianPhone, setGuardianPhone] = useState(''); // 보호자 전화번호
+  const [showSearchAddressModal, setShowSearchAddressModal] = useState(false);
+
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [spinning, setSpinning] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(new Date());
 
   // 모달 열기
   const openModal = () => setModalVisible(true);
@@ -101,66 +100,149 @@ function EventApplyInputMyInfo() {
   };
 
   // 프로필 이미지 수정
+  const maxFilename = 60;
   const updateProfile = async ({ fileUrl, imageName, imageType }) => {
     // 로고 이미지 상태 업데이트
-    setLogoImage({
-      uri: fileUrl,
-      name:
-        imageName.length <= maxFilename
-          ? imageName
-          : imageName.substring(
-              imageName.length - maxFilename,
-              imageName.length,
-            ),
-      type: imageType,
+    setApplyData({
+      ...applyData,
+      profileImage: {
+        uri: fileUrl,
+        name:
+          imageName.length <= maxFilename
+            ? imageName
+            : imageName.substring(
+                imageName.length - maxFilename,
+                imageName.length,
+              ),
+        type: imageType,
+      },
     });
-  };
-
-  const handleSelectDate = date => {
-    setSelectedDate(date);
-    setShowFullCalendar(false);
   };
 
   // 입력 필드가 모두 입력되었는지 확인하는 함수
   const isFormValid = () => {
     return (
-      name !== '' &&
-      selectedGenderType !== undefined &&
-      selectedDate !== null &&
-      guardianName !== '' &&
-      guardianPhone !== ''
+      applyData?.participationName &&
+      applyData?.participationGender &&
+      applyData?.participationBirth &&
+      applyData?.guardianName &&
+      applyData?.guardianContact &&
+      applyData?.address &&
+      applyData?.postCode &&
+      applyData?.addressDetail
     );
   };
   // 성별
   const genderList = [
-    { label: '남성', value: 'male' },
-    { label: '여성', value: 'female' },
+    { label: '남성', value: 'M' },
+    { label: '여성', value: 'F' },
   ];
   // const genderList = Object.values(GENDER).map(item => {
   //   return { label: item.desc, value: item.value };
   // });
 
+  const onSelectAddress = data => {
+    setApplyData({
+      ...applyData,
+      address: data.address,
+      postCode: data.zonecode,
+    });
+  };
+
+  // useEffect(() => {
+  //   setApplyData({
+  //     ...applyData,
+  //     profileImage: null,
+  //     guardianName: null,
+  //     guardianRelationship: null,
+  //     guardianContact: null,
+  //     address: null,
+  //     addressDetail: null,
+  //     postCode: null,
+  //   });
+  // }, []);
+
   // 생년월일 달력 모달
   const renderCustomHeader = () => {
-    const header = format(new Date(selectedDate), 'yyyy.MM', { locale: ko });
+    const year = format(
+      new Date(applyData?.participationBirth || moment().format('YYYY-MM-DD')),
+      'yyyy',
+      {
+        locale: ko,
+      },
+    );
+    const month = format(
+      new Date(applyData?.participationBirth || moment().format('YYYY-MM-DD')),
+      'MM',
+      {
+        locale: ko,
+      },
+    );
 
-    const handleArrowPress = direction => {
-      const currentSelectedDate = new Date(selectedDate);
-      const newDate =
-        direction === 'left'
-          ? format(addMonths(currentSelectedDate, -1), 'yyyy-MM-dd')
-          : format(addMonths(currentSelectedDate, 1), 'yyyy-MM-dd');
-      setSelectedDate(newDate);
+    const handleArrowPress = (direction, isYear) => {
+      const currentSelectedDate = new Date(
+        applyData?.participationBirth || moment().format('YYYY-MM-DD'),
+      );
+      let newDate;
+      if (isYear) {
+        newDate =
+          direction === 'left'
+            ? format(addYears(currentSelectedDate, -1), 'yyyy-MM-dd')
+            : format(addYears(currentSelectedDate, 1), 'yyyy-MM-dd');
+      } else {
+        newDate =
+          direction === 'left'
+            ? format(addMonths(currentSelectedDate, -1), 'yyyy-MM-dd')
+            : format(addMonths(currentSelectedDate, 1), 'yyyy-MM-dd');
+      }
+      setApplyData({ ...applyData, participationBirth: newDate });
     };
+
     return (
-      <View style={styles.customHeaderContainer}>
-        <TouchableOpacity onPress={() => handleArrowPress('left')}>
-          <Image source={SPIcons.icArrowLeft} style={styles.icon} />
-        </TouchableOpacity>
-        <Text style={styles.customHeaderText}>{header}</Text>
-        <TouchableOpacity onPress={() => handleArrowPress('right')}>
-          <Image source={SPIcons.icArrowRight} style={styles.icon} />
-        </TouchableOpacity>
+      <View
+        style={{
+          paddingTop: 32,
+          gap: 8,
+          width: SCREEN_WIDTH - 32 * 2,
+          marginBottom: 9,
+        }}>
+        <View
+          style={{
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            paddingLeft: 16,
+          }}>
+          <Text style={{ ...fontStyles.fontSize20_Medium }}>Year : </Text>
+          <View style={styles.customHeaderContainer}>
+            <TouchableOpacity onPress={() => handleArrowPress('left', true)}>
+              <Image source={SPIcons.icArrowLeft} style={styles.icon} />
+            </TouchableOpacity>
+            <Text style={styles.customHeaderText}>{year}</Text>
+            <TouchableOpacity onPress={() => handleArrowPress('right', true)}>
+              <Image source={SPIcons.icArrowRight} style={styles.icon} />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        <View
+          style={{
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            paddingLeft: 16,
+          }}>
+          <Text style={{ ...fontStyles.fontSize20_Medium }}>Month : </Text>
+          <View style={styles.customHeaderContainer}>
+            <TouchableOpacity onPress={() => handleArrowPress('left')}>
+              <Image source={SPIcons.icArrowLeft} style={styles.icon} />
+            </TouchableOpacity>
+            <Text style={styles.customHeaderText}>{month}</Text>
+            <TouchableOpacity onPress={() => handleArrowPress('right')}>
+              <Image source={SPIcons.icArrowRight} style={styles.icon} />
+            </TouchableOpacity>
+          </View>
+        </View>
       </View>
     );
   };
@@ -168,6 +250,7 @@ function EventApplyInputMyInfo() {
   return (
     <DismissKeyboard>
       <SPKeyboardAvoidingView
+        key="eventApplyInputMyInfo"
         behavior="padding"
         isResize
         keyboardVerticalOffset={0}
@@ -215,13 +298,23 @@ function EventApplyInputMyInfo() {
             <View style={styles.contentsList}>
               {/* 프로필 사진 */}
               <View style={styles.avatarWrapper}>
-                <Avatar
-                  imageSize={56}
-                  imageURL={member?.userProfilePath ?? ''}
-                  onPress={() => {
-                    setShowProfilePhotoSelectModal(true);
-                  }}
-                />
+                {applyData?.profileImage?.uri ? (
+                  <Avatar
+                    imageSize={56}
+                    imageURL={applyData.profileImage.uri ?? ''}
+                    onPress={() => {
+                      setShowProfilePhotoSelectModal(true);
+                    }}
+                  />
+                ) : (
+                  <Avatar
+                    imageSize={56}
+                    imageURL={applyData?.profilePath ?? ''}
+                    onPress={() => {
+                      setShowProfilePhotoSelectModal(true);
+                    }}
+                  />
+                )}
               </View>
 
               {/* 프로필 사진 등록 */}
@@ -242,17 +335,15 @@ function EventApplyInputMyInfo() {
               <View>
                 <Text style={styles.subTitle}>이름</Text>
                 <TextInput
-                  // value={applyData?.acdmyName}
-                  // onChange={e => {
-                  //   if (e.nativeEvent.text?.length > 45) return;
-                  //   const text = Utils.removeSymbolAndBlank(e.nativeEvent.text);
-                  //   setApplyData({ ...applyData, acdmyName: text });
-                  // }}
+                  value={applyData?.participationName}
+                  onChange={e => {
+                    if (e.nativeEvent.text?.length > 45) return;
+                    const text = Utils.removeSymbolAndBlank(e.nativeEvent.text);
+                    setApplyData({ ...applyData, participationName: text });
+                  }}
                   placeholder="이름 입력"
                   autoCorrect={false}
                   autoCapitalize="none"
-                  value={name}
-                  onChangeText={setName}
                   style={styles.box}
                 />
               </View>
@@ -274,17 +365,20 @@ function EventApplyInputMyInfo() {
                       }}
                       key={index}
                       onPress={() => {
-                        setSelectedGenderType(item.value);
+                        setApplyData({
+                          ...applyData,
+                          participationGender: item.value,
+                        });
                       }}
                       style={[
                         styles.classTypeBtn,
                         {
                           backgroundColor:
-                            selectedGenderType === item.value
+                            applyData?.participationGender === item.value
                               ? '#FF7C10'
                               : 'rgba(135, 141, 150, 0.16)',
                           borderColor:
-                            selectedGenderType === item.value
+                            applyData?.participationGender === item.value
                               ? '#FF7C10'
                               : 'rgba(135, 141, 150, 0.16)',
                         },
@@ -294,7 +388,7 @@ function EventApplyInputMyInfo() {
                           styles.classTypeText,
                           {
                             color:
-                              selectedGenderType === item.value
+                              applyData?.participationGender === item.value
                                 ? '#FFF'
                                 : 'rgba(46, 49, 53, 0.60)',
                           },
@@ -314,60 +408,25 @@ function EventApplyInputMyInfo() {
                 <View style={styles.contentBtn}>
                   <TouchableOpacity
                     style={styles.contentBtnBox}
-                    onPress={() => setShowFullCalendar(true)}>
-                    <Text style={styles.contentBtnText}>
-                      {moment(selectedDate).format('YYYY.MM.DD')}
-                    </Text>
+                    onPress={() => setShowDatePicker(true)}>
+                    {applyData?.participationBirth ? (
+                      <Text style={styles.contentBtnText}>
+                        {moment(applyData?.participationBirth).format(
+                          'YYYY.MM.DD',
+                        )}
+                      </Text>
+                    ) : (
+                      <Text
+                        style={[styles.contentBtnText, { color: '#757078' }]}>
+                        생년월일 선택
+                      </Text>
+                    )}
                     <View style={{ width: 24, height: 24 }}>
                       <Image source={SPIcons.icCalendar} />
                     </View>
                   </TouchableOpacity>
                 </View>
               </View>
-
-              {/* 생년월일 달력 모달창 */}
-              <Modal
-                transparent={true}
-                visible={showFullCalendar}
-                onRequestClose={() => setShowFullCalendar(false)}>
-                <TouchableOpacity
-                  style={styles.modalContainer}
-                  activeOpacity={1}
-                  onPress={() => setShowFullCalendar(false)}>
-                  <View style={styles.modalContent}>
-                    <View style={styles.modalTitle}>
-                      <Text style={styles.modalTitleText}>
-                        날짜를 선택해주세요.
-                      </Text>
-                    </View>
-                    {renderCustomHeader()}
-                    <View style={styles.calendar}>
-                      <Calendar
-                        key={selectedDate}
-                        current={moment(selectedDate).format('YYYY-MM-DD')}
-                        onDayPress={day => handleSelectDate(day.dateString)}
-                        markedDates={{
-                          [selectedDate]: { selected: true },
-                        }}
-                        hideArrows={true}
-                        renderHeader={() => null}
-                        minDate={moment().toDate()}
-                        theme={{
-                          backgroundColor: '#ffffff',
-                          calendarBackground: '#ffffff',
-                          selectedDayTextColor: '#ffffff',
-                          selectedDayBackgroundColor: '#FF7C10',
-                          todayTextColor: '#FF7C10',
-                          arrowColor: 'black',
-                          dayTextColor: '#1A1C1E',
-                          textDisabledColor: 'rgba(46, 49, 53, 0.16)',
-                          textDayFontWeight: '500',
-                        }}
-                      />
-                    </View>
-                  </View>
-                </TouchableOpacity>
-              </Modal>
 
               {/* 보호자 이름 */}
               <View>
@@ -376,8 +435,11 @@ function EventApplyInputMyInfo() {
                   placeholder="보호자 이름 입력"
                   autoCorrect={false}
                   autoCapitalize="none"
-                  value={guardianName}
-                  onChangeText={setGuardianName}
+                  value={applyData?.guardianName || ''}
+                  onChangeText={text => {
+                    if (text?.length > 15) return;
+                    setApplyData({ ...applyData, guardianName: text });
+                  }}
                   style={styles.box}
                 />
               </View>
@@ -390,6 +452,11 @@ function EventApplyInputMyInfo() {
                   autoCorrect={false}
                   autoCapitalize="none"
                   style={styles.box}
+                  value={applyData?.guardianRelationship || ''}
+                  onChangeText={text => {
+                    if (text?.length > 15) return;
+                    setApplyData({ ...applyData, guardianRelationship: text });
+                  }}
                 />
               </View>
 
@@ -401,8 +468,11 @@ function EventApplyInputMyInfo() {
                   keyboardType="numeric"
                   autoCorrect={false}
                   autoCapitalize="none"
-                  value={guardianPhone}
-                  onChangeText={setGuardianPhone}
+                  value={applyData?.guardianContact || ''}
+                  onChangeText={text => {
+                    if (text?.length > 15) return;
+                    setApplyData({ ...applyData, guardianContact: text });
+                  }}
                   style={styles.box}
                 />
               </View>
@@ -415,6 +485,11 @@ function EventApplyInputMyInfo() {
                   keyboardType="numeric"
                   autoCorrect={false}
                   autoCapitalize="none"
+                  value={applyData?.phoneNumber || ''}
+                  onChangeText={text => {
+                    if (text?.length > 15) return;
+                    setApplyData({ ...applyData, phoneNumber: text });
+                  }}
                   style={styles.box}
                 />
               </View>
@@ -429,6 +504,7 @@ function EventApplyInputMyInfo() {
                       autoCorrect={false}
                       autoCapitalize="none"
                       editable={false}
+                      value={applyData?.postCode || ''}
                       style={[
                         styles.box,
                         {
@@ -441,9 +517,7 @@ function EventApplyInputMyInfo() {
                     <TouchableOpacity
                       style={styles.appealOutlineBtn}
                       onPress={() => {
-                        NavigationService.navigate(
-                          navName.eventApplyInputMyInfo,
-                        );
+                        setShowSearchAddressModal(true);
                       }}>
                       <Text style={styles.appealOutlineBtnText}>
                         우편번호 찾기
@@ -456,6 +530,7 @@ function EventApplyInputMyInfo() {
                     autoCorrect={false}
                     autoCapitalize="none"
                     editable={false}
+                    value={applyData?.address || ''}
                     style={[
                       styles.box,
                       { backgroundColor: 'rgba(135, 141, 150, 0.08)', flex: 1 },
@@ -466,6 +541,12 @@ function EventApplyInputMyInfo() {
                     placeholder="상세주소 입력"
                     autoCorrect={false}
                     autoCapitalize="none"
+                    value={applyData?.addressDetail}
+                    onChangeText={text => {
+                      if (text?.length > 100) return;
+                      const txt = Utils.removeSymbolAndBlank(text);
+                      setApplyData({ ...applyData, addressDetail: txt });
+                    }}
                     style={styles.box}
                   />
                 </View>
@@ -484,6 +565,75 @@ function EventApplyInputMyInfo() {
               text="다음"
             />
           </View>
+          <SPSearchAddress
+            show={showSearchAddressModal}
+            setShow={setShowSearchAddressModal}
+            onSelect={onSelectAddress}
+          />
+          <Modal
+            transparent={true}
+            visible={showDatePicker}
+            onRequestClose={() => {
+              setSpinning(false);
+              setShowDatePicker(false);
+            }}>
+            <TouchableOpacity
+              style={styles.modalContainer}
+              activeOpacity={1}
+              onPressOut={() => {
+                setSpinning(false);
+                setShowDatePicker(false);
+              }}>
+              <View style={styles.modalContent}>
+                <View style={styles.modalTitle}>
+                  <Text style={styles.modalTitleText}>
+                    생년월일을 선택해주세요.
+                  </Text>
+                </View>
+                <DatePicker
+                  date={selectedDate}
+                  mode="date"
+                  onDateChange={date => {
+                    setSelectedDate(date);
+                  }}
+                  onCancel={() => {
+                    setSpinning(false);
+                    setShowDatePicker(false);
+                  }}
+                  locale="ko"
+                  is24hourSource="locale"
+                  onStateChange={state => {
+                    setSpinning(state === 'spinning');
+                  }}
+                />
+                <View style={styles.buttonContainer}>
+                  <TouchableOpacity
+                    style={styles.cancelButton}
+                    onPress={() => setShowDatePicker(false)}>
+                    <Text style={styles.cancelButtonText}>취소</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[
+                      styles.confirmButton,
+                      { opacity: spinning ? 0.38 : 1 },
+                    ]}
+                    onPress={e => {
+                      e.stopPropagation();
+                      if (spinning) return;
+                      setApplyData({
+                        ...applyData,
+                        participationBirth: selectedDate
+                          ? moment(selectedDate).format('YYYY-MM-DD')
+                          : null,
+                      });
+                      setShowDatePicker(false);
+                    }}>
+                    <Text style={styles.confirmButtonText}>확인</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </TouchableOpacity>
+          </Modal>
         </SafeAreaView>
       </SPKeyboardAvoidingView>
     </DismissKeyboard>
@@ -602,12 +752,12 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   customHeaderContainer: {
+    // width: SCREEN_WIDTH - 32 * 2,
+    width: '50%',
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     gap: 16,
-    paddingTop: 32,
-    marginBottom: 9,
   },
   customHeaderText: {
     fontSize: 16,
@@ -676,6 +826,52 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     letterSpacing: 0.091,
     textAlign: 'center',
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+  },
+  cancelButton: {
+    flex: 1,
+    backgroundColor: '#FFF',
+    borderWidth: 1,
+    borderColor: 'rgba(135, 141, 150, 0.32)',
+    borderRadius: 8,
+    paddingHorizontal: 20,
+    paddingVertical: 9,
+    marginRight: 8,
+    alignItems: 'center',
+  },
+  cancelButtonText: {
+    fontSize: 15,
+    fontWeight: 600,
+    color: '#313779',
+    lineHeight: 22,
+    letterSpacing: 0.144,
+  },
+  confirmButton: {
+    flex: 1,
+    backgroundColor: '#FF7C10',
+    borderWidth: 1,
+    borderColor: '#FF7C10',
+    borderRadius: 8,
+    paddingHorizontal: 20,
+    paddingVertical: 9,
+    marginLeft: 8,
+    alignItems: 'center',
+  },
+  confirmButtonText: {
+    fontSize: 15,
+    fontWeight: 600,
+    color: '#FFF',
+    lineHeight: 22,
+    letterSpacing: 0.144,
+  },
+  selectedBackground: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
 

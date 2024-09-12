@@ -1,21 +1,15 @@
-import React, { useEffect, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
+  Image,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
-  View,
   TouchableOpacity,
-  Dimensions,
-  ImageBackground,
-  Modal,
-  TextInput,
-  FlatList,
-  Image,
+  View,
 } from 'react-native';
 import Collapsible from 'react-native-collapsible';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { SCREEN_WIDTH } from '@gorhom/bottom-sheet';
 import Header from '../../../components/header';
 import NavigationService from '../../../navigation/NavigationService';
 import { navName } from '../../../common/constants/navName';
@@ -25,25 +19,77 @@ import { PrimaryButton } from '../../../components/PrimaryButton';
 import { useAppState } from '../../../utils/AppStateContext';
 import SPModal from '../../../components/SPModal';
 import SPIcons from '../../../assets/icon';
-import { SPSvgs } from '../../../assets/svg';
 import Avatar from '../../../components/Avatar';
 import Divider from '../../../components/Divider';
 import Checkbox from '../../../components/Checkbox';
-import MenuTile from '../../../components/more-profile/MenuTile';
 import { ACTIVE_OPACITY } from '../../../common/constants/constants';
 import moment from 'moment';
+import { POSITION_DETAIL_TYPE } from '../../../common/constants/positionDetailType';
+import { MAIN_FOOT_TYPE } from '../../../common/constants/mainFootType';
+import Utils from '../../../utils/Utils';
+import { CAREER_TYPE } from '../../../common/constants/careerType';
+import { handleError } from '../../../utils/HandleError';
+import { apiPostEventApplyType } from '../../../api/RestAPI';
+import { MODAL_CLOSE_EVENT } from '../../../common/constants/modalCloseEvent';
 
 function EventApplyInputCheck() {
+  /**
+   * state
+   */
+  const trlRef = useRef({ current: { disabled: false } });
   const { applyData, setApplyData } = useAppState();
   const [cancelModalVisible, setCancelModalVisible] = useState(false); // 헤더 취소 모달
-  const [member, setMember] = useState({});
   const [check1, setCheck1] = useState(false); // 체크박스 상태 관리
   const [isCollapsed, setIsCollapsed] = useState({
-    personalInfo: true,
-    performanceInfo: true,
-    paymentInfo: true,
+    personalInfo: false,
+    performanceInfo: false,
+    paymentInfo: false,
   });
+  const birthday = moment(applyData?.participationBirth);
+  const today = moment();
+  const age = today.diff(birthday, 'years');
 
+  /**
+   * api
+   */
+  const requestApplication = async () => {
+    try {
+      if (trlRef.current.disabled) return;
+      trlRef.current.disabled = true;
+      const params = JSON.parse(JSON.stringify(applyData));
+      Object.keys(params).forEach(key => {
+        const value = params[key];
+        if (typeof value === 'string' && value) {
+          params[key] = value.trim();
+        }
+      });
+      const formData = new FormData();
+      formData.append('dto', {
+        string: JSON.stringify(params),
+        type: 'application/json',
+      });
+      // profile
+      if (params.profileImage) formData.append('profile', params.profileImage);
+      const { data } = await apiPostEventApplyType(formData);
+      NavigationService.navigate(navName.eventApplyComplete);
+    } catch (error) {
+      if (error.code === 7000) {
+        setApplyData({ ...applyData, depositInfoModify: true });
+        Utils.openModal({
+          title: '알림',
+          body: '입금자명이 중복되어 입금자명 재생성이 필요합니다. \n 입금용 번호를 다시 생성해주시기 바랍니다.',
+          closeEvent: MODAL_CLOSE_EVENT.goBack,
+        });
+      } else {
+        handleError(error);
+      }
+    }
+    trlRef.current.disabled = false;
+  };
+
+  /**
+   * function
+   */
   // 모달 열기
   const openCancelModal = () => setCancelModalVisible(true);
 
@@ -65,11 +111,6 @@ function EventApplyInputCheck() {
       [section]: !prevState[section],
     }));
   };
-
-  // ** api **
-  const birthday = moment(member?.userBirthday);
-  const today = moment();
-  const age = today.diff(birthday, 'years');
 
   return (
     <SafeAreaView style={styles.container}>
@@ -116,8 +157,8 @@ function EventApplyInputCheck() {
               <Image
                 source={
                   isCollapsed.personalInfo
-                    ? SPIcons.icArrowUpBlack // 펼쳐졌을 때 아이콘
-                    : SPIcons.icArrowDownBlack // 닫혔을 때 아이콘
+                    ? SPIcons.icArrowDownBlack
+                    : SPIcons.icArrowUpBlack
                 }
                 style={{ width: 24, height: 24 }}
               />
@@ -126,27 +167,48 @@ function EventApplyInputCheck() {
           <Collapsible collapsed={isCollapsed.personalInfo} duration={500}>
             <View style={styles.contentContainer}>
               <View style={styles.contentBtn}>
-                <TouchableOpacity style={styles.contentOutlineBtn}>
-                  <Text style={styles.contentOutlineBtnText}>수정</Text>
+                {/* 수정 > 내 정보 페이지로 뒤로가기 */}
+                <TouchableOpacity
+                  style={styles.contentOutlineBtn}
+                  onPress={() => {
+                    NavigationService.goBack(4);
+                  }}>
+                  <Text style={styles.contentOutlineBtnText} textAlign="center">
+                    수정
+                  </Text>
                 </TouchableOpacity>
               </View>
 
               <View style={styles.userInfoWrapper}>
                 {/* 프로필 사진 */}
                 <View style={styles.avatar}>
-                  <Avatar
-                    imageSize={48}
-                    imageURL={member?.userProfilePath ?? ''}
-                    disableEditMode
-                  />
+                  {applyData?.profileImage?.uri ? (
+                    <Avatar
+                      imageSize={48}
+                      imageURL={applyData.profileImage.uri ?? ''}
+                      disableEditMode
+                    />
+                  ) : (
+                    <Avatar
+                      imageSize={48}
+                      imageURL={applyData?.profilePath ?? ''}
+                      disableEditMode
+                    />
+                  )}
                 </View>
 
                 <View style={styles.titleTextBox}>
                   <View style={styles.eventInfo}>
-                    <Text style={styles.eventInfoText}>U-15</Text>
+                    <Text style={styles.eventInfoText}>
+                      {applyData?.targetName}
+                    </Text>
                   </View>
-                  <Text style={styles.nameText}>윤도윤</Text>
-                  <Text style={styles.eventTypeText}>ST/CF/SS</Text>
+                  <Text style={styles.nameText} textAlgin="center">
+                    {applyData?.participationName}
+                  </Text>
+                  <Text style={styles.eventTypeText}>
+                    {POSITION_DETAIL_TYPE[applyData?.firstWish].enDesc}
+                  </Text>
                 </View>
 
                 {/* 소속 */}
@@ -162,7 +224,7 @@ function EventApplyInputCheck() {
                       fontStyles.fontSize12_Semibold,
                       { color: '#FF7C10' },
                     ]}>
-                    서울FC 소속
+                    {applyData?.acdmyName}
                   </Text>
                 </View>
               </View>
@@ -170,30 +232,38 @@ function EventApplyInputCheck() {
               <View style={styles.contentsSubContainer}>
                 <View style={styles.contentsSubBox}>
                   <Text style={styles.contentsSubTitle}>보호자 이름</Text>
-                  <Text style={styles.contentsSubText}>윤계상</Text>
+                  <Text style={styles.contentsSubText}>
+                    {applyData?.guardianName}
+                  </Text>
                 </View>
 
                 <View style={styles.contentsSubBox}>
                   <Text style={styles.contentsSubTitle}>관계(선택)</Text>
-                  <Text style={styles.contentsSubText}>-</Text>
+                  <Text style={styles.contentsSubText}>
+                    {applyData?.guardianRelationship || '-'}
+                  </Text>
                 </View>
 
                 <View style={styles.contentsSubBox}>
                   <Text style={styles.contentsSubTitle}>
                     보호자 휴대폰 번호
                   </Text>
-                  <Text style={styles.contentsSubText}>010-9999-9999</Text>
+                  <Text style={styles.contentsSubText}>
+                    {applyData?.guardianContact || '-'}
+                  </Text>
                 </View>
 
                 <View style={styles.contentsSubBox}>
                   <Text style={styles.contentsSubTitle}>본인 연락처(선택)</Text>
-                  <Text style={styles.contentsSubText}>010-8888-8888</Text>
+                  <Text style={styles.contentsSubText}>
+                    {applyData?.phoneNumber || '-'}
+                  </Text>
                 </View>
 
                 <View style={styles.contentsSubBox}>
                   <Text style={styles.contentsSubTitle}>주소</Text>
                   <Text style={styles.contentsSubText}>
-                    경상북도 포항시 북구 새천년대로 70 101동 1113호
+                    {applyData?.address} {applyData?.addressDetail}
                   </Text>
                 </View>
               </View>
@@ -233,8 +303,8 @@ function EventApplyInputCheck() {
               <Image
                 source={
                   isCollapsed.performanceInfo
-                    ? SPIcons.icArrowUpBlack // 펼쳐졌을 때 아이콘
-                    : SPIcons.icArrowDownBlack // 닫혔을 때 아이콘
+                    ? SPIcons.icArrowDownBlack
+                    : SPIcons.icArrowUpBlack
                 }
                 style={{ width: 24, height: 24 }}
               />
@@ -243,8 +313,15 @@ function EventApplyInputCheck() {
           <Collapsible collapsed={isCollapsed.performanceInfo} duration={500}>
             <View style={styles.contentContainer}>
               <View style={styles.contentBtn}>
-                <TouchableOpacity style={styles.contentOutlineBtn}>
-                  <Text style={styles.contentOutlineBtnText}>수정</Text>
+                {/* 수정 > 퍼포먼스 페이지로 뒤로가기 */}
+                <TouchableOpacity
+                  style={styles.contentOutlineBtn}
+                  onPress={() => {
+                    NavigationService.goBack(2);
+                  }}>
+                  <Text style={styles.contentOutlineBtnText} textAlign="center">
+                    수정
+                  </Text>
                 </TouchableOpacity>
               </View>
 
@@ -256,17 +333,27 @@ function EventApplyInputCheck() {
                   </Text>
                   <View style={styles.basicInfoBox}>
                     <Text style={styles.basicMainText}>🏅</Text>
-                    <Text style={styles.basicMainText}>ST/CF/SS</Text>
+                    <Text style={styles.basicMainText}>
+                      {POSITION_DETAIL_TYPE[applyData?.firstWish].enDesc}
+                    </Text>
                   </View>
 
                   <View style={styles.basicInfoBox}>
                     <Text style={styles.basicNormalText}>🥈</Text>
-                    <Text style={styles.basicNormalText}>CB</Text>
+                    <Text style={styles.basicNormalText}>
+                      {applyData?.secondWish
+                        ? POSITION_DETAIL_TYPE[applyData?.secondWish].enDesc
+                        : '-'}
+                    </Text>
                   </View>
 
                   <View style={styles.basicInfoBox}>
                     <Text style={styles.basicNormalText}>🥉</Text>
-                    <Text style={styles.basicNormalText}>CAM</Text>
+                    <Text style={styles.basicNormalText}>
+                      {applyData?.thirdWish
+                        ? POSITION_DETAIL_TYPE[applyData?.thirdWish].enDesc
+                        : '-'}
+                    </Text>
                   </View>
                 </View>
 
@@ -277,7 +364,11 @@ function EventApplyInputCheck() {
                       style={[styles.contentsSubTitle, { fontWeight: 500 }]}>
                       주 발
                     </Text>
-                    <Text style={styles.basicNormalText}>왼발</Text>
+                    <Text style={styles.basicNormalText}>
+                      {applyData?.mainFoot
+                        ? MAIN_FOOT_TYPE[applyData?.mainFoot].desc
+                        : '-'}
+                    </Text>
                   </View>
 
                   <View style={styles.basicInfoContainer}>
@@ -285,7 +376,9 @@ function EventApplyInputCheck() {
                       style={[styles.contentsSubTitle, { fontWeight: 500 }]}>
                       발사이즈
                     </Text>
-                    <Text style={styles.basicNormalText}>265mm</Text>
+                    <Text style={styles.basicNormalText}>
+                      {Utils.changeNumberComma(applyData?.shoeSize)}mm
+                    </Text>
                   </View>
 
                   <View style={styles.basicInfoContainer}>
@@ -293,7 +386,9 @@ function EventApplyInputCheck() {
                       style={[styles.contentsSubTitle, { fontWeight: 500 }]}>
                       등번호(선택)
                     </Text>
-                    <Text style={styles.basicNormalText}>-</Text>
+                    <Text style={styles.basicNormalText}>
+                      {applyData?.backNo || '-'}
+                    </Text>
                   </View>
                 </View>
 
@@ -304,7 +399,9 @@ function EventApplyInputCheck() {
                       style={[styles.contentsSubTitle, { fontWeight: 500 }]}>
                       키
                     </Text>
-                    <Text style={styles.basicNormalText}>189cm</Text>
+                    <Text style={styles.basicNormalText}>
+                      {Utils.changeNumberComma(applyData?.height)}cm
+                    </Text>
                   </View>
 
                   <View style={styles.basicInfoContainer}>
@@ -312,7 +409,9 @@ function EventApplyInputCheck() {
                       style={[styles.contentsSubTitle, { fontWeight: 500 }]}>
                       몸무게
                     </Text>
-                    <Text style={styles.basicNormalText}>30kg</Text>
+                    <Text style={styles.basicNormalText}>
+                      {Utils.changeNumberComma(applyData?.weight)}kg
+                    </Text>
                   </View>
                 </View>
 
@@ -323,7 +422,25 @@ function EventApplyInputCheck() {
                       style={[styles.contentsSubTitle, { fontWeight: 500 }]}>
                       선수경력
                     </Text>
-                    <Text style={styles.basicNormalText}>초등학교</Text>
+                    <View style={styles.infoBox}>
+                      {applyData?.careerList &&
+                      applyData?.careerList.length > 0 ? (
+                        applyData?.careerList.map((level, index) => (
+                          // eslint-disable-next-line react/no-array-index-key
+                          <React.Fragment key={index}>
+                            <Text style={styles.basicNormalText}>
+                              {CAREER_TYPE[level]?.desc}
+                            </Text>
+                            {/* eslint-disable-next-line no-unsafe-optional-chaining */}
+                            {index < applyData?.careerList.length - 1 && (
+                              <View style={styles.circle} />
+                            )}
+                          </React.Fragment>
+                        ))
+                      ) : (
+                        <Text style={styles.basicNormalText}>-</Text>
+                      )}
+                    </View>
                   </View>
                 </View>
 
@@ -334,7 +451,9 @@ function EventApplyInputCheck() {
                       style={[styles.contentsSubTitle, { fontWeight: 500 }]}>
                       수상 경력(선택)
                     </Text>
-                    <Text style={styles.basicNormalText}>-</Text>
+                    <Text style={styles.basicNormalText}>
+                      {applyData?.awards || '-'}
+                    </Text>
                   </View>
                 </View>
 
@@ -345,7 +464,9 @@ function EventApplyInputCheck() {
                       style={[styles.contentsSubTitle, { fontWeight: 500 }]}>
                       선호 플레이(선택)
                     </Text>
-                    <Text style={styles.basicNormalText}>-</Text>
+                    <Text style={styles.basicNormalText}>
+                      {applyData?.preferredPlay || '-'}
+                    </Text>
                   </View>
                 </View>
               </View>
@@ -384,8 +505,8 @@ function EventApplyInputCheck() {
               <Image
                 source={
                   isCollapsed.paymentInfo
-                    ? SPIcons.icArrowUpBlack // 펼쳐졌을 때 아이콘
-                    : SPIcons.icArrowDownBlack // 닫혔을 때 아이콘
+                    ? SPIcons.icArrowDownBlack
+                    : SPIcons.icArrowUpBlack
                 }
                 style={{ width: 24, height: 24 }}
               />
@@ -394,8 +515,16 @@ function EventApplyInputCheck() {
           <Collapsible collapsed={isCollapsed.paymentInfo} duration={500}>
             <View style={styles.contentContainer}>
               <View style={styles.contentBtn}>
-                <TouchableOpacity style={styles.contentOutlineBtn}>
-                  <Text style={styles.contentOutlineBtnText}>수정</Text>
+                {/* 수정 > 입금 정보 페이지로 뒤로가기 */}
+                <TouchableOpacity
+                  style={styles.contentOutlineBtn}
+                  onPress={() => {
+                    setApplyData({ ...applyData, depositInfoModify: true });
+                    NavigationService.goBack(1);
+                  }}>
+                  <Text style={styles.contentOutlineBtnText} textAlign="center">
+                    수정
+                  </Text>
                 </TouchableOpacity>
               </View>
 
@@ -403,9 +532,9 @@ function EventApplyInputCheck() {
                 <View style={styles.contentsSubBox}>
                   <Text style={styles.contentsSubTitle}>입금자 이름</Text>
                   <Text style={styles.contentsSubText}>
-                    홍지수 345
+                    {applyData?.depositName}
                     <Text style={styles.contentsDatailText}>
-                      {''}(받는 분 통장 표시)
+                      (받는 분 통장 표시)
                     </Text>
                   </Text>
                 </View>
@@ -413,7 +542,8 @@ function EventApplyInputCheck() {
                 <View style={styles.contentsSubBox}>
                   <Text style={styles.contentsSubTitle}>환불 계좌</Text>
                   <Text style={styles.contentsSubText}>
-                    국민은행 222222-22-222222 홍지수
+                    {applyData?.refundBank} {applyData?.refundAccount}{' '}
+                    {applyData?.refundName}
                   </Text>
                 </View>
               </View>
@@ -442,9 +572,9 @@ function EventApplyInputCheck() {
       </ScrollView>
       <View style={styles.bottomButtonWrap}>
         <PrimaryButton
-          onPress={() => {
+          onPress={e => {
             if (check1) {
-              NavigationService.navigate(navName.eventApplyComplete);
+              requestApplication(e);
             }
           }}
           text="다음"
@@ -543,7 +673,6 @@ const styles = StyleSheet.create({
     color: '#002672',
     lineHeight: 18,
     letterSpacing: 0.252,
-    textAlign: 'center',
   },
   userInfoWrapper: {
     paddingHorizontal: 16,
@@ -582,7 +711,6 @@ const styles = StyleSheet.create({
     color: '#121212',
     lineHeight: 24,
     letterSpacing: 0.091,
-    textAlgin: 'center',
   },
   eventTypeText: {
     fontSize: 14,
@@ -684,6 +812,18 @@ const styles = StyleSheet.create({
   bottomButtonWrap: {
     paddingVertical: 24,
     paddingHorizontal: 16,
+  },
+  infoBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  circle: {
+    width: 6,
+    height: 6,
+    backgroundColor: '#8387AF',
+    borderRadius: 10,
   },
 });
 

@@ -1,17 +1,15 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   Dimensions,
-  ImageBackground,
-  Modal,
+  FlatList,
+  Image,
+  Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
-  View,
-  ScrollView,
-  Image,
   useWindowDimensions,
-  Pressable,
-  FlatList,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Swiper from 'react-native-swiper';
@@ -19,11 +17,7 @@ import YouTube from 'react-native-youtube-iframe';
 
 import { PrimaryButton } from '../../components/PrimaryButton';
 import Divider from '../../components/Divider';
-import SPHeader from '../../components/SPHeader';
 import DdayCounter from '../../components/DdayCounter';
-import SPImages from '../../assets/images';
-import SPIcons from '../../assets/icon';
-import { SPSvgs } from '../../assets/svg';
 import { COLORS } from '../../styles/colors';
 
 import moment from 'moment';
@@ -36,13 +30,18 @@ import Header from '../../components/header';
 import Utils from '../../utils/Utils';
 import fontStyles from '../../styles/fontStyles';
 import ListEmptyView from '../../components/ListEmptyView';
+import { SPSvgs } from '../../assets/svg';
 import SPLoading from '../../components/SPLoading';
 import { EVENT_STATE } from '../../common/constants/eventState';
+import { useAppState } from '../../utils/AppStateContext';
+import { useSelector } from 'react-redux';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 
 function EventDetail({ route }) {
+  const { isLogin, userIdx } = useSelector(selector => selector.auth);
+  const { fromMore, setFromMore } = useAppState();
   const eventIdx = route.params?.eventIdx;
   const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
   const { width } = useWindowDimensions();
@@ -78,14 +77,18 @@ function EventDetail({ route }) {
    */
   const getEventDetail = async () => {
     try {
-      const { data: myState } = await apiGetEventApplyState(eventIdx);
+      let myState;
+      if (isLogin) {
+        const { data } = await apiGetEventApplyState(eventIdx);
+        myState = data;
+      }
       const { data } = await apiGetEventDetail(eventIdx);
       setEventInfo(data.data.eventInfo);
       setEventTargetList(data.data.eventTarget);
       setEventImageList(data.data.eventImage);
       setEventNoticeList(data.data.noticeList);
       setApplyCount(data.data.applyCount);
-      modalShowCheck(data.data.eventInfo, myState.data);
+      modalShowCheck(data.data.eventInfo, isLogin ? myState.data : null);
     } catch (error) {
       handleError(error);
     }
@@ -135,7 +138,12 @@ function EventDetail({ route }) {
         title={eventInfo?.eventName}
         closeIcon
         onLeftIconPress={() => {
-          NavigationService.navigate(navName.home);
+          if (fromMore) {
+            setFromMore(false);
+            NavigationService.navigate(navName.moreMyInfo);
+          } else {
+            NavigationService.navigate(navName.home);
+          }
         }}
       />
 
@@ -233,63 +241,75 @@ function EventDetail({ route }) {
         {eventTargetList && eventTargetList.length > 0 && (
           <View style={styles.contentsBox}>
             <Text style={styles.contentsTitle}>접수 현황</Text>
-            <View style={styles.bodyStatisticWrapper}>
-              {eventTargetList.map((item, index) => {
-                return (
-                  <View
-                    style={styles.statisticWrapper}
-                    /* eslint-disable-next-line react/no-array-index-key */
-                    key={`event-target-${index}`}>
-                    <Text style={styles.statisticValueTitle}>
-                      {item.targetName}
-                    </Text>
-                    <Text numberOfLines={1} style={styles.statisticValueText}>
-                      {Utils.changeNumberComma(item.participationCnt)}/
-                      {Utils.changeNumberComma(item.targetCount)}
-                    </Text>
-                  </View>
-                );
-              })}
-            </View>
+            <Text style={styles.contentsSubTitle}>참가 부문</Text>
+            <FlatList
+              data={eventTargetList}
+              horizontal // 가로 스크롤을 허용합니다.
+              showsHorizontalScrollIndicator={false} // 스크롤 바 숨김
+              keyExtractor={(item, index) => `event-target-${index}`} // 각 아이템의 고유 키 설정
+              renderItem={({ item }) => (
+                <View style={styles.statisticWrapper}>
+                  <Text style={styles.statisticValueTitle}>
+                    {item.targetName}
+                  </Text>
+                  <Text numberOfLines={1} style={styles.statisticValueText}>
+                    {Utils.changeNumberComma(item.participationCnt)}/
+                    {Utils.changeNumberComma(item.targetCount)}
+                  </Text>
+                </View>
+              )}
+              ItemSeparatorComponent={() => <View style={{ width: 8 }} />} // 사이 여백
+              contentContainerStyle={styles.statisticListContainer} // 추가 스타일 적용
+            />
 
-            <View style={styles.statusList}>
-              <View style={styles.statusItem}>
-                <Text style={styles.statusTitle}>공격수</Text>
-                <Text style={styles.statusText}>
-                  {Utils.changeNumberComma(applyCount?.fwCount)}명 지원
-                </Text>
+            <Text style={[styles.contentsSubTitle, { paddingTop: 24 }]}>
+              포지션
+            </Text>
+            <View style={styles.basicInfoWrapper}>
+              <View style={styles.basicInfo}>
+                <View style={styles.basicInfoContainer}>
+                  <Text style={styles.statusTitle}>공격수</Text>
+                  <Text style={styles.statusText}>
+                    {Utils.changeNumberComma(applyCount?.fwCount)}명 지원
+                  </Text>
+                </View>
+                <View style={styles.basicInfoContainer}>
+                  <Text style={styles.statusTitle}>미드필더</Text>
+                  <Text style={styles.statusText}>
+                    {Utils.changeNumberComma(applyCount?.mfCount)}명 지원
+                  </Text>
+                </View>
               </View>
-              <View style={styles.statusItem}>
-                <Text style={styles.statusTitle}>미드필더</Text>
-                <Text style={styles.statusText}>
-                  {Utils.changeNumberComma(applyCount?.mfCount)}명 지원
-                </Text>
+              <View style={styles.basicInfo}>
+                <View style={styles.basicInfoContainer}>
+                  <Text style={styles.statusTitle}>수비수</Text>
+                  <Text style={styles.statusText}>
+                    {Utils.changeNumberComma(applyCount?.dfCount)}명 지원
+                  </Text>
+                </View>
+                <View style={styles.basicInfoContainer}>
+                  <Text style={styles.statusTitle}>골키퍼</Text>
+                  <Text style={styles.statusText}>
+                    {Utils.changeNumberComma(applyCount?.gkCount)}명 지원
+                  </Text>
+                </View>
               </View>
-              <View style={styles.statusItem}>
-                <Text style={styles.statusTitle}>수비수</Text>
-                <Text style={styles.statusText}>
-                  {Utils.changeNumberComma(applyCount?.dfCount)}명 지원
-                </Text>
-              </View>
-              <View style={styles.statusItem}>
-                <Text style={styles.statusTitle}>골키퍼</Text>
-                <Text style={styles.statusText}>
-                  {Utils.changeNumberComma(applyCount?.gkCount)}명 지원
-                </Text>
-              </View>
-              <View style={styles.statusDescriptionWrap}>
-                <Text style={styles.statusDescriptionText}>
-                  해당 포지션은 메인 포지션 기준, 지원 현황입니다.
-                </Text>
-              </View>
+            </View>
+            <View style={styles.statusDescriptionWrap}>
+              <Text style={styles.statusDescriptionText}>
+                해당 포지션은 메인 포지션 기준, 지원 현황입니다.
+              </Text>
             </View>
 
             <Pressable
               onPress={() => {
-                NavigationService.navigate(navName.eventParticipantList);
+                NavigationService.navigate(navName.eventParticipantList, {
+                  eventIdx,
+                });
               }}
               style={styles.profileButton}>
               <Text style={styles.profileText}>지원자 프로필 보러 가기</Text>
+              <SPSvgs.ProfileRightArrow />
             </Pressable>
           </View>
         )}
@@ -359,9 +379,9 @@ function EventDetail({ route }) {
       {showButtomModal && (
         <View style={styles.buttonBox}>
           {!alReadyApply && (
-            <Text style={styles.buttonText}>
+            <View style={[styles.buttonText]}>
               <DdayCounter targetDate={eventInfo.closeDate} onEnd={() => {}} />
-            </Text>
+            </View>
           )}
           <View style={{ marginTop: 8 }}>
             {!alReadyApply ? (
@@ -369,6 +389,7 @@ function EventDetail({ route }) {
                 onPress={() => {
                   NavigationService.navigate(navName.eventApplyType, {
                     eventIdx,
+                    eventInfo,
                   });
                 }}
                 buttonStyle={styles.button}
@@ -432,6 +453,14 @@ const styles = StyleSheet.create({
     letterSpacing: -0.24,
     marginBottom: 16,
   },
+  contentsSubTitle: {
+    fontSize: 18,
+    fontWeight: 600,
+    color: '#000',
+    lineHeight: 26,
+    letterSpacing: -0.004,
+    marginBottom: 4,
+  },
   videoContainer: {
     width: '100%',
     alignItems: 'center',
@@ -444,12 +473,14 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   statisticWrapper: {
-    flex: 1,
+    width: SCREEN_WIDTH / 4 - 16, // 한 화면에 4개가 보이도록 설정
     padding: 8,
     alignItems: 'center',
     rowGap: 4,
     borderRadius: 8,
-    backgroundColor: COLORS.fillNormal,
+    borderWidth: 1,
+    borderColor: 'rgba(135, 141, 150, 0.08)',
+    backgroundColor: '#F1F5FF',
   },
   statisticValueText: {
     fontSize: 14,
@@ -465,12 +496,7 @@ const styles = StyleSheet.create({
     lineHeight: 16,
     letterSpacing: 0.302,
   },
-  statusList: {
-    padding: 16,
-    borderWidth: 1,
-    borderRadius: 16,
-    gap: 12,
-  },
+  statusList: {},
   statusItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -478,10 +504,12 @@ const styles = StyleSheet.create({
   statusTitle: {
     ...fontStyles.fontSize14_Regular,
     color: 'rgba(46, 49, 53, 0.80)',
+    textAlign: 'center',
   },
   statusText: {
     ...fontStyles.fontSize14_Medium,
     color: '#1A1C1E',
+    textAlign: 'center',
   },
   statusDescriptionWrap: {
     justifyContent: 'center',
@@ -493,6 +521,10 @@ const styles = StyleSheet.create({
     color: 'rgba(46, 49, 53, 0.80)',
   },
   profileButton: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 6,
     marginTop: 16,
     padding: 12,
     borderWidth: 1,
@@ -553,6 +585,25 @@ const styles = StyleSheet.create({
     fontWeight: 500,
     color: 'rgba(0, 0, 0, 0.60)',
     lineHeight: 18,
+  },
+  basicInfoWrapper: {
+    flexDirection: 'column',
+    gap: 8,
+  },
+  basicInfoContainer: {
+    flex: 1,
+    flexDirection: 'column',
+    gap: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(135, 141, 150, 0.08)',
+    borderRadius: 12,
+    backgroundColor: '#F1F5FF',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+  },
+  basicInfo: {
+    flexDirection: 'row',
+    gap: 8,
   },
   buttonBox: {
     marginHorizontal: 16,
