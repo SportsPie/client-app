@@ -216,7 +216,7 @@ function WalletDetail({ route }) {
           <Text
             style={{
               fontSize: 24,
-              fontWeight: 70,
+              fontWeight: '700',
               color: '#000',
               lineHeight: 32,
               letterSpacing: -0.552,

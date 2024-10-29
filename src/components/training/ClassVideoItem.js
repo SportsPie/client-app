@@ -23,7 +23,7 @@ function ClassVideoItem({ item, index, setLoading }) {
   const { width: screenWidth } = useWindowDimensions();
   let imageHeight;
 
-  if (screenWidth <= 480) {
+  if (screenWidth <= 360) {
     imageHeight = 203;
   } else {
     const aspectRatio = 16 / 9;

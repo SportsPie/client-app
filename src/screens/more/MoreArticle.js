@@ -93,7 +93,6 @@ function MoreArticle({ route }) {
     if (!noParamReset) {
       setIsFocus(true);
       dispatch(action.reset());
-      console.log('아티클');
       NavigationService.replace(navName.moreArticle, {
         ...(route?.params || {}),
         noParamReset: true,

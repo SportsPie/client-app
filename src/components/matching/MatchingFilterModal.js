@@ -5,7 +5,14 @@ import React, {
   useImperativeHandle,
   useState,
 } from 'react';
-import { Modal, Pressable, StyleSheet, View } from 'react-native';
+import {
+  Modal,
+  Platform,
+  Pressable,
+  StatusBar,
+  StyleSheet,
+  View,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SPSvgs } from '../../assets/svg';
 import { COLORS } from '../../styles/colors';
@@ -89,10 +96,18 @@ const MatchingFilterModal = forwardRef((props, ref) => {
   const [selectedMethod, setSelectedMethod] = useState();
 
   const show = useCallback(() => {
+    StatusBar.setBarStyle('dark-content');
+    if (Platform.OS === 'android') {
+      StatusBar.setBackgroundColor(COLORS.white);
+    }
     setIsVisible(true);
   }, []);
 
   const hide = useCallback(() => {
+    StatusBar.setBarStyle('light-content');
+    if (Platform.OS === 'android') {
+      StatusBar.setBackgroundColor(COLORS.darkBlue);
+    }
     setIsVisible(false);
   }, []);
 

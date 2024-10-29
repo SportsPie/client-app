@@ -11,6 +11,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import Utils from '../../utils/Utils';
 import Header from '../../components/header';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import NavigationService from '../../navigation/NavigationService';
 
 function TournamentApplyComplete({ route }) {
   const tournamentIdx = route?.params?.tournamentIdx;
@@ -37,7 +38,7 @@ function TournamentApplyComplete({ route }) {
   // --------------------------------------------------
   useFocusEffect(
     useCallback(() => {
-      getTournamentDetail();
+      // getTournamentDetail();
     }, []),
   );
 
@@ -63,7 +64,14 @@ function TournamentApplyComplete({ route }) {
           <View style={styles.labelContentWrapper}>
             <Text style={styles.labelText}>이체금액</Text>
             <Text style={styles.valueText}>
-              {tournamentInfo.entryFee ? tournamentInfo.entryFee : '-'}
+              {tournamentInfo.entryFee
+                ? `${Utils.changeNumberComma(
+                    tournamentInfo.entryFee,
+                    false,
+                    false,
+                    true,
+                  )}`
+                : '-'}
             </Text>
           </View>
           <View style={styles.labelContentWrapper}>
@@ -120,7 +128,13 @@ function TournamentApplyComplete({ route }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Header closeIcon />
+      <Header
+        closeIcon
+        title="대회 신청 완료, 접수 완료"
+        onLeftIconPress={() => {
+          NavigationService.goBack(3);
+        }}
+      />
       <ScrollView showsVerticalScrollIndicator={false}>
         {renderHeader}
         <Divider lineColor={COLORS.indigo90} lineHeight={8} />

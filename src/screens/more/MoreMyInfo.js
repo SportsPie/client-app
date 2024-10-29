@@ -1,5 +1,12 @@
 import React, { memo, useCallback, useEffect, useMemo, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import {
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  useWindowDimensions,
+  View,
+} from 'react-native';
 import {
   apiGetAcademyDetail,
   apiGetEventApplyState,
@@ -20,11 +27,18 @@ import { handleError } from '../../utils/HandleError';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import Utils from '../../utils/Utils';
+import MoreFlipCard from './MoreFlipCard';
+import { SCREEN_WIDTH, WINDOW_WIDTH } from '@gorhom/bottom-sheet';
 
 function MoreMyInfo() {
+  const { width: screenWidth } = useWindowDimensions();
+  const aspectRatio = 320 / 320; // 이미지의 원본 비율
+  const calculatedHeight = (screenWidth - 32) / aspectRatio; // 디바이스 크기에 비례하는 높이
+  const [academy, setAcademy] = useState({});
   const [member, setMember] = useState({});
   const [point, setPoint] = useState({});
   const [stats, setStats] = useState({});
+  const [openEvent, setOpenEvent] = useState(false);
   const [eventApplied, setEventApplied] = useState(false);
 
   const getMain = async () => {
@@ -32,6 +46,7 @@ function MoreMyInfo() {
       const { data } = await apiGetMain();
       if (data) {
         const info = data.data;
+        setOpenEvent(info.openEvent?.codeValue === 'Y');
         setEventApplied(info.eventApplied);
         let memberInfo = { ...info.member };
         if (info.member?.academyIdx && info.member?.academyMember) {
@@ -46,6 +61,7 @@ function MoreMyInfo() {
         setMember(memberInfo || {});
         setPoint(info.point || {});
         setStats(info.stats || {});
+        setAcademy(info.academy || {});
       }
     } catch (error) {
       handleError(error);
@@ -81,94 +97,16 @@ function MoreMyInfo() {
   const renderUserSection = useMemo(() => {
     return (
       <View style={styles.userSectionWrapper}>
-        <View style={styles.userInfoWrapper}>
-          <View style={styles.avatar}>
-            <Avatar
-              imageSize={48}
-              imageURL={member?.userProfilePath ?? ''}
-              disableEditMode
-            />
-          </View>
-
-          <View style={styles.usernameWrapper}>
-            {stats?.backNo && (
-              <View style={styles.ageWrapper}>
-                <Text
-                  style={[
-                    fontStyles.fontSize11_Medium,
-                    { color: COLORS.white },
-                  ]}>
-                  {stats.backNo ? stats.backNo : '-'}
-                </Text>
-              </View>
-            )}
-            <Text style={fontStyles.fontSize14_Semibold}>
-              {member?.userNickName ?? ''}
-            </Text>
-          </View>
-
-          <Text
-            style={[
-              fontStyles.fontSize12_Medium,
-              { color: COLORS.labelAlternative, fontWeight: 500 },
-            ]}>
-            {member?.userBirthday}
-          </Text>
-          {member?.acdmyNm && (
-            <View
-              style={{
-                backgroundColor: 'rgba(255, 124, 16, 0.15)',
-                paddingHorizontal: 8,
-                paddingVertical: 4,
-                borderRadius: 4,
-              }}>
-              <Text
-                style={[fontStyles.fontSize12_Semibold, { color: '#FF7C10' }]}>
-                {member.acdmyNm ? member.acdmyNm : '-'}
-              </Text>
-            </View>
-          )}
-          <View style={styles.bodyStatisticWrapper}>
-            <View style={styles.statisticWrapper}>
-              <Text numberOfLines={1} style={styles.statisticValueText}>
-                {stats.position ? stats.position : '-'}
-              </Text>
-              <Text style={styles.statisticValueTitle}>포지션</Text>
-            </View>
-
-            <View style={styles.statisticWrapper}>
-              <Text numberOfLines={1} style={styles.statisticValueText}>
-                {stats.mainFoot ? MAIN_FOOT[stats.mainFoot].desc : '-'}
-              </Text>
-              <Text style={styles.statisticValueTitle}>주 발</Text>
-            </View>
-
-            <View style={styles.statisticWrapper}>
-              <Text numberOfLines={1} style={styles.statisticValueText}>
-                {stats.height ? `${stats.height}cm` : '-'}
-              </Text>
-              <Text style={styles.statisticValueTitle}>키</Text>
-            </View>
-
-            <View style={styles.statisticWrapper}>
-              <Text numberOfLines={1} style={styles.statisticValueText}>
-                {stats.weight ? `${stats.weight}kg` : '-'}
-              </Text>
-              <Text style={styles.statisticValueTitle}>몸무게</Text>
-            </View>
-          </View>
-
-          <PrimaryButton
-            onPress={() => {
-              NavigationService.navigate(navName.moreProfile);
-            }}
-            text="프로필 보기"
-            outlineButton
-            buttonStyle={{
-              width: '100%',
-            }}
-          />
-        </View>
+        <PrimaryButton
+          onPress={() => {
+            NavigationService.navigate(navName.moreProfile);
+          }}
+          text="프로필 보기"
+          outlineButton
+          buttonStyle={{
+            width: '100%',
+          }}
+        />
 
         <View style={styles.socialTokenWrapper}>
           <Text style={[fontStyles.fontSize14_Medium, { color: COLORS.white }]}>
@@ -206,8 +144,19 @@ function MoreMyInfo() {
           paddingBottom: 24,
         }}
         showsVerticalScrollIndicator={false}>
+        <View style={{ height: calculatedHeight }}>
+          {member?.holderYn && (
+            <MoreFlipCard
+              isSol={member?.holderYn === 'Y'}
+              height={calculatedHeight}
+              member={member}
+              stats={stats}
+              point={point}
+              academy={academy}
+            />
+          )}
+        </View>
         {renderUserSection}
-
         <MenuSection
           title="내 정보"
           onPress={() => {
@@ -262,7 +211,7 @@ function MoreMyInfo() {
         />
 
         {/* {eventApplied && ( */}
-        {eventApplied ? (
+        {openEvent && eventApplied && (
           <MenuSection
             title="이벤트 참여 내역"
             onPress={() => {
@@ -271,7 +220,8 @@ function MoreMyInfo() {
             containerStyle={styles.noBorder}
             titleTextStyle={styles.customTitleText}
           />
-        ) : (
+        )}
+        {openEvent && !eventApplied && (
           <MenuSection
             title="이벤트 참여 내역"
             onPress={() => {

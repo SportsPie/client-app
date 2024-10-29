@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import {
   FlatList,
   Image,
+  ImageBackground,
   RefreshControl,
   StyleSheet,
   Text,
@@ -22,6 +23,8 @@ import ListEmptyView from '../../../components/ListEmptyView';
 import { eventParticipantVideoListAction } from '../../../redux/reducers/list/eventParticipantVideoListSlice';
 import Loading from '../../../components/SPLoading';
 import { useAppState } from '../../../utils/AppStateContext';
+import SPIcons from '../../../assets/icon';
+import { SPSvgs } from '../../../assets/svg';
 
 function EventParticipantVideoList() {
   const { participantInfo, setParticipantInfo } = useAppState();
@@ -97,17 +100,27 @@ function EventParticipantVideoList() {
           video: item,
         });
       }}
-      key={item.participationIdx}
-      style={styles.participantContain}>
-      <View style={styles.infoContain}>
-        <Image
-          source={{ uri: item.thumbPath }}
-          style={[styles.image, { width: width - 32, height: imageHeight }]}
-          resizeMode="cover"
-        />
-      </View>
-      <View style={styles.contentsTitleBox}>
-        <Text style={styles.contentsTitle}>{item.title}</Text>
+      activeOpacity={1}>
+      <ImageBackground
+        source={{ uri: item.thumbPath }}
+        style={[
+          styles.image,
+          styles.subBackgroundImage,
+          { height: imageHeight, width: '100%' }, // 너비를 100%로 설정하여 화면 폭에 맞춤
+        ]}>
+        <View style={styles.usersBox}>
+          {item.confirmYn === 'Y' && item.fixDate && (
+            <View>
+              <Image
+                source={SPIcons.icPinFill}
+                style={{ width: 24, height: 24 }}
+              />
+            </View>
+          )}
+        </View>
+      </ImageBackground>
+      <View style={{ paddingVertical: 8 }}>
+        <Text style={styles.subText}>{item.title}</Text>
       </View>
     </TouchableOpacity>
   );
@@ -132,7 +145,7 @@ function EventParticipantVideoList() {
   }, []);
 
   return (
-    <SafeAreaView style={styles.container} edges={['left', 'right']}>
+    <View style={styles.container}>
       <View style={{ paddingTop: 24, marginBottom: 8 }}>
         {list && list.length > 0 ? (
           <FlatList
@@ -153,7 +166,7 @@ function EventParticipantVideoList() {
           renderEmptyList()
         )}
       </View>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -190,6 +203,22 @@ const styles = StyleSheet.create({
   bottomButtonWrap: {
     paddingVertical: 24,
     paddingHorizontal: 16,
+  },
+  usersBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-end',
+    padding: 8,
+  },
+  image: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+  },
+  subBackgroundImage: {
+    minWidth: 144,
+    borderRadius: 12,
+    overflow: 'hidden',
   },
 });
 

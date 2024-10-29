@@ -391,7 +391,6 @@ const MasterCommentSection = forwardRef(
               noBackHandlerEvent
               title="댓글 수정"
               onPressLeftBtn={closeModifyCommentModal}
-              rightCancelText
               rightText="완료"
               rightTextStyle={{
                 fontSize: 16,

@@ -11,7 +11,14 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import React, { memo, useCallback, useEffect, useMemo, useState } from 'react';
+import React, {
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import Avatar from '../Avatar';
 import { SPSvgs } from '../../assets/svg';
 import fontStyles from '../../styles/fontStyles';
@@ -25,6 +32,8 @@ import Utils from '../../utils/Utils';
 import {
   apiPatchCommunityLike,
   apiPatchCommunityUnLike,
+  apiPatchHolderCommunityCommentLike,
+  apiPatchHolderCommunityCommentUnlike,
 } from '../../api/RestAPI';
 import SPIcons from '../../assets/icon';
 import SPMoreModal, {
@@ -33,13 +42,21 @@ import SPMoreModal, {
 } from '../SPMoreModal';
 import { MODAL_CLOSE_EVENT } from '../../common/constants/modalCloseEvent';
 import Swiper from 'react-native-swiper';
+import { handleError } from '../../utils/HandleError';
 
-function FeedItem({ item, onDelete, isLogin, onRefresh, fromFavPlayer }) {
+function FeedItem({
+  item,
+  onDelete,
+  isLogin,
+  onRefresh,
+  fromFavPlayer,
+  notice,
+}) {
+  const trlRef = useRef({ current: { disabled: false } });
   const [isLike, setIsLike] = useState(item.isLike);
   const [cntLike, setCntLike] = useState(item.cntLike);
 
   const [imageModalShow, setImageModalShow] = useState(false);
-  const [selectedImage, setSelectedImage] = useState(null);
 
   // modal
   const [modalVisible, setModalVisible] = useState(false);
@@ -72,7 +89,6 @@ function FeedItem({ item, onDelete, isLogin, onRefresh, fromFavPlayer }) {
   };
 
   const openModal = feed => {
-    console.log('궁금', feed);
     if (!isLogin) {
       showJoinModal();
       return;
@@ -80,8 +96,6 @@ function FeedItem({ item, onDelete, isLogin, onRefresh, fromFavPlayer }) {
     setIsMyFeed(feed.isMine);
     setSelectedItem(feed);
     setModalVisible(true);
-
-    console.log('궁금스', feed.isMine);
   };
 
   const closeModal = () => setModalVisible(false);
@@ -119,16 +133,47 @@ function FeedItem({ item, onDelete, isLogin, onRefresh, fromFavPlayer }) {
   };
 
   const changeLike = useCallback(async () => {
-    showJoinModal();
+    if (trlRef.current.disabled) return;
+    trlRef.current.disabled = true;
+    try {
+      if (!isLogin) {
+        showJoinModal();
+        return;
+      }
 
-    if (isLike) {
-      await apiPatchCommunityUnLike(item.feedIdx);
-      setCntLike(prev => prev - 1);
-    } else {
-      await apiPatchCommunityLike(item.feedIdx);
-      setCntLike(prev => prev + 1);
+      if (isLike) {
+        await apiPatchCommunityUnLike(item.feedIdx);
+        setCntLike(prev => prev - 1);
+      } else {
+        await apiPatchCommunityLike(item.feedIdx);
+        setCntLike(prev => prev + 1);
+      }
+      setIsLike(prev => !prev);
+    } catch (error) {
+      handleError(error);
+    } finally {
+      trlRef.current.disabled = false;
     }
-    setIsLike(prev => !prev);
+  }, [isLike, item.feedIdx]);
+
+  const changeLikeForFavPlayer = useCallback(async () => {
+    try {
+      if (!isLogin) {
+        showJoinModal();
+        return;
+      }
+
+      if (isLike) {
+        await apiPatchHolderCommunityCommentUnlike(item.feedIdx);
+        setCntLike(prev => prev - 1);
+      } else {
+        await apiPatchHolderCommunityCommentLike(item.feedIdx);
+        setCntLike(prev => prev + 1);
+      }
+      setIsLike(prev => !prev);
+    } catch (error) {
+      handleError(error);
+    }
   }, [isLike, item.feedIdx]);
 
   useEffect(() => {
@@ -142,18 +187,42 @@ function FeedItem({ item, onDelete, isLogin, onRefresh, fromFavPlayer }) {
         <Avatar disableEditMode imageSize={40} imageURL={item.profilePath} />
 
         <View style={styles.userNameWrapper}>
-          <Text style={styles.userNameText}>{item?.userNickname}</Text>
-          <Text style={styles.dateText}>
-            {Utils.formatTimeAgo(item?.regDate)}
-          </Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
+            <Text style={styles.userNameText}>
+              {item?.userNickname || item?.adminName}
+            </Text>
+            {item.userHolderYn === 'Y' && (
+              <Image
+                source={SPIcons.icSolMark}
+                style={{ width: 18, height: 18 }}
+              />
+            )}
+          </View>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+            <Text style={styles.dateText}>
+              {Utils.formatTimeAgo(item?.regDate)}
+            </Text>
+            {notice && <SPSvgs.Ellipse />}
+            {notice && (
+              <Text
+                style={{
+                  ...fontStyles.fontSize13_Semibold,
+                  color: COLORS.orange,
+                }}>
+                공지
+              </Text>
+            )}
+          </View>
         </View>
-        <Pressable
-          hitSlop={12}
-          onPress={() => {
-            openModal(item);
-          }}>
-          <SPSvgs.EllipsesVertical width={24} height={24} />
-        </Pressable>
+        {!notice && (
+          <Pressable
+            hitSlop={12}
+            onPress={() => {
+              openModal(item);
+            }}>
+            <SPSvgs.EllipsesVertical width={24} height={24} />
+          </Pressable>
+        )}
       </View>
     );
   }, []);
@@ -221,7 +290,7 @@ function FeedItem({ item, onDelete, isLogin, onRefresh, fromFavPlayer }) {
         </TouchableOpacity>
 
         {item?.files?.length > 0 && renderImages}
-        {item.tagsKo?.length > 0 && (
+        {!notice && item.tagsKo?.length > 0 && (
           <View style={styles.tagsContainer}>
             {item.tagsKo.map((tag, index) => {
               return (
@@ -241,8 +310,13 @@ function FeedItem({ item, onDelete, isLogin, onRefresh, fromFavPlayer }) {
     return (
       <View style={styles.reactionContainer}>
         <TouchableOpacity
+          hitSlop={15}
           onPress={() => {
-            changeLike(item);
+            if (fromFavPlayer) {
+              changeLikeForFavPlayer(item);
+            } else {
+              changeLike(item);
+            }
           }}>
           <View style={styles.reactItemWrapper}>
             {isLike ? (

@@ -39,7 +39,7 @@ function MoreInquiry({ route }) {
 
   const [isFocus, setIsFocus] = useState(true);
 
-  const pageSize = 6;
+  const pageSize = 30;
 
   const getInquiryInfo = async () => {
     const params = {

@@ -14,16 +14,17 @@ import {
   Pressable,
   RefreshControl,
   ScrollView,
-  StatusBar,
   StyleSheet,
   Text,
   TextInput,
+  TouchableOpacity,
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   apiGetHolderCommunity,
+  apiGetHolderCommunityNoticeLast,
   apiGetHolderCommunityOpenFilters,
   apiGetMyInfo,
 } from '../../api/RestAPI';
@@ -42,8 +43,10 @@ import fontStyles from '../../styles/fontStyles';
 import { handleError } from '../../utils/HandleError';
 import { store } from '../../redux/store';
 import { communityFavPlayerListAction } from '../../redux/reducers/list/communityFavPlayerListSlice';
+import { setHeaderProps } from '../../components/SPHeader';
+import backHandlerUtils from '../../utils/BackHandlerUtils';
 
-function Community({ route }) {
+function CommunityFavPlayer({ route }) {
   const dispatch = useDispatch();
   const insets = useSafeAreaInsets();
   const flatListRef = useRef();
@@ -68,8 +71,10 @@ function Community({ route }) {
   const [isInit, setIsInit] = useState(true);
   const [isFocus, setIsFocus] = useState(true);
 
+  const [communityNotice, setCommunityNotice] = useState();
+
   // list
-  const [size, setSize] = useState(300);
+  const [size, setSize] = useState(100);
 
   const [filterList, setFilterList] = useState([]);
   const [selectedFilter, setSelectedFilter] = useState();
@@ -126,6 +131,15 @@ function Community({ route }) {
     }
   };
 
+  const getNoticeLast = async () => {
+    try {
+      const { data } = await apiGetHolderCommunityNoticeLast();
+      setCommunityNotice(data.data);
+    } catch (error) {
+      handleError(error);
+    }
+  };
+
   const getFeedList = async () => {
     try {
       const params = {
@@ -173,6 +187,7 @@ function Community({ route }) {
     // if (flatListRef.current) {
     //   flatListRef.current.scrollToOffset({ animated: false, offset: 0 });
     // }
+    getNoticeLast();
     dispatch(action.refresh());
   };
 
@@ -181,6 +196,7 @@ function Community({ route }) {
       if (paramReset || listParamReset) {
         setIsFocus(true);
         dispatch(action.reset());
+        setCommunityNotice();
         setIsInit(true);
         setSelectedFilter();
         setSearched();
@@ -192,6 +208,7 @@ function Community({ route }) {
         }
       } else {
         await getFilterList();
+        await getNoticeLast();
         setIsFocus(false);
       }
     } catch (error) {
@@ -212,6 +229,20 @@ function Community({ route }) {
   // --------------------------------------------------
   // [ UseEffect ]
   // --------------------------------------------------
+
+  useFocusEffect(
+    useCallback(() => {
+      setHeaderProps({
+        noLeftButton: false,
+        onPressLeftBtn: () => {
+          NavigationService.navigate(navName.community, {
+            paramReset: true,
+          });
+        },
+      });
+      backHandlerUtils.addDefaultBackHandlerEvent();
+    }, []),
+  );
 
   useFocusEffect(
     useCallback(() => {
@@ -250,15 +281,18 @@ function Community({ route }) {
   const renderHeader = useMemo(() => {
     return (
       <Header
-        title="VIP"
+        title="SOL11"
         hideLeftIcon
+        onLeftIconPress={() => {
+          NavigationService.navigate(navName.community);
+        }}
         headerContainerStyle={{
           backgroundColor: '#080910',
           paddingTop: insets.top,
           paddingHorizontal: 20,
         }}
         headerTextStyle={{
-          color: COLORS.white,
+          color: '#FFC433',
         }}
         rightContent={
           <Pressable
@@ -304,11 +338,11 @@ function Community({ route }) {
                     {
                       backgroundColor:
                         selectedFilter === item.value
-                          ? '#E6E9F1'
+                          ? '#FFC433'
                           : COLORS.fillNormal,
                       borderColor:
                         selectedFilter === item.value
-                          ? '#E6E9F1'
+                          ? '#FFC433'
                           : COLORS.fillStrong,
                     },
                   ]}
@@ -319,7 +353,7 @@ function Community({ route }) {
                       {
                         color:
                           selectedFilter === item.value
-                            ? COLORS.darkBlue
+                            ? COLORS.black
                             : '#605E5A',
                       },
                     ]}>
@@ -344,7 +378,7 @@ function Community({ route }) {
         />
       );
     },
-    [(feedList, handleDelete)],
+    [feedList, handleDelete, isLogin],
   );
 
   const renderSearchInput = useMemo(() => {
@@ -379,10 +413,47 @@ function Community({ route }) {
     );
   }, [keyword]);
 
+  const renderCommunityNotice = useMemo(() => {
+    if (!communityNotice) return;
+    return (
+      <TouchableOpacity
+        activeOpacity={1}
+        onPress={() => {
+          NavigationService.navigate(navName.communityFavPlayerDetails, {
+            feedIdx: communityNotice?.feedIdx,
+          });
+        }}
+        style={styles.noticeWrap}>
+        <View style={styles.noticeBox}>
+          <View style={styles.noticeTextBox}>
+            <Text style={styles.noticeText}>공지</Text>
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text numberOfLines={1} style={styles.noticeContents}>
+              {communityNotice?.contents}
+            </Text>
+          </View>
+          <TouchableOpacity
+            activeOpacity={1}
+            hitSlop={20}
+            onPress={e => {
+              e.stopPropagation();
+              NavigationService.navigate(navName.communityFavPlayerNotice, {
+                paramReset: true,
+              });
+            }}>
+            <Text style={styles.moreText}>More</Text>
+          </TouchableOpacity>
+        </View>
+      </TouchableOpacity>
+    );
+  }, [communityNotice]);
+
   const renderFeedItems = useMemo(() => {
     return (
       <View style={styles.communityContainer}>
         {renderSearchInput}
+        {renderCommunityNotice}
         {feedList && feedList.length > 0 ? (
           <FlatList
             ref={flatListRef}
@@ -428,6 +499,8 @@ function Community({ route }) {
     keyword,
     selectedFilter,
     refreshing,
+    communityNotice,
+    isLogin,
   ]);
 
   return (
@@ -458,7 +531,7 @@ function Community({ route }) {
   );
 }
 
-export default memo(Community);
+export default memo(CommunityFavPlayer);
 
 const styles = StyleSheet.create({
   container: {
@@ -549,7 +622,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 10,
     gap: 8,
     borderRadius: 8,
     backgroundColor: '#19191D',
@@ -567,5 +641,40 @@ const styles = StyleSheet.create({
         shadowRadius: 5,
       },
     }),
+  },
+  noticeWrap: {
+    marginTop: 16,
+    paddingVertical: 13,
+    paddingHorizontal: 16,
+    backgroundColor: '#F5F5F5',
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: '#E6E9F1',
+  },
+  noticeBox: {
+    gap: 8,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  noticeTextBox: {
+    borderWidth: 1,
+    paddingVertical: 2,
+    paddingHorizontal: 4,
+    borderRadius: 8,
+    borderColor: '#FF7C10',
+    backgroundColor: COLORS.white,
+  },
+  noticeText: {
+    ...fontStyles.fontSize13_Semibold,
+    color: '#FF7C10',
+  },
+  noticeContents: {
+    ...fontStyles.fontSize14_Medium,
+    color: '#000',
+  },
+  moreText: {
+    ...fontStyles.fontSize14_Regular,
+    color: 'rgba(46, 49, 53, 0.60)',
   },
 });

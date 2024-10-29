@@ -69,7 +69,7 @@ function AddVideoDetails({ route }) {
   const [title, setTitle] = useState(undefined); // 제목
   const [description, setDescription] = useState(undefined); // 내용
   const [isOpenVideo, setIsOpenVideo] = useState(false); // 공개 유무
-  const [isRepresentative, setIsRepresentative] = useState(false); // 공개 유무
+  const [isRepresentative, setIsRepresentative] = useState(false); // 대표 영상 유무
   const [isAgreed, setIsAgreed] = useState(false); // 동의 유무
 
   // [ util ] 동영상 공개 유무

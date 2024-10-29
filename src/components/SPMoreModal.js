@@ -229,7 +229,7 @@ function SPMoreModal({
         if (onModify) onModify();
         break;
       case MODAL_MORE_TYPE.VIDEO:
-        NavigationService.navigate(navName.editDetails, {
+        NavigationService.navigate(navName.editVideoDetail, {
           videoIdx: idx,
         });
         break;
@@ -246,6 +246,9 @@ function SPMoreModal({
         if (onModify) onModify();
         break;
       case MODAL_MORE_TYPE.EVENT_COMMENT:
+        if (onModify) onModify();
+        break;
+      case MODAL_MORE_TYPE.EVENT_VIDEO:
         if (onModify) onModify();
         break;
       default:

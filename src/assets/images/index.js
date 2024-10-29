@@ -49,6 +49,11 @@ const SPImages = {
   positionImg: require('./position_img.png'),
   eventDetailImg: require('./event_detail_img.png'),
   eventDetailImg2: require('./event_detail_img2.png'),
+  myCardFront: require('./my_card_front.png'),
+  myCardBack: require('./my_card_back.png'),
+  myInfoCard: require('./my_info_card.png'),
+  myInfoCardSol: require('./my_info_card_sol.png'),
+  solMark: require('./sol_mark.png'),
 };
 
 export default SPImages;

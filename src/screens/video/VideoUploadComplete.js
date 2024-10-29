@@ -5,6 +5,7 @@ import {
   Text,
   useWindowDimensions,
   View,
+  Pressable,
 } from 'react-native';
 import { SPGifs } from '../../assets/gif';
 import { handleError } from '../../utils/HandleError';
@@ -16,6 +17,8 @@ import { useDispatch } from 'react-redux';
 import { trainingDetailAction } from '../../redux/reducers/list/trainingDetailSlice';
 import { VIDEO_UPLOAD_TYPE } from '../../common/constants/VideoUploadType';
 import { moreEventVideoListAction } from '../../redux/reducers/list/moreEventVideoListSlice';
+import { navName } from '../../common/constants/navName';
+import NavigationService from '../../navigation/NavigationService';
 
 function VideoUploadComplete({ route }) {
   const dispatch = useDispatch();
@@ -69,6 +72,13 @@ function VideoUploadComplete({ route }) {
           <Text style={styles.subText}>영상 등록은 확인이 필요해요.</Text>
           <Text style={styles.subText}>끝나는대로 알려드릴게요.</Text>
         </View>
+        <Pressable
+          onPress={() => {
+            NavigationService.goBack();
+          }}
+          style={styles.clearButton}>
+          <Text style={styles.clearText}>완료</Text>
+        </Pressable>
       </View>
     </SafeAreaView>
   );
@@ -104,6 +114,32 @@ const styles = StyleSheet.create({
     color: 'rgba(46, 49, 53, 0.60)',
     lineHeight: 16,
     letterSpacing: 0.302,
+    textAlign: 'center',
+  },
+  clearButton: {
+    minWidth: 133,
+    padding: 8,
+    marginTop: 24,
+    backgroundColor: '#FFF',
+    borderRadius: 8,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 3,
+      },
+      android: {
+        elevation: 3,
+      },
+    }),
+  },
+  clearText: {
+    fontSize: 12,
+    fontWeight: 700,
+    color: '#11183D',
+    lineHeight: 20,
+    letterSpacing: 0.24,
     textAlign: 'center',
   },
 });

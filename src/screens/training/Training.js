@@ -52,13 +52,13 @@ function BasicCarousel({ listData = [] }) {
   let imageWidth;
   let dynamicHeight;
 
-  // 스크린 너비가 480 이하일 경우
-  if (screenWidth <= 480) {
+  // 스크린 너비가 360 이하일 경우
+  if (screenWidth <= 360) {
     imageWidth = 144; // 고정 너비
     const aspectRatio = 4 / 3; // 세로 길이가 더 긴 4:3 비율
     dynamicHeight = imageWidth * aspectRatio; // 너비에 따른 동적 높이 계산
   }
-  // 스크린 너비가 480 초과일 경우
+  // 스크린 너비가 360 초과일 경우
   else {
     imageWidth = screenWidth * 0.4; // 화면 너비의 40%를 슬라이드 너비로 설정
     const aspectRatio = 4 / 3;
@@ -147,7 +147,7 @@ function TrainingChallenge({ challenge }) {
   let imageHeight;
 
   // 화면 너비에 따른 이미지 높이 동적 계산
-  if (screenWidth <= 480) {
+  if (screenWidth <= 360) {
     imageHeight = 185; // 고정된 높이
   } else {
     const aspectRatio = 16 / 9; // 가로:세로 비율 설정 (예제로 16:9 사용)
@@ -258,7 +258,8 @@ function Training({ route }) {
 
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
-  const imageHeight = width <= 480 ? 141 : (width * 9) / 16;
+  const imageHeight = Math.max((width * 9) / 21, 141);
+  // const imageHeight = width <= 480 ? 141 : (width * 9) / 16;
 
   // [ ref ]
   const challengeListRef = useRef(); // 챌린지 리스트 Ref

@@ -530,7 +530,7 @@ const styles = {
     backgroundColor: COLORS.darkBlue,
   },
   topContainer: {
-    backgroundColor: '#313779',
+    backgroundColor: COLORS.darkBlue,
     padding: 16,
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,

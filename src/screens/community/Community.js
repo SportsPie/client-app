@@ -14,7 +14,6 @@ import {
   Pressable,
   RefreshControl,
   ScrollView,
-  StatusBar,
   StyleSheet,
   Text,
   TextInput,
@@ -24,6 +23,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
 import {
+  apiGetCommunityNoticeLast,
   apiGetCommunityOpen,
   apiGetCommunityOpenFilters,
   apiGetMyInfo,
@@ -43,6 +43,7 @@ import fontStyles from '../../styles/fontStyles';
 import { handleError } from '../../utils/HandleError';
 import { communityListAction } from '../../redux/reducers/list/communityListSlice';
 import { store } from '../../redux/store';
+import SPImages from '../../assets/images';
 
 function Community({ route }) {
   const dispatch = useDispatch();
@@ -70,8 +71,10 @@ function Community({ route }) {
   const [isInit, setIsInit] = useState(true);
   const [isFocus, setIsFocus] = useState(true);
 
+  const [communityNotice, setCommunityNotice] = useState();
+
   // list
-  const [size, setSize] = useState(300);
+  const [size, setSize] = useState(100);
 
   const [filterList, setFilterList] = useState([]);
   const [selectedFilter, setSelectedFilter] = useState();
@@ -129,6 +132,15 @@ function Community({ route }) {
     }
   };
 
+  const getNoticeLast = async () => {
+    try {
+      const { data } = await apiGetCommunityNoticeLast();
+      setCommunityNotice(data.data);
+    } catch (error) {
+      handleError(error);
+    }
+  };
+
   const getFeedList = async () => {
     try {
       const params = {
@@ -176,6 +188,7 @@ function Community({ route }) {
     // if (flatListRef.current) {
     //   flatListRef.current.scrollToOffset({ animated: false, offset: 0 });
     // }
+    getNoticeLast();
     dispatch(action.refresh());
   };
 
@@ -184,6 +197,7 @@ function Community({ route }) {
       if (paramReset || listParamReset) {
         setIsFocus(true);
         dispatch(action.reset());
+        setCommunityNotice();
         setIsInit(true);
         setSelectedFilter();
         setSearched();
@@ -195,6 +209,7 @@ function Community({ route }) {
         }
       } else {
         await getFilterList();
+        await getNoticeLast();
         setIsFocus(false);
       }
     } catch (error) {
@@ -273,13 +288,16 @@ function Community({ route }) {
                       paramReset: true,
                     });
                   }}>
-                  <SPSvgs.OrangeDiamond />
+                  <Image
+                    source={SPImages.solMark}
+                    style={{ width: 24, height: 24 }}
+                  />
                   <Text
                     style={{
-                      ...fontStyles.fontSize14_Medium,
+                      ...fontStyles.fontSize14_Bold,
                       color: '#E6E9F1',
                     }}>
-                    VIP
+                    SOL11
                   </Text>
                 </Pressable>
               ),
@@ -344,7 +362,7 @@ function Community({ route }) {
     ({ item }) => {
       return <FeedItem item={item} onDelete={handleDelete} isLogin={isLogin} />;
     },
-    [(feedList, handleDelete)],
+    [feedList, handleDelete, isLogin],
   );
 
   const renderSearchInput = useMemo(() => {
@@ -379,10 +397,47 @@ function Community({ route }) {
     );
   }, [keyword]);
 
+  const renderCommunityNotice = useMemo(() => {
+    if (!communityNotice) return;
+    return (
+      <TouchableOpacity
+        activeOpacity={1}
+        onPress={() => {
+          NavigationService.navigate(navName.communityDetails, {
+            feedIdx: communityNotice?.feedIdx,
+          });
+        }}
+        style={styles.noticeWrap}>
+        <View style={styles.noticeBox}>
+          <View style={styles.noticeTextBox}>
+            <Text style={styles.noticeText}>공지</Text>
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text numberOfLines={1} style={styles.noticeContents}>
+              {communityNotice?.contents}
+            </Text>
+          </View>
+          <TouchableOpacity
+            activeOpacity={1}
+            hitSlop={20}
+            onPress={e => {
+              e.stopPropagation();
+              NavigationService.navigate(navName.communityNotice, {
+                paramReset: true,
+              });
+            }}>
+            <Text style={styles.moreText}>More</Text>
+          </TouchableOpacity>
+        </View>
+      </TouchableOpacity>
+    );
+  }, [communityNotice]);
+
   const renderFeedItems = useMemo(() => {
     return (
       <View style={styles.communityContainer}>
         {renderSearchInput}
+        {renderCommunityNotice}
         {feedList && feedList.length > 0 ? (
           <FlatList
             ref={flatListRef}
@@ -428,6 +483,8 @@ function Community({ route }) {
     keyword,
     selectedFilter,
     refreshing,
+    communityNotice,
+    isLogin,
   ]);
 
   return (
@@ -566,5 +623,40 @@ const styles = StyleSheet.create({
         shadowRadius: 5,
       },
     }),
+  },
+  noticeWrap: {
+    marginTop: 16,
+    paddingVertical: 13,
+    paddingHorizontal: 16,
+    backgroundColor: '#F5F5F5',
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: '#E6E9F1',
+  },
+  noticeBox: {
+    gap: 8,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  noticeTextBox: {
+    borderWidth: 1,
+    paddingVertical: 2,
+    paddingHorizontal: 4,
+    borderRadius: 8,
+    borderColor: '#FF7C10',
+    backgroundColor: COLORS.white,
+  },
+  noticeText: {
+    ...fontStyles.fontSize13_Semibold,
+    color: '#FF7C10',
+  },
+  noticeContents: {
+    ...fontStyles.fontSize14_Medium,
+    color: '#000',
+  },
+  moreText: {
+    ...fontStyles.fontSize14_Regular,
+    color: 'rgba(46, 49, 53, 0.60)',
   },
 });

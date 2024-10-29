@@ -252,7 +252,6 @@ function AcademyRecruitmentForAdmin({ route }) {
     <SafeAreaView style={styles.container}>
       <SPHeader
         title="아카데미 회원 모집"
-        rightCancelText
         rightText="등록"
         rightTextStyle={{
           fontSize: 16,

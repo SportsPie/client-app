@@ -177,7 +177,12 @@ function EventApplyInputDepositInfo() {
                 <View style={styles.contentsSubBox}>
                   <Text style={styles.contentsSubTitle}>금액</Text>
                   <Text style={styles.contentsSubText}>
-                    {Utils.changeNumberComma(applyData?.eventInfo?.parFee)}원
+                    {Utils.changeNumberComma(
+                      applyData?.eventInfo?.parFee,
+                      false,
+                      false,
+                      true,
+                    )}
                   </Text>
                 </View>
                 <View style={styles.contentsSubBox}>

@@ -697,7 +697,6 @@ function AcademyCommunityDetailModal({ route, type = REPORT_TYPE.FEED, idx }) {
               <SPHeader
                 title="댓글 수정"
                 onPressLeftBtn={closeModifyCommentModal}
-                rightCancelText
                 rightText="완료"
                 rightTextStyle={{
                   fontSize: 16,

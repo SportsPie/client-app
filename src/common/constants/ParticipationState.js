@@ -7,8 +7,8 @@ export const PARTICIPATION_STATE = {
     desc: '접수 취소',
     value: 'CANCEL',
   },
-  COMPLETE: {
+  CONFIRMED: {
     desc: '접수 완료',
-    value: 'COMPLETE',
+    value: 'CONFIRMED',
   },
 };

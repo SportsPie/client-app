@@ -32,7 +32,6 @@ import { useDispatch, useSelector } from 'react-redux';
 import {
   apiGetCommunityCommentList,
   apiGetCommunityDetail,
-  apiGetCommunityFindFeed,
   apiGetCommunityOpenCommentList,
   apiGetCommunityOpenDetail,
   apiGetMyInfo,
@@ -43,7 +42,6 @@ import {
 } from '../../api/RestAPI';
 import SPIcons from '../../assets/icon';
 import { SPSvgs } from '../../assets/svg';
-import { REPORT_TYPE } from '../../common/constants/reportType';
 import Avatar from '../../components/Avatar';
 import DismissKeyboard from '../../components/DismissKeyboard';
 import Divider from '../../components/Divider';
@@ -69,6 +67,9 @@ import { moreCommunityListAction } from '../../redux/reducers/list/moreCommunity
 import ListEmptyView from '../../components/ListEmptyView';
 import { MODAL_CLOSE_EVENT } from '../../common/constants/modalCloseEvent';
 import BackHandlerUtils from '../../utils/BackHandlerUtils';
+import Swiper from 'react-native-swiper';
+import { IS_YN } from '../../common/constants/isYN';
+import { communityNoticeListAction } from '../../redux/reducers/list/communityNoticeListSlice';
 
 function CommunityDetails({ route }) {
   const {
@@ -112,7 +113,7 @@ function CommunityDetails({ route }) {
   const [modifyComment, setModifyComment] = useState('');
 
   const [imageModalShow, setImageModalShow] = useState(false);
-  const [selectedImage, setSelectedImage] = useState(null);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(null);
 
   const trlRef = useRef({ current: { disabled: false } });
   const [keyboardAvoidingViewRefresh, setKeyboardAvoidingViewRefresh] =
@@ -156,6 +157,7 @@ function CommunityDetails({ route }) {
     } catch (error) {
       if (error.code === 4906 || error.code === 9999) {
         dispatch(communityListAction.refresh());
+        dispatch(communityNoticeListAction.refresh());
       }
       handleError(error);
     }
@@ -190,6 +192,13 @@ function CommunityDetails({ route }) {
       feedDetail.cntComment = data.data.totalCnt;
       dispatch(
         communityListAction.modifyItem({
+          idxName: 'feedIdx',
+          idx: feedDetail.feedIdx,
+          item: feedDetail,
+        }),
+      );
+      dispatch(
+        communityNoticeListAction.modifyItem({
           idxName: 'feedIdx',
           idx: feedDetail.feedIdx,
           item: feedDetail,
@@ -243,6 +252,13 @@ function CommunityDetails({ route }) {
       }),
     );
     dispatch(
+      communityNoticeListAction.modifyItem({
+        idxName: 'feedIdx',
+        idx: feedDetail.feedIdx,
+        item: feedDetail,
+      }),
+    );
+    dispatch(
       moreCommunityListAction.modifyItem({
         idxName: 'feedIdx',
         idx: feedDetail.feedIdx,
@@ -278,6 +294,13 @@ function CommunityDetails({ route }) {
       Keyboard.dismiss();
       dispatch(
         communityListAction.modifyItem({
+          idxName: 'feedIdx',
+          idx: feedDetail.feedIdx,
+          item: feedDetail,
+        }),
+      );
+      dispatch(
+        communityNoticeListAction.modifyItem({
           idxName: 'feedIdx',
           idx: feedDetail.feedIdx,
           item: feedDetail,
@@ -441,7 +464,8 @@ function CommunityDetails({ route }) {
     return (
       <Header
         rightContent={
-          showOptionButton && (
+          showOptionButton &&
+          feedDetail?.topYn === IS_YN.N && (
             <Pressable onPress={() => openModal()}>
               <SPSvgs.EllipsesVertical />
             </Pressable>
@@ -449,7 +473,7 @@ function CommunityDetails({ route }) {
         }
       />
     );
-  }, [showOptionButton]);
+  }, [showOptionButton, feedDetail]);
 
   const renderImages = useMemo(() => {
     const screenWidth = Dimensions.get('window').width;
@@ -458,11 +482,11 @@ function CommunityDetails({ route }) {
     const calculatedHeight = screenWidth / aspectRatio; // 디바이스 크기에 비례하는 높이
     const dynamicHeight = Math.max(minHeight, calculatedHeight);
 
-    const renderItem = ({ item: imageItem }) => {
+    const renderItem = ({ item: imageItem, index }) => {
       return (
         <Pressable
           onPress={() => {
-            setSelectedImage(imageItem?.fileUrl);
+            setSelectedImageIndex(index);
             openImageModal();
           }}>
           <Image
@@ -474,6 +498,8 @@ function CommunityDetails({ route }) {
                 marginLeft: 8,
               },
             ]}
+            resizeMethod="resize"
+            resizeMode="cover"
           />
         </Pressable>
       );
@@ -490,6 +516,8 @@ function CommunityDetails({ route }) {
         inactiveSlideOpacity={0.7}
         slideStyle={{ paddingLeft: 8 }}
         vertical={false}
+        enableMomentum={true}
+        decelerationRate="fast"
       />
     );
   }, [feedDetail]);
@@ -519,7 +547,11 @@ function CommunityDetails({ route }) {
 
   const renderFeed = useMemo(() => {
     return (
-      <View>
+      <View
+        style={[
+          feedDetail?.adminIdx &&
+            feedDetail?.topYn === 'Y' && { backgroundColor: '#F5F5F5' },
+        ]}>
         <View style={styles.feedSection}>
           <View style={styles.userInfoSection}>
             <Avatar
@@ -528,7 +560,18 @@ function CommunityDetails({ route }) {
               imageURL={feedDetail.profilePath}
             />
             <View style={{ rowGap: 2 }}>
-              <Text style={styles.nameText}>{feedDetail?.userNickname}</Text>
+              <View
+                style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
+                <Text style={styles.nameText}>
+                  {feedDetail?.userNickname || feedDetail?.adminName}
+                </Text>
+                {feedDetail.userHolderYn === 'Y' && (
+                  <Image
+                    source={SPIcons.icSolMark}
+                    style={{ width: 18, height: 18 }}
+                  />
+                )}
+              </View>
               <Text style={styles.dateText}>
                 {Utils.formatTimeAgo(feedDetail?.regDate)}
               </Text>
@@ -550,6 +593,7 @@ function CommunityDetails({ route }) {
           </View>
           <View style={styles.likeWrapper}>
             <TouchableOpacity
+              hitSlop={15}
               onPress={() => {
                 changeLike();
               }}>
@@ -771,10 +815,7 @@ function CommunityDetails({ route }) {
         visible={imageModalShow}
         onRequestClose={closeImageModal}>
         <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.black }}>
-          <View
-            style={{
-              marginTop: insets.top,
-            }}>
+          <View style={{ paddingTop: insets.top }}>
             <TouchableOpacity
               onPress={closeImageModal}
               style={{
@@ -798,16 +839,23 @@ function CommunityDetails({ route }) {
               justifyContent: 'center',
               alignItems: 'center',
             }}>
-            {selectedImage && (
-              <Image
-                source={{ uri: selectedImage }}
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  resizeMode: 'contain',
-                }}
-              />
-            )}
+            <Swiper
+              loop={false}
+              index={selectedImageIndex}
+              showsPagination={false}>
+              {feedDetail?.files?.map((imageItem, index) => (
+                <View key={imageItem.fileUrl} style={{ flex: 1 }}>
+                  <Image
+                    source={{ uri: imageItem.fileUrl }}
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      resizeMode: 'contain',
+                    }}
+                  />
+                </View>
+              ))}
+            </Swiper>
           </View>
         </SafeAreaView>
       </Modal>
@@ -944,6 +992,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   reviewSection: {
+    backgroundColor: COLORS.white,
     paddingTop: 24,
     paddingBottom: 16,
     paddingHorizontal: 16,

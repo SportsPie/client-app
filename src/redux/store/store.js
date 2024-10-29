@@ -12,6 +12,9 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import reducers from '../reducers';
+import tournamentOngoing from '../reducers/list/tournamentOngoingListSlice';
+import tournamentInProgress from '../reducers/list/tournamentInProgressListSlice';
+import tournamentFinished from '../reducers/list/tournamentFinishedListSlice';
 
 const persistConfig = {
   key: 'root',
@@ -40,8 +43,10 @@ const persistConfig = {
     'alarmList',
     'communityList',
     'communityCommentList',
+    'communityNoticeList',
     'communityFavPlayerList',
     'communityFavPlayerCommentList',
+    'communityFavPlayerNoticeList',
     'matchingHistoryList',
     'matchingReviewList',
     'matchingScheduleList',
@@ -57,6 +62,10 @@ const persistConfig = {
     'challengeList',
     'challengeDetail',
     'moreEventVideoList',
+    'tournamentInquiryList',
+    'tournamentOngoingList',
+    'tournamentInProgressList',
+    'tournamentFinishedList',
   ],
 };
 

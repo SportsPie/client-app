@@ -232,6 +232,11 @@ function EventParticipantCommentList() {
   };
 
   const closeModifyCommentModal = () => {
+    BackHandlerUtils.remove();
+    BackHandlerUtils.add(() => {
+      NavigationService.goBack();
+      return true; // 뒤로가기 이벤트 실행
+    });
     setModifyCommentModalVisible(false);
   };
 
@@ -306,66 +311,60 @@ function EventParticipantCommentList() {
   }, []);
 
   return (
-    <DismissKeyboard>
-      <SafeAreaView style={styles.container}>
-        <SPKeyboardAvoidingView
-          key={keyboardAvoidingViewRefresh ? 'key1' : 'key2'}
-          behavior="padding"
-          isResize
-          keyboardVerticalOffset={0}>
-          {commentList && commentList.length > 0 ? (
-            <FlatList
-              data={commentList}
-              numColumns={1}
-              renderItem={renderParticipantItem}
-              refreshControl={
-                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-              }
-              onEndReached={handleEndReached}
-              onEndReachedThreshold={0.5}
-              ListEmptyComponent={renderEmptyList}
-              contentContainerStyle={styles.content}
-            />
-          ) : loading ? (
-            <Loading />
-          ) : (
-            renderEmptyList()
-          )}
+    <View style={styles.container}>
+      {commentList && commentList.length > 0 ? (
+        <FlatList
+          data={commentList}
+          numColumns={1}
+          renderItem={renderParticipantItem}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
+          onEndReached={handleEndReached}
+          onEndReachedThreshold={0.5}
+          ListEmptyComponent={renderEmptyList}
+          contentContainerStyle={styles.content}
+        />
+      ) : loading ? (
+        <Loading />
+      ) : (
+        renderEmptyList()
+      )}
 
-          <View style={styles.inputSection}>
-            <Avatar
-              disableEditMode
-              imageURL={commentList?.userProfilePath}
-              imageSize={24}
-            />
-            <TextInput
-              placeholder="응원 댓글을 남겨보세요(최대 1000자)"
-              style={styles.input}
-              value={comment}
-              onChangeText={e => {
-                if (e?.length > 1000) return;
-                setComment(e);
-              }}
-              autoCorrect={false}
-              autoCapitalize="none"
-              placeholderTextColor="rgba(46, 49, 53, 0.60)"
-              multiline
-              textAlignVertical="center"
-              retrunKeyType="next"
-            />
-            <View
-              style={{
-                flexDirection: 'column',
-                alignItems: 'flex-start',
-              }}>
-              <View style={{ justifyContent: 'center', alignItems: 'center' }}>
-                <TouchableOpacity disabled={!comment} onPress={registComment}>
-                  <Image
-                    source={SPIcons.icSend}
-                    style={{ width: 40, height: 28 }}
-                  />
-                </TouchableOpacity>
-                {/* <Text
+      <View style={styles.inputSection}>
+        <Avatar
+          disableEditMode
+          imageURL={commentList?.userProfilePath}
+          imageSize={24}
+        />
+        <TextInput
+          placeholder="응원 댓글을 남겨보세요(최대 1000자)"
+          style={styles.input}
+          value={comment}
+          onChangeText={e => {
+            if (e?.length > 1000) return;
+            setComment(e);
+          }}
+          autoCorrect={false}
+          autoCapitalize="none"
+          placeholderTextColor="rgba(46, 49, 53, 0.60)"
+          multiline
+          textAlignVertical="center"
+          retrunKeyType="next"
+        />
+        <View
+          style={{
+            flexDirection: 'column',
+            alignItems: 'flex-start',
+          }}>
+          <View style={{ justifyContent: 'center', alignItems: 'center' }}>
+            <TouchableOpacity disabled={!comment} onPress={registComment}>
+              <Image
+                source={SPIcons.icSend}
+                style={{ width: 40, height: 28 }}
+              />
+            </TouchableOpacity>
+            {/* <Text
                   style={{
                     ...fontStyles.fontSize11_Regular,
                     height: 14,
@@ -375,93 +374,84 @@ function EventParticipantCommentList() {
                   }}>
                   {Utils.changeNumberComma(comment.length)}/1,000
                 </Text> */}
-              </View>
-              <SPMoreModal
-                visible={modalVisible}
-                onClose={closeModal}
-                isAdmin={false}
-                type={MODAL_MORE_TYPE.EVENT_COMMENT}
-                idx={selectedItem?.commentIdx}
-                targetUserIdx={selectedItem?.memberIdx}
-                onDelete={deleteComment}
-                onModify={openModifyCommentModal}
-                memberButtons={
-                  isMyFeed
-                    ? [MODAL_MORE_BUTTONS.EDIT, MODAL_MORE_BUTTONS.REMOVE]
-                    : [MODAL_MORE_BUTTONS.REPORT]
-                }
-              />
-              <Modal
-                animationType="fade"
-                transparent={false}
-                visible={modifyCommentModalVisible}
-                onRequestClose={() => {
-                  BackHandlerUtils.remove();
-                  BackHandlerUtils.add(() => {
-                    NavigationService.goBack();
-                    return true; // 뒤로가기 이벤트 실행
-                  });
-                  setModifyCommentModalVisible(false);
-                }}>
-                <SafeAreaView style={{ flex: 1, paddingTop: insets.top }}>
-                  <SPHeader
-                    title="댓글 수정"
-                    rightCancelText
-                    rightText="완료"
-                    rightTextStyle={{
-                      fontSize: 16,
-                      fontWeight: '600',
-                      color: '#313779',
-                      lineHeight: 24,
-                      letterSpacing: 0.091,
-                      minHeight: 28,
-                    }}
-                    onPressRightText={() => {
-                      if (modifyComment) {
-                        editComment();
-                      } else {
-                        Utils.openModal({
-                          title: '확인 요청',
-                          content: '댓글을 입력해주세요.',
-                        });
-                      }
-                    }}
-                  />
-                  {/* 댓글창부분 */}
-
-                  <View style={{ flex: 1, padding: 16 }}>
-                    <TextInput
-                      style={styles.textInput}
-                      value={modifyComment}
-                      onChangeText={e => {
-                        if (e?.length > 1000) return;
-                        setModifyComment(e);
-                      }}
-                      multiline={true}
-                      placeholder="댓글을 남겨보세요.(최대 1000자)"
-                      placeholderTextColor="#1A1C1E"
-                      autoFocus={true}
-                      autoCorrect={false}
-                      autoCapitalize="none"
-                      textAlignVertical="top"
-                      retrunKeyType="next"
-                    />
-                  </View>
-                  <Text
-                    style={{
-                      ...fontStyles.fontSize14_Regular,
-                      textAlign: 'right',
-                      padding: 16,
-                    }}>
-                    {Utils.changeNumberComma(modifyComment.length)}/1,000
-                  </Text>
-                </SafeAreaView>
-              </Modal>
-            </View>
           </View>
-        </SPKeyboardAvoidingView>
-      </SafeAreaView>
-    </DismissKeyboard>
+          <SPMoreModal
+            visible={modalVisible}
+            onClose={closeModal}
+            isAdmin={false}
+            type={MODAL_MORE_TYPE.EVENT_COMMENT}
+            idx={selectedItem?.commentIdx}
+            targetUserIdx={selectedItem?.memberIdx}
+            onDelete={deleteComment}
+            onModify={openModifyCommentModal}
+            memberButtons={
+              isMyFeed
+                ? [MODAL_MORE_BUTTONS.EDIT, MODAL_MORE_BUTTONS.REMOVE]
+                : [MODAL_MORE_BUTTONS.REPORT]
+            }
+          />
+          <Modal
+            animationType="fade"
+            transparent={false}
+            visible={modifyCommentModalVisible}
+            onRequestClose={closeModifyCommentModal}>
+            <SafeAreaView style={{ flex: 1, paddingTop: insets.top }}>
+              <SPHeader
+                title="댓글 수정"
+                onPressLeftBtn={closeModifyCommentModal}
+                rightText="완료"
+                rightTextStyle={{
+                  fontSize: 16,
+                  fontWeight: '600',
+                  color: '#313779',
+                  lineHeight: 24,
+                  letterSpacing: 0.091,
+                  minHeight: 28,
+                }}
+                onPressRightText={() => {
+                  if (modifyComment) {
+                    editComment();
+                  } else {
+                    Utils.openModal({
+                      title: '확인 요청',
+                      content: '댓글을 입력해주세요.',
+                    });
+                  }
+                }}
+              />
+              {/* 댓글창부분 */}
+
+              <View style={{ flex: 1, padding: 16 }}>
+                <TextInput
+                  style={styles.textInput}
+                  value={modifyComment}
+                  onChangeText={e => {
+                    if (e?.length > 1000) return;
+                    setModifyComment(e);
+                  }}
+                  multiline={true}
+                  placeholder="댓글을 남겨보세요.(최대 1000자)"
+                  placeholderTextColor="#1A1C1E"
+                  autoFocus={true}
+                  autoCorrect={false}
+                  autoCapitalize="none"
+                  textAlignVertical="top"
+                  retrunKeyType="next"
+                />
+              </View>
+              <Text
+                style={{
+                  ...fontStyles.fontSize14_Regular,
+                  textAlign: 'right',
+                  padding: 16,
+                }}>
+                {Utils.changeNumberComma(modifyComment.length)}/1,000
+              </Text>
+            </SafeAreaView>
+          </Modal>
+        </View>
+      </View>
+    </View>
   );
 }
 
@@ -469,6 +459,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
+    paddingTop: 8,
     // paddingHorizontal: 16,
   },
   content: {

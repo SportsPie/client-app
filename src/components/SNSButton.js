@@ -217,14 +217,6 @@ function SNSButton({ type, onPress }) {
 
   const faceBookLogin = async () => {
     try {
-      // TODO :: 추후 페이스북 콘솔에서 앱 검토 완료 후 준비중 메시지 제거 필요
-      if (true) {
-        Utils.openModal({
-          title: '준비중',
-          body: '현재 기능을 준비중입니다.',
-        });
-        return;
-      }
       const result = await LoginManager.logInWithPermissions([
         'public_profile',
         'email',

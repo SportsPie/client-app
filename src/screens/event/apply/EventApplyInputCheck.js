@@ -212,21 +212,23 @@ function EventApplyInputCheck() {
                 </View>
 
                 {/* 소속 */}
-                <View
-                  style={{
-                    backgroundColor: 'rgba(255, 124, 16, 0.15)',
-                    paddingHorizontal: 8,
-                    paddingVertical: 4,
-                    borderRadius: 4,
-                  }}>
-                  <Text
-                    style={[
-                      fontStyles.fontSize12_Semibold,
-                      { color: '#FF7C10' },
-                    ]}>
-                    {applyData?.acdmyName}
-                  </Text>
-                </View>
+                {applyData?.acdmyName && (
+                  <View
+                    style={{
+                      backgroundColor: 'rgba(255, 124, 16, 0.15)',
+                      paddingHorizontal: 8,
+                      paddingVertical: 4,
+                      borderRadius: 4,
+                    }}>
+                    <Text
+                      style={[
+                        fontStyles.fontSize12_Semibold,
+                        { color: '#FF7C10' },
+                      ]}>
+                      {applyData?.acdmyName}
+                    </Text>
+                  </View>
+                )}
               </View>
 
               <View style={styles.contentsSubContainer}>

@@ -196,7 +196,7 @@ function Academy({ navigation }) {
    */
   const isLogin = useSelector(selector => selector.auth)?.isLogin;
   const { width } = useWindowDimensions();
-  const imageHeight = width <= 480 ? 225 : (width * 10) / 16;
+  const imageHeight = Math.max((width * 10) / 16, 225);
   const dynamicHeight = Math.max(156, Math.min(300, width / 3));
 
   const [firstCall, setFirstCall] = useState(false);

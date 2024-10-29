@@ -138,11 +138,25 @@ const MainPopup = forwardRef(({ data }, ref) => {
                   onPress={() =>
                     handleImagePress(item?.boardType, item?.linkUrl)
                   }>
-                  <Image
+                  {/* 기존 코드 참고용 */}
+                  {/* <Image
                     source={{
                       uri: item?.filePath,
                     }}
                     style={styles.image}
+                    resizeMode="cover"
+                  /> */}
+                  <Image
+                    source={{
+                      uri: item?.filePath,
+                    }}
+                    style={[
+                      styles.image,
+                      {
+                        aspectRatio: 4 / 5, // 4:5 비율 고정
+                        height: Math.max(410, (SCREEN_WIDTH - 32) * (5 / 4)), // 최소 높이 410px, 화면에 맞춰 자동 조정
+                      },
+                    ]}
                   />
                 </Pressable>
               );
@@ -190,7 +204,8 @@ const styles = StyleSheet.create({
   },
   content: {
     width: SCREEN_WIDTH - 32,
-    height: (SCREEN_HEIGHT * 410) / 800,
+    height: 'auto', // 높이를 고정하지 않고, 자동으로 설정
+    // height: (SCREEN_HEIGHT * 410) / 800,
     backgroundColor: COLORS.white,
     borderRadius: 16,
     overflow: 'hidden',

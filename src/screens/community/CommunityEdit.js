@@ -413,7 +413,6 @@ function CommunityEdit({ route }) {
           }}>
           <SafeAreaView style={styles.container}>
             <SPHeader
-              rightCancelText
               rightText="수정"
               rightTextStyle={{
                 fontSize: 16,

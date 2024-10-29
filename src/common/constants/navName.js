@@ -107,7 +107,10 @@ const authPage = {
   moreEvent: 'moreEvent', // 더보기 > 이벤트 참여 내역
   moreNoneEvent: 'moreNoneEvent', // 더보기 > 이벤트 참여 내역 (참여 내역 없을때)
 
+  vipQrcode: 'vipQrcode',
+
   addVideoDetail: 'addVideoDetail',
+  editVideoDetail: 'editVideoDetails',
   videoUploadPlayer: 'videoUploadPlayer',
   videoRegistering: 'videoRegistering',
   videoUploadComplete: 'videoUploadComplete',
@@ -118,6 +121,15 @@ const authPage = {
   eventVideoList: 'eventVideoList',
   eventComment: 'eventComment',
   eventParticipantInfo: 'eventParticipantInfo',
+  tournamentApplyPlayerSelect: 'tournamentApplyPlayerSelect',
+  tournamentApplyWaitOrPay: 'tournamentApplyWaitOrPay',
+  tournamentCancelApplyTeamSelect: 'tournamentCancelApplyTeamSelect',
+  tournamentCancelApplyTeamCheck: 'tournamentCancelApplyTeamCheck',
+  tournamentCancelApplyInfo: 'tournamentCancelApplyInfo',
+  tournamentCancelApplyComplete: 'tournamentCancelApplyComplete',
+  tournamentInquiryDetail: 'tournamentInquiryDetail',
+  tournamentReviewEdit: 'tournamentReviewEdit',
+  tournamentInquiryEdit: 'tournamentInquiryEdit',
 };
 
 // noAuthPage : 로그인과 상관없이 갈 수 있는 페이지
@@ -168,6 +180,15 @@ const noAuthPage = {
   eventParticipantPartList: 'eventParticipantPartList', // 참가자 목록 더보기
   eventParticipantDetail: 'eventParticipantDetail', // 참가자 정보
   eventParticipantVideoReels: 'eventParticipantVideoReels', // 참가자 영상
+  onlyImage: 'onlyImage',
+  tournamentNoticeList: 'tournamentNoticeList',
+  tournamentNoticeDetail: 'tournamentNoticeDetail',
+  tournamentReviewList: 'tournamentReviewList',
+  tournamentInquiryList: 'tournamentInquiryList',
+  tournamentSketch: 'tournamentSketch',
+  tournamentOngoing: 'tournamentOngoing',
+  tournamentInProgress: 'tournamentInProgress',
+  tournamentEnded: 'tournamentEnded',
 };
 
 // bottomPage : 하단 네비게이션 페이지
@@ -178,6 +199,8 @@ const bottomPage = {
   community: 'community',
   communityFavPlayer: 'communityFavPlayer',
   training: 'training',
+  communityNotice: 'communityNotice',
+  communityFavPlayerNotice: 'communityFavPlayerNotice',
 };
 
 // prefix 연결

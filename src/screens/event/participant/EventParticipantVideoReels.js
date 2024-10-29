@@ -19,6 +19,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { apiDeleteEventVideo } from '../../../api/RestAPI';
 import NavigationService from '../../../navigation/NavigationService';
 import { moreEventVideoListAction } from '../../../redux/reducers/list/moreEventVideoListSlice';
+import { navName } from '../../../common/constants/navName';
+import { VIDEO_UPLOAD_TYPE } from '../../../common/constants/VideoUploadType';
 
 // 상수값
 const MAX_DESC_LENGTH = 50; // 더보기 Text 길이
@@ -30,8 +32,9 @@ function EventParticipantVideoReels({ route }) {
   const isLogin = useSelector(selector => selector.auth)?.isLogin;
 
   // 페이지 파라미터 > 접근 유효성 검사
-  const { video } = route?.params || {
+  const { video, eventIdx } = route?.params || {
     video: null,
+    eventIdx: '',
   };
   if (!video) {
     handleError(new AccessDeniedException('잘못된 접근입니다.'));
@@ -139,9 +142,16 @@ function EventParticipantVideoReels({ route }) {
         transparent={true}
         visible={showVideoMore}
         onClose={closeVideoModal}
+        onModify={() => {
+          NavigationService.navigate(navName.editVideoDetail, {
+            eventIdx,
+            video,
+            uploadType: VIDEO_UPLOAD_TYPE.EVENT,
+          });
+        }}
         type={MODAL_MORE_TYPE.EVENT_VIDEO}
         idx={video.videoIdx}
-        memberButtons={[MODAL_MORE_BUTTONS.REMOVE]}
+        memberButtons={[MODAL_MORE_BUTTONS.REMOVE, MODAL_MORE_BUTTONS.EDIT]}
         onDelete={removeEventVideo}
       />
     </>

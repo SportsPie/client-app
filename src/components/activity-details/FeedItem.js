@@ -251,7 +251,6 @@ function FeedItem({ item, onDelete, onModify }) {
           <SPHeader
             title="댓글 수정"
             onPressLeftBtn={closeModifyCommentModal}
-            rightCancelText
             rightText="완료"
             rightTextStyle={{
               fontSize: 16,

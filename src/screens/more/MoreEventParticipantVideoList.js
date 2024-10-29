@@ -173,6 +173,7 @@ function EventParticipantVideoList() {
                     navName.eventParticipantVideoReels,
                     {
                       video: item,
+                      eventIdx: participantInfo?.eventIdx,
                     },
                   );
                 }}
@@ -261,7 +262,7 @@ function EventParticipantVideoList() {
           </Text>
         </View>
       )}
-      {participantInfo?.prtState === PARTICIPATION_STATE.COMPLETE.value && (
+      {participantInfo?.prtState === PARTICIPATION_STATE.CONFIRMED.value && (
         <View style={{ flex: 1 }}>{renderVideoList()}</View>
       )}
 

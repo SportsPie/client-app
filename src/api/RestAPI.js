@@ -557,6 +557,16 @@ export const apiGetCommunityFindFeed = (commentIdx, data) => {
   return api.get(`${API_COMMUNITY}/find-feed/${commentIdx}`, data);
 };
 
+// SPIC_IF_417 :: 커뮤니티 최근 공지사항 조회
+export const apiGetCommunityNoticeLast = () => {
+  return api.get(`${API_COMMUNITY}/open/notice/last`);
+};
+
+// SPIC_IF_418 :: 커뮤니티 공지사항 리스트 조회
+export const apiGetCommunityNoticeList = data => {
+  return api.get(`${API_COMMUNITY}/open/notice`, { params: data });
+};
+
 // SPIC_IF_490 :: 커뮤니티 필터 리스트 조회
 export const apiGetCommunityOpenFilters = data => {
   return api.get(`${API_COMMUNITY}/open/filters`);
@@ -622,6 +632,16 @@ export const apiPatchHolderCommunityCommentLike = feedIdx => {
 // SPIC_IF_1110 :: 커뮤니티 좋아요 취소
 export const apiPatchHolderCommunityCommentUnlike = feedIdx => {
   return api.patch(`${API_HOLDER_COMMUNITY}/unlike/${feedIdx}`);
+};
+
+// SPIC_IF_1111 :: 커뮤니티 최근 공지사항 조회
+export const apiGetHolderCommunityNoticeLast = () => {
+  return api.get(`${API_HOLDER_COMMUNITY}/notice/last`);
+};
+
+// SPIC_IF_1112 :: 커뮤니티 공지사항 리스트 조회
+export const apiGetHolderCommunityNoticeList = data => {
+  return api.get(`${API_HOLDER_COMMUNITY}/notice`, { params: data });
 };
 
 // SPIC_IF_1190 :: 커뮤니티 필터 리스트 조회
@@ -724,6 +744,67 @@ export const apiApplyTournament = data => {
 // SPIC_IF_524 :: 대회 신청 취소
 export const apiPatchCancelTournament = data => {
   return api.patch(`${API_TOURNAMENT}/mng/cancel`, data);
+};
+// SPIC_IF_540 :: 대회 참가유형 필터 조회
+export const apiGetTournamentOpenTags = data => {
+  return api.get(`${API_TOURNAMENT}/open/tags`);
+};
+// SPIC_IF_541 :: 대회 리스트 조회 (접수중)
+export const apiGetTournamentOpenApply = data => {
+  return api.get(`${API_TOURNAMENT}/open/apply`, { params: data });
+};
+// SPIC_IF_542 :: 대회 리스트 조회 (진행중)
+export const apiGetTournamentOpenOngoing = data => {
+  return api.get(`${API_TOURNAMENT}/open/ongoing`, { params: data });
+};
+// SPIC_IF_543 :: 대회 리스트 조회 (종료)
+export const apiGetTournamentOpenFinished = data => {
+  return api.get(`${API_TOURNAMENT}/open/finished`, { params: data });
+};
+
+// SPIC_IF_550 :: 대회 공지사항 리스트 조회
+export const apiGetTournamentNotice = data => {
+  return api.get(`${API_TOURNAMENT}/open/notice`, { params: data });
+};
+// SPIC_IF_548 :: 대회 상세 조회
+export const apiGetTournamentOpen = data => {
+  return api.get(`${API_TOURNAMENT}/open`, { params: data });
+};
+// SPIC_IF_550 :: 대회 공지사항 상세
+export const apiGetTournamentNoticeDetail = noticeIdx => {
+  return api.get(`${API_TOURNAMENT}/open/notice/${noticeIdx}`);
+};
+// SPIC_IF_557 :: 대회 리뷰 리스트 조회
+export const apiGetTournamentReviewList = data => {
+  return api.get(`${API_TOURNAMENT}/open/review`, { params: data });
+};
+// SPIC_IF_558 :: 대회 리뷰 등록
+export const apiPostTournamentReview = data => {
+  return api.post(`${API_TOURNAMENT}/mng/review`, data);
+};
+// SPIC_IF_559 :: 대회 문의 리스트 조회
+export const apiGetTournamentQna = data => {
+  return api.get(`${API_TOURNAMENT}/qna`, { params: data });
+};
+// SPIC_IF_560 :: 대회 문의 등록
+export const apiPostTournamentQnaInsert = data => {
+  return api.post(`${API_TOURNAMENT}/qna`, data, formDataConfig);
+};
+// SPIC_IF_561 :: 대회 문의 수정
+export const apiPutTournamentQnaModify = data => {
+  return api.put(`${API_TOURNAMENT}/qna`, data, formDataConfig);
+};
+// SPIC_IF_562 :: 대회 문의 상세 조회
+export const apiGetTournamentQnaDetail = qnaIdx => {
+  return api.get(`${API_TOURNAMENT}/qna/${qnaIdx}`);
+};
+// SPIC_IF_590 :: 대회 타이틀 조회
+export const apiGetTournamentTitle = tournamentIdx => {
+  return api.get(`${API_TOURNAMENT}/open/${tournamentIdx}`);
+};
+// SPIC_IF_591 :: 리뷰 등록 여부 조회
+export const apiGetTournamentMngCheckReview = tournamentIdx => {
+  return api.get(`${API_TOURNAMENT}/mng/check-review/${tournamentIdx}`);
 };
 
 // ----------------------------------------------------------
@@ -1072,11 +1153,11 @@ export const apiGetQnaDetail = qnaIdx => {
 };
 // SPIC_IF_945 :: 1:1 문의 등록
 export const apiPostQnaInsert = data => {
-  return api.post(`${API_MORE}/qna`, data);
+  return api.post(`${API_MORE}/qna`, data, formDataConfig);
 };
 // SPIC_IF_946 :: 1:1 문의 수정
 export const apiPutQnaModify = data => {
-  return api.put(`${API_MORE}/modify/qna`, data);
+  return api.put(`${API_MORE}/modify/qna`, data, formDataConfig);
 };
 // SPIC_IF_950 :: 소셜 토큰 보유 수량 조회
 export const apiGetTokenBalance = (walletAddr, data) => {
@@ -1255,6 +1336,10 @@ export const apiDeleteEventVideo = videoIdx => {
 // SPIC_IF_1228 이벤트 영상 상세 조회
 export const apiGetEventVideo = videoIdx => {
   return api.get(`${API_EVENT}/videos/${videoIdx}`);
+};
+// SPIC_IF_1229 이벤트 영상 정보 수정
+export const apiPutEventVideo = params => {
+  return api.put(`${API_EVENT}/videos`, params);
 };
 // ----------------------------------------------------------
 // [ OPEN ]

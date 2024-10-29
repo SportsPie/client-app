@@ -84,6 +84,15 @@ function EventApplyInputAcademy() {
 
           <View style={styles.bottomButtonWrap}>
             <PrimaryButton
+              outlineButton
+              onPress={() => {
+                setApplyData({ ...applyData, acdmyName: '' });
+                NavigationService.navigate(navName.eventApplyInputPerformance);
+              }}
+              buttonStyle={styles.button}
+              text="건너뛰기"
+            />
+            <PrimaryButton
               onPress={() => {
                 NavigationService.navigate(navName.eventApplyInputPerformance);
               }}
@@ -130,10 +139,12 @@ const styles = StyleSheet.create({
     letterSpacing: 0.091,
   },
   bottomButtonWrap: {
+    flexDirection: 'row',
     paddingVertical: 24,
     paddingHorizontal: 16,
+    gap: 8,
   },
-  button: {},
+  button: { flex: 1 },
   eventTopBox: {
     padding: 16,
     flexDirection: 'row',

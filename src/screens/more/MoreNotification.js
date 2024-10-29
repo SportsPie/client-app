@@ -1,17 +1,11 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
 import React, { memo, useCallback, useState } from 'react';
 import { Platform, ScrollView, StyleSheet } from 'react-native';
 import { apiGetMyInfo, apiPostAuthAgreeMarketing } from '../../api/RestAPI';
 import ButtonSwitch from '../../components/ButtonSwitch';
 import { handleError } from '../../utils/HandleError';
-import moment from 'moment';
-import { CONSTANTS } from '../../common/constants/constants';
 import { RESULTS } from 'react-native-permissions';
-import {
-  getFcmToken,
-  requestPostNotificationsPermission,
-} from '../../utils/FirebaseMessagingService';
+import { requestPostNotificationsPermission } from '../../utils/FirebaseMessagingService';
 import { getStorage, setStorage } from '../../utils/AsyncStorageUtils';
 import { useSelector } from 'react-redux';
 import { FCM_TYPE } from '../../common/constants/fcmType';
@@ -50,11 +44,17 @@ function MoreNotification() {
     try {
       const { data } = await apiGetMyInfo();
       setMarketingDate(data.data.marketingDate);
-      await getFcmToken();
+      setNotificationStates(prev => {
+        return {
+          ...prev,
+          [FCM_TYPE.MARKETING]: !!data.data.marketingDate,
+        };
+      });
     } catch (error) {
       handleError(error);
     }
   };
+
   const updateMarketingDate = async () => {
     try {
       const now = new Date();

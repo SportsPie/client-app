@@ -57,6 +57,10 @@ export function CBToastProvider({ children }) {
   );
 }
 
+export function DefaultToast({ children }) {
+  return <Toast config={toastConfig} type="hidden" />;
+}
+
 const styles = StyleSheet.create({
   defaultToastContainer: {
     // width: '100%',

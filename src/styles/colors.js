@@ -30,6 +30,7 @@ export const COLORS = {
   primary: '#4cc35a',
   primaryHover: '#48A89E',
   primaryFocus: '#469E92',
+  primaryStrong: '#F06006',
 
   secondary: '#FFB400',
   secondaryHover: '#FFD34E',

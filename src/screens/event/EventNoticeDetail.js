@@ -70,8 +70,8 @@ function EventNoticeDetail() {
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <Header title="이벤트 공지사항" />
-      <View style={{ padding: 16 }}>
-        <Text style={{ ...fontStyles.fontSize20_Medium }}>{eventName}</Text>
+      <View style={{ paddingTop: 16, paddingHorizontal: 16 }}>
+        <Text style={{ ...fontStyles.fontSize20_Semibold }}>{eventName}</Text>
       </View>
       <ScrollView
         contentContainerStyle={styles.container}

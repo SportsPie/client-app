@@ -22,9 +22,11 @@ import nearbyAcademyList from './list/nearbyAcademyListSlice';
 import searchAcademyList from './list/searchAcademyListSlice';
 import alarmList from './list/alarmListSlice';
 import communityList from './list/communityListSlice';
+import communityNoticeList from './list/communityNoticeListSlice';
 import communityCommentList from './list/communityCommentListSlice';
 import communityFavPlayerList from './list/communityFavPlayerListSlice';
 import communityFavPlayerCommentList from './list/communityFavPlayerCommentListSlice';
+import communityFavPlayerNoticeList from './list/communityFavPlayerNoticeListSlice';
 import matchingHistoryList from './list/matchingHistoryListSlice';
 import matchingReviewList from './list/matchingReviewListSlice';
 import matchingScheduleList from './list/matchingScheduleListSlice';
@@ -43,6 +45,11 @@ import eventParticipantPartList from './list/eventParticipantPartListSlice';
 import eventParticipantVideoList from './list/eventParticipantVideoListSlice';
 import eventParticipantCommentList from './list/eventParticipantCommentListSlice';
 import moreEventVideoList from './list/moreEventVideoListSlice';
+import tournamentInquiryList from './list/tournamentInquiryListSlice';
+import tournamentOngoingList from './list/tournamentOngoingListSlice';
+import tournamentInProgressList from './list/tournamentInProgressListSlice';
+import tournamentFinishedList from './list/tournamentFinishedListSlice';
+
 export default {
   auth,
   modal,
@@ -68,8 +75,10 @@ export default {
   alarmList,
   communityList,
   communityCommentList,
+  communityNoticeList,
   communityFavPlayerList,
   communityFavPlayerCommentList,
+  communityFavPlayerNoticeList,
   matchingHistoryList,
   matchingReviewList,
   matchingScheduleList,
@@ -88,4 +97,8 @@ export default {
   eventParticipantVideoList,
   eventParticipantCommentList,
   moreEventVideoList,
+  tournamentInquiryList,
+  tournamentOngoingList,
+  tournamentInProgressList,
+  tournamentFinishedList,
 };

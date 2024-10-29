@@ -193,9 +193,9 @@ export default function AcademyEdit({ route }) {
 
   const trlRef = useRef({ current: { disabled: false } });
   const modifyAcademy = async () => {
+    if (trlRef.current.disabled) return;
+    trlRef.current.disabled = true;
     try {
-      if (trlRef.current.disabled) return;
-      trlRef.current.disabled = true;
       if (!checkValues()) return;
       const formData = new FormData();
 
@@ -892,7 +892,6 @@ export default function AcademyEdit({ route }) {
                         classTypeList.map((item, index) => {
                           return (
                             <Pressable
-                              // eslint-disable-next-line react/no-array-index-key
                               hitSlop={{
                                 top: 10,
                                 bottom: 10,
@@ -962,7 +961,6 @@ export default function AcademyEdit({ route }) {
                         teachingTypeList.map((item, index) => {
                           return (
                             <Pressable
-                              // eslint-disable-next-line react/no-array-index-key
                               hitSlop={{
                                 top: 10,
                                 bottom: 10,
@@ -1034,7 +1032,6 @@ export default function AcademyEdit({ route }) {
                         serviceTypeList.map((item, index) => {
                           return (
                             <Pressable
-                              // eslint-disable-next-line react/no-array-index-key
                               hitSlop={{
                                 top: 10,
                                 bottom: 10,

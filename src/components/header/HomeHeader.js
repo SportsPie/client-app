@@ -1,15 +1,20 @@
-import React, { memo, useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import React, { memo, useCallback, useState } from 'react';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { SPSvgs } from '../../assets/svg';
 import NavigationService from '../../navigation/NavigationService';
 import { navName } from '../../common/constants/navName';
 import { useSelector } from 'react-redux';
 import Utils from '../../utils/Utils';
 import { MODAL_CLOSE_EVENT } from '../../common/constants/modalCloseEvent';
+import { useFocusEffect } from '@react-navigation/native';
+import NotificationUtils from '../../utils/notification/NotificationUtils';
+import { handleError } from '../../utils/HandleError';
+import fontStyles from '../../styles/fontStyles';
 
 function HomeHeader() {
   const { isLogin } = useSelector(selector => selector.auth);
   const [joinModalVisible, setJoinModalVisible] = useState(false);
+  const [notReadCnt, setNotReadCnt] = useState(0);
   const showJoinModal = () => {
     if (!isLogin) {
       Utils.openModal({
@@ -32,6 +37,31 @@ function HomeHeader() {
     }
   };
 
+  const getNotReadCnt = async () => {
+    try {
+      const result = await NotificationUtils.getNotReadCnt();
+      setNotReadCnt(result);
+    } catch (error) {
+      handleError(error);
+    }
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      if (isLogin) getNotReadCnt();
+    }, []),
+  );
+
+  const notReacCntRender = () => {
+    if (Number(notReadCnt) === 0) {
+      return null;
+    }
+    if (notReadCnt > 99) {
+      return '99+';
+    }
+    return notReadCnt;
+  };
+
   return (
     <View style={styles.container}>
       <SPSvgs.SportsPieLogo />
@@ -44,6 +74,13 @@ function HomeHeader() {
             }}
             style={{ padding: 10 }}>
             <SPSvgs.Bell />
+            {notReacCntRender() > 0 && (
+              <View style={styles.notReadWrap}>
+                <View style={styles.notReadTextBox}>
+                  <Text style={styles.notReadText}>{notReacCntRender()}</Text>
+                </View>
+              </View>
+            )}
           </Pressable>
         )}
 
@@ -69,5 +106,24 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     // columnGap: 16,
     marginLeft: 'auto',
+  },
+  notReadWrap: {
+    position: 'absolute',
+    top: 6,
+    left: 25,
+    backgroundColor: 'rgba(195, 0, 2, 1)',
+    borderRadius: 100,
+    paddingHorizontal: 2,
+  },
+  notReadTextBox: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    minWidth: 13,
+  },
+  notReadText: {
+    ...fontStyles.fontSize10_Regular,
+    lineHeight: 13,
+    color: '#FFF',
   },
 });

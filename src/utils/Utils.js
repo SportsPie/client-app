@@ -33,6 +33,8 @@ import { USER_TYPE } from './chat/ChatMapper';
 import ChatUtils from './chat/ChatUtils';
 import SqlLite from './SqlLite/SqlLite';
 import quillCss from '../common/constants/quillCss';
+import VersionCheck from 'react-native-version-check';
+import RNFS from 'react-native-fs';
 const emojiRegex = require('emoji-regex');
 const Utils = {
   // 이메일 체크
@@ -85,7 +87,7 @@ const Utils = {
   },
 
   // 인풋 입력숫자 콤마표기
-  changeNumberComma: (str, canLastDot, sign) => {
+  changeNumberComma: (str, canLastDot, sign, rtnString) => {
     // null 또는 undefined의 경우
     if (str === null || str === undefined) {
       return '';
@@ -139,6 +141,9 @@ const Utils = {
     }
 
     // 그 외의 경우 (숫자가 아닌 경우)
+    if (rtnString) {
+      return str;
+    }
     return '';
   },
   // 숫자 콤마제거, 소수점 3자리까지
@@ -306,7 +311,15 @@ const Utils = {
   },
   // 전화번호 포멧팅 ( 010XXXXYYYY > 010-XXXX-YYYY )
   addHypenToPhoneNumber: value => {
-    const phoneNum = value || '';
+    let phoneNum = value || '';
+    phoneNum = phoneNum.replace(/[^0-9]/g, '');
+    if (phoneNum.length === 10) {
+      const formattedNumber = `${phoneNum.slice(0, 2)}-${phoneNum.slice(
+        2,
+        6,
+      )}-${phoneNum.slice(6)}`;
+      return formattedNumber;
+    }
     if (phoneNum.length === 11) {
       const formattedNumber = `${phoneNum.slice(0, 3)}-${phoneNum.slice(
         3,
@@ -506,6 +519,8 @@ const Utils = {
           Object.keys(FCM_TYPE).forEach(key => {
             notiObj[key] = true;
           });
+          const { data: myInfo } = await apiGetMyInfo();
+          notiObj[FCM_TYPE.MARKETING] = !!myInfo.data.marketingDate;
         }
         await setStorage(
           `notificationStates_${data.userIdx}`,
@@ -696,6 +711,17 @@ const Utils = {
 
     return `${year}.${month}.${day}(${dayOfWeek}) ${ampm} ${hours}시 ${minutes}분`;
   },
+  convertMillisecondsToFormattedDateNoTime: milliseconds => {
+    const daysOfWeek = ['일', '월', '화', '수', '목', '금', '토'];
+    const date = new Date(milliseconds);
+
+    const year = date.getFullYear();
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
+    const dayOfWeek = daysOfWeek[date.getDay()];
+
+    return `${year}.${month}.${day}(${dayOfWeek})`;
+  },
   getLocationDelta: (lat, long, accuracy) => {
     const oneDegreeOfLongitudeInMeters = 111.32 * 1000;
     const circumference = (40075 / 360) * 1000;
@@ -758,31 +784,60 @@ const Utils = {
     }
     const [type, idx] = url.split('/');
 
-    if (type?.toLowerCase()?.startsWith('notice')) {
+    if (type?.toLowerCase() === 'notice') {
       NavigationService.navigate(navName.moreNoticeDetail, {
         boardIdx: idx,
       });
-    } else if (type?.toLowerCase()?.startsWith('article')) {
+    } else if (type?.toLowerCase() === 'article') {
       NavigationService.navigate(navName.moreArticleDetail, {
         boardIdx: idx,
       });
-    } else if (type?.toLowerCase()?.startsWith('academy')) {
+    } else if (type?.toLowerCase() === 'academy') {
       NavigationService.navigate(navName.academyDetail, {
         academyIdx: idx,
       });
-    } else if (type?.toLowerCase()?.startsWith('tournament')) {
+    } else if (type?.toLowerCase() === 'tournament') {
       NavigationService.navigate(navName.tournamentDetail, {
         tournamentIdx: idx,
       });
-    } else if (type?.toLowerCase()?.startsWith('match')) {
-      NavigationService.navigate(navName.moreMatchDetail, {
+    } else if (type?.toLowerCase() === 'match') {
+      NavigationService.navigate(navName.matchingDetail, {
         matchIdx: idx,
       });
-    } else if (type?.toLowerCase()?.startsWith('training')) {
+    } else if (type?.toLowerCase() === 'training') {
       NavigationService.navigate(navName.trainingDetail, { trainingIdx: idx });
-    } else if (type?.toLowerCase()?.startsWith('challenge')) {
+    } else if (type?.toLowerCase() === 'challenge') {
       NavigationService.navigate(navName.challengeDetail, {
         videoIdx: idx,
+      });
+    } else if (type?.toLowerCase() === 'image') {
+      const source = url.replace('IMAGE/', '');
+      NavigationService.navigate(navName.onlyImage, {
+        source,
+      });
+    } else if (type?.toLowerCase() === 'notice_list') {
+      NavigationService.navigate(navName.moreNotice);
+    } else if (type?.toLowerCase() === 'article_list') {
+      NavigationService.navigate(navName.moreArticle);
+    } else if (type?.toLowerCase() === 'tournament_list') {
+      NavigationService.navigate(navName.matchingSchedule, {
+        activeTab: '대회',
+        paramReset: true,
+      });
+    } else if (type?.toLowerCase() === 'match_list') {
+      NavigationService.navigate(navName.matchingSchedule, {
+        activeTab: '매칭',
+        paramReset: true,
+      });
+    } else if (type?.toLowerCase() === 'training_list') {
+      NavigationService.navigate(navName.training, {
+        activeTab: '기초튼튼 훈련',
+        paramReset: true,
+      });
+    } else if (type?.toLowerCase() === 'challenge_list') {
+      NavigationService.navigate(navName.training, {
+        activeTab: '챌린지',
+        paramReset: true,
       });
     }
   },
@@ -802,11 +857,55 @@ const Utils = {
     </body>
     </html>`;
   },
+  getImageHtml: source => {
+    return ` 
+            <html> 
+              <head> 
+                <title>Image Height</title> 
+                <style> 
+                  body, html { 
+                    margin: 0; 
+                    padding: 0; 
+                    width: 100%; 
+                    height: 100%; 
+                  } 
+                  .content { 
+                    margin: 0; 
+                    padding: 0; 
+                    display: flex; 
+                    justify-content: center; 
+                    align-items: center; 
+                    height: 100%; 
+                  } 
+                  img { 
+                    width: 100%; 
+                    height: auto; 
+                  } 
+                </style> 
+              </head> 
+              <body> 
+                <div class="content"> 
+                  <img id="image" src="${source}" alt="event detail image" /> 
+                </div> 
+              </body> 
+            </html>`;
+  },
   getYoutubeVideoId: url => {
     const regex =
       /(https?:\/\/(?:www\.)?(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/))([a-zA-Z0-9_-]{11})/;
     const match = url.match(regex);
     return match ? match[2] : null;
+  },
+  resetImageChache: async () => {
+    const key = 'appVertion';
+    const storedVersion = await getStorage(key);
+    const currentVersion = `${VersionCheck.getCurrentVersion()}`;
+    if (storedVersion !== currentVersion) {
+      // 캐시된 이미지를 메모리와 디스크에서 제거
+      const cacheDir = RNFS.CachesDirectoryPath; // 캐시 디렉토리 경로
+      await RNFS.unlink(cacheDir); // 캐시 디렉토리 삭제
+      await setStorage(key, currentVersion);
+    }
   },
 };
 

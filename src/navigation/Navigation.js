@@ -157,6 +157,23 @@ import AddVideoDetails from '../screens/video/AddVideoDetails';
 import UploadVideoPlayer from '../screens/video/VideoUploadPlayer';
 import VideoRegistering from '../screens/video/VideoRegistering';
 import VideoUploadComplete from '../screens/video/VideoUploadComplete';
+import OnlyImage from '../screens/OnlyImage';
+import EditDetails from '../screens/video/EditVideoDetails';
+import VipQrcode from '../screens/more/VipQrcode';
+import TournamentReviewEdit from '../screens/tournament/TournamentReviewEdit';
+import TournamentCancelApplyTeamCheck from '../screens/tournament/TournamentCancelApplyTeamCheck';
+import TournamentCancelApplyTeamSelect from '../screens/tournament/TournamentCancelApplyTeamSelect';
+import TournamentCancelApplyInfo from '../screens/tournament/TournamentCancelApplyInfo';
+import TournamentCancelApplyComplete from '../screens/tournament/TournamentCancelApplyComplete';
+import TournamentApplyPlayerSelect from '../screens/tournament/TournamentApplyPlayerSelect';
+import TournamentApplyWaitOrPay from '../screens/tournament/TournamentApplyWaitOrPay';
+import TournamentNoticeList from '../screens/tournament/TournamentNoticeList';
+import TournamentNoticeDetail from '../screens/tournament/TournamentNoticeDetail';
+import TournamentReviewList from '../screens/tournament/TournamentReviewList';
+import TournamentInquiryList from '../screens/tournament/TournamentInquiryList';
+import TournamentInquiryEdit from '../screens/tournament/TournamentInquiryEdit';
+import TournamentInquiryDetail from '../screens/tournament/TournamentInquiryDetail';
+import TournamentSketch from '../screens/tournament/TournamentSketch';
 
 function MatchingChatRoomListScreenComponent() {
   return <AuthLayout component={MatchingChatRoomListScreen} />;
@@ -559,6 +576,7 @@ export default function Navigation() {
         component={ChallengeContentPlayer}
       />
       <Stack.Screen name={navName.addDetails} component={AddDetails} />
+      <Stack.Screen name={navName.editVideoDetail} component={EditDetails} />
       <Stack.Screen
         name={navName.challengeAddDetails}
         component={ChallengeAddDetails}
@@ -602,6 +620,65 @@ export default function Navigation() {
       <Stack.Screen
         name={navName.videoUploadComplete}
         component={VideoUploadComplete}
+      />
+      <Stack.Screen name={navName.onlyImage} component={OnlyImage} />
+
+      <Stack.Screen name={navName.vipQrcode} component={VipQrcode} />
+      <Stack.Screen
+        name={navName.tournamentApplyPlayerSelect}
+        component={TournamentApplyPlayerSelect}
+      />
+      <Stack.Screen
+        name={navName.tournamentApplyWaitOrPay}
+        component={TournamentApplyWaitOrPay}
+      />
+      <Stack.Screen
+        name={navName.tournamentReviewEdit}
+        component={TournamentReviewEdit}
+      />
+      <Stack.Screen
+        name={navName.tournamentCancelApplyTeamSelect}
+        component={TournamentCancelApplyTeamSelect}
+      />
+      <Stack.Screen
+        name={navName.tournamentCancelApplyTeamCheck}
+        component={TournamentCancelApplyTeamCheck}
+      />
+      <Stack.Screen
+        name={navName.tournamentCancelApplyInfo}
+        component={TournamentCancelApplyInfo}
+      />
+      <Stack.Screen
+        name={navName.tournamentCancelApplyComplete}
+        component={TournamentCancelApplyComplete}
+      />
+      <Stack.Screen
+        name={navName.tournamentNoticeList}
+        component={TournamentNoticeList}
+      />
+      <Stack.Screen
+        name={navName.tournamentNoticeDetail}
+        component={TournamentNoticeDetail}
+      />
+      <Stack.Screen
+        name={navName.tournamentReviewList}
+        component={TournamentReviewList}
+      />
+      <Stack.Screen
+        name={navName.tournamentInquiryList}
+        component={TournamentInquiryList}
+      />
+      <Stack.Screen
+        name={navName.tournamentInquiryDetail}
+        component={TournamentInquiryDetail}
+      />
+      <Stack.Screen
+        name={navName.tournamentInquiryEdit}
+        component={TournamentInquiryEdit}
+      />
+      <Stack.Screen
+        name={navName.tournamentSketch}
+        component={TournamentSketch}
       />
     </Stack.Navigator>
   );

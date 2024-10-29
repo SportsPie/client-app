@@ -107,6 +107,9 @@ import EventClose from './EventClose';
 import EventInfo from './EventInfo';
 import EventDetail from './EventDetail';
 import EventWrite from './EventWrite';
+import QrScanner from './QrScanner';
+import DownloadFile from './DownloadFile';
+import Document from './Document';
 
 export class SPSvgs {
   static SportsPieLogo = SportsPieLogo;
@@ -148,6 +151,8 @@ export class SPSvgs {
   static Clock = Clock;
   static StampBoost = StampBoost;
   static Download = Download;
+  static DownloadFile = DownloadFile;
+  static Document = Document;
   static Share = Share;
   static Pencil = Pencil;
   static LetterA = LetterA;
@@ -206,6 +211,7 @@ export class SPSvgs {
   static EventInfo = EventInfo;
   static EventDetail = EventDetail;
   static EventWrite = EventWrite;
+  static QrScanner = QrScanner;
 
   //Bottom tab
   static BottomTabHomeOutline = BottomTabHomeOutline;

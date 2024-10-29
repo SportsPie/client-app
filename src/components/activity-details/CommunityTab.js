@@ -221,7 +221,7 @@ function CommunityTab() {
                     : COLORS.labelAlternative,
               },
             ]}>
-            VIP
+            SOL11
           </Text>
         </Pressable>
       </View>

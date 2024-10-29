@@ -13,8 +13,10 @@ import { navName } from '../common/constants/navName';
 import { SPSvgs } from '../assets/svg'; // 아이콘 가져오기
 import { useDispatch, useSelector } from 'react-redux';
 import { apiGetEventDetail } from '../api/RestAPI';
+import { handleError } from '../utils/HandleError';
+import { EVENT_STATE } from '../common/constants/eventState';
 
-function EventFloatingButton({ eventIdx, eventApplied }) {
+function EventFloatingButton({ eventIdx, eventApplied, eventState }) {
   const isLogin = useSelector(selector => selector.auth)?.isLogin;
   const [isOpen, setIsOpen] = useState(false); // 작은 버튼들이 열려 있는지 상태
   const [animation] = useState(new Animated.Value(0)); // 애니메이션 상태값
@@ -22,7 +24,6 @@ function EventFloatingButton({ eventIdx, eventApplied }) {
 
   const getEventDetail = async () => {
     try {
-      console.log('getEventDetail');
       const { data } = await apiGetEventDetail(eventIdx);
       setEventInfo(data.data.eventInfo);
     } catch (error) {
@@ -111,7 +112,7 @@ function EventFloatingButton({ eventIdx, eventApplied }) {
               </View>
             </TouchableOpacity>
           </Animated.View>
-        ) : (
+        ) : eventState === EVENT_STATE.IN_PROGRESS.value ? (
           <Animated.View style={[styles.subButton, eventWriteStyle]}>
             <TouchableOpacity
               style={styles.subButtonContent}
@@ -127,6 +128,9 @@ function EventFloatingButton({ eventIdx, eventApplied }) {
               </View>
             </TouchableOpacity>
           </Animated.View>
+        ) : (
+          // eslint-disable-next-line react/jsx-no-useless-fragment
+          <></>
         )}
 
         {/* 메인 이벤트 버튼 */}
@@ -180,7 +184,6 @@ const styles = StyleSheet.create({
     marginRight: 60,
     backgroundColor: '#E6E9F1',
     justifyContent: 'center',
-    alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,

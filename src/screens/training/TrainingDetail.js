@@ -84,11 +84,11 @@ function TrainingDetail({ route }) {
 
   // 화면 너비에 따른 이미지 높이 동적 계산
   let imageHeight;
-  // 화면 너비가 480 이하일 때는 고정 높이 270
-  if (width <= 480) {
-    imageHeight = 270;
+  // 화면 너비가 360 이하일 때는 고정 높이 203
+  if (width <= 360) {
+    imageHeight = 203;
   }
-  // 화면 너비가 480 초과일 때는 비율에 따른 동적 높이 계산
+  // 화면 너비가 360 초과일 때는 비율에 따른 동적 높이 계산
   else {
     imageHeight = width / aspectRatio;
   }

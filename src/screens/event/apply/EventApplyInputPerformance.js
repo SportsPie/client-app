@@ -32,6 +32,9 @@ import Utils from '../../../utils/Utils';
 import { MAIN_FOOT_TYPE } from '../../../common/constants/mainFootType';
 import { POSITION_DETAIL_TYPE } from '../../../common/constants/positionDetailType';
 import { CAREER_TYPE } from '../../../common/constants/careerType';
+import { MODAL_CLOSE_EVENT } from '../../../common/constants/modalCloseEvent';
+import { DefaultToast, SPToast } from '../../../components/SPToast';
+import Toast from 'react-native-toast-message';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const SCREEN_HEIGHT = Dimensions.get('window').height;
@@ -80,10 +83,21 @@ function EventApplyInputPerformance() {
 
   const updatePosition = position => {
     setSelectedPositions(prev => {
+      // 이미 선택된 포지션인지 확인
+      if (
+        prev.firstWish === position ||
+        prev.secondWish === position ||
+        prev.thirdWish === position
+      ) {
+        SPToast.show({ text: '이미 선택된 포지션입니다' });
+        return prev;
+      }
+
       // 1지망이 비어있으면 1지망에 넣고, 아니면 2지망, 그다음 3지망 순서로 채움
       if (!prev.firstWish) return { ...prev, firstWish: position };
       if (!prev.secondWish) return { ...prev, secondWish: position };
       if (!prev.thirdWish) return { ...prev, thirdWish: position };
+
       return prev; // 3지망까지 모두 선택되면 더 이상 업데이트하지 않음
     });
   };
@@ -394,6 +408,11 @@ function EventApplyInputPerformance() {
           <View style={styles.bottomButtonWrap}>
             <PrimaryButton
               onPress={() => {
+                if (applyData.height >= 1000 || applyData.weight >= 1000) {
+                  SPToast.show({ text: '유효하지 않은 값이 포함돼있습니다.' });
+                  return;
+                }
+
                 setApplyData({
                   ...applyData,
                   height: Number(applyData.height),
@@ -648,6 +667,7 @@ function EventApplyInputPerformance() {
                   </TouchableOpacity>
                 </View>
               </View>
+              <DefaultToast />
             </SafeAreaView>
           </Modal>
         </SafeAreaView>

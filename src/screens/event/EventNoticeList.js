@@ -124,7 +124,7 @@ function EventNoticeList({ route }) {
     <SafeAreaView style={{ flex: 1 }}>
       <Header title="이벤트 공지사항" />
       <View style={{ padding: 16 }}>
-        <Text style={{ ...fontStyles.fontSize20_Medium }}>{eventName}</Text>
+        <Text style={{ ...fontStyles.fontSize20_Semibold }}>{eventName}</Text>
       </View>
       <FlatList
         data={notices}

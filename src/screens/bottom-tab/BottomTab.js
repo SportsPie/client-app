@@ -15,6 +15,8 @@ import { COLORS } from '../../styles/colors';
 import NavigationUtils from '../../utils/NavigationUtils';
 import NavigationService from '../../navigation/NavigationService';
 import CommunityFavPlayer from '../community/CommunityFavPlayer';
+import CommunityNotice from '../community/CommunityNotice';
+import CommunityFavPlayerNotice from '../community/CommunityFavPlayerNotice';
 
 const Tab = createBottomTabNavigator();
 
@@ -46,6 +48,18 @@ function BottomTab() {
         return <SPSvgs.BottomTabCommunityOutline width={24} height={24} />;
 
       case navName.communityFavPlayer:
+        if (isFocused) {
+          return <SPSvgs.BottomTabCommunity width={24} height={24} />;
+        }
+        return <SPSvgs.BottomTabCommunityOutline width={24} height={24} />;
+
+      case navName.communityNotice:
+        if (isFocused) {
+          return <SPSvgs.BottomTabCommunity width={24} height={24} />;
+        }
+        return <SPSvgs.BottomTabCommunityOutline width={24} height={24} />;
+
+      case navName.communityFavPlayerNotice:
         if (isFocused) {
           return <SPSvgs.BottomTabCommunity width={24} height={24} />;
         }
@@ -84,6 +98,12 @@ function BottomTab() {
     }
   };
 
+  const exceptBottomTab = [
+    navName.communityFavPlayer,
+    navName.communityNotice,
+    navName.communityFavPlayerNotice,
+  ];
+
   const renderTabBar = useCallback(props => {
     const { state } = props;
     const navigation = NavigationService;
@@ -95,7 +115,10 @@ function BottomTab() {
             // .filter(v => v.name !== navName.communityFavPlayer)
             .map((route, index) => {
               let isFocused = state.index === index;
-              if (state.index === 4 && index === 3) {
+              if (
+                (state.index === 4 || state.index === 5 || state.index === 6) &&
+                index === 3
+              ) {
                 isFocused = true;
               }
               let navParams = {};
@@ -108,7 +131,7 @@ function BottomTab() {
               }
 
               return (
-                route?.name !== navName.communityFavPlayer && (
+                !exceptBottomTab.includes(route?.name) && (
                   <Pressable
                     onPress={() => {
                       navigation.navigate(route?.name, navParams);
@@ -151,7 +174,9 @@ function BottomTab() {
               type = targetSplit[0];
               pageName = `${type}-${targetSplit[1]}`;
             }
-            NavigationUtils.bottomPageFocusHandler(pageName);
+            if (!exceptBottomTab.includes(pageName)) {
+              NavigationUtils.bottomPageFocusHandler(pageName);
+            }
           },
           blur: item => {
             const target = item?.target;
@@ -163,7 +188,9 @@ function BottomTab() {
               type = targetSplit[0];
               pageName = `${type}-${targetSplit[1]}`;
             }
-            NavigationUtils.bottomPageBlurHandler(pageName);
+            if (!exceptBottomTab.includes(pageName)) {
+              NavigationUtils.bottomPageBlurHandler(pageName);
+            }
           },
         }}
         tabBar={renderTabBar}>
@@ -177,6 +204,14 @@ function BottomTab() {
         <Tab.Screen
           name={navName.communityFavPlayer}
           component={CommunityFavPlayer}
+        />
+        <Tab.Screen
+          name={navName.communityNotice}
+          component={CommunityNotice}
+        />
+        <Tab.Screen
+          name={navName.communityFavPlayerNotice}
+          component={CommunityFavPlayerNotice}
         />
         <Tab.Screen name={navName.training} component={Training} />
       </Tab.Navigator>

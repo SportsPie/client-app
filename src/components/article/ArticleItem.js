@@ -18,7 +18,8 @@ import fontStyles from '../../styles/fontStyles';
 function ArticleItem({ item, containerStyle, onPressHiddenItem }) {
   const { width } = useWindowDimensions();
   const imageWidth = (SCREEN_WIDTH - 40) / 2;
-  let imageHeight = 107;
+  // let imageHeight = 107;
+  let imageHeight = (imageWidth * 2) / 3; // 3:2 비율 적용
   if (width > 480) {
     imageHeight = (width * 107) / 480;
   }

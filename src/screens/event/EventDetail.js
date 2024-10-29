@@ -35,6 +35,8 @@ import SPLoading from '../../components/SPLoading';
 import { EVENT_STATE } from '../../common/constants/eventState';
 import { useAppState } from '../../utils/AppStateContext';
 import { useSelector } from 'react-redux';
+import { WebView } from 'react-native-webview';
+import ImageSizeGetter from '../../components/ImageSizeGetter';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const SCREEN_HEIGHT = Dimensions.get('window').height;
@@ -43,7 +45,6 @@ function EventDetail({ route }) {
   const { isLogin, userIdx } = useSelector(selector => selector.auth);
   const { fromMore, setFromMore } = useAppState();
   const eventIdx = route.params?.eventIdx;
-  const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
   const { width } = useWindowDimensions();
   const imageHeight = width <= 480 ? 246 : (width * 10) / 16;
   const paddingHorizontal = 16; // contentsBox의 수평 패딩 값
@@ -57,14 +58,6 @@ function EventDetail({ route }) {
   const [showButtomModal, setShowButtomModal] = useState(false);
   const [alReadyApply, setAlReadyApply] = useState(false);
   const [fstCall, setFstCall] = useState(false);
-
-  const handleImageLoad = event => {
-    /**
-     * state
-     */
-    const { width, height } = event.nativeEvent.source;
-    setImageSize({ width, height });
-  };
 
   const [eventInfo, setEventInfo] = useState({});
   const [eventImageList, setEventImageList] = useState([]);
@@ -107,7 +100,7 @@ function EventDetail({ route }) {
     if (applied) {
       setAlReadyApply(true);
       setShowButtomModal(true);
-    } else if (info.closeYn === 'Y') {
+    } else if (info.eventState !== EVENT_STATE.IN_PROGRESS.value) {
       setAlReadyApply(false);
       setShowButtomModal(false);
     } else if (info.closeDate) {
@@ -120,6 +113,14 @@ function EventDetail({ route }) {
         setShowButtomModal(false);
       }
     }
+  };
+  const formatDate = dateString => {
+    return moment(dateString).format('YYYY.MM.DD(ddd) A h:mm');
+  };
+
+  const [detailImageHeight, setDetailImageHeightSet] = useState(0);
+  const handleLayout = ({ width, height }) => {
+    setDetailImageHeightSet(height);
   };
 
   /**
@@ -148,22 +149,15 @@ function EventDetail({ route }) {
       />
 
       {/* 이벤트 내용 */}
+      <ImageSizeGetter source={eventInfo.detailPath} getter={handleLayout} />
       <ScrollView>
         {eventInfo?.detailPath && (
           <View style={styles.imageContainer}>
-            <Image
-              source={{ uri: eventInfo.detailPath }}
-              onLoad={handleImageLoad}
-              style={[
-                styles.eventImage,
-                imageSize.width && imageSize.height
-                  ? {
-                      aspectRatio: imageSize.width / imageSize.height,
-                      height: undefined,
-                    }
-                  : { height: SCREEN_HEIGHT * 0.6 }, // 기본 높이 설정
-              ]}
-              resizeMode="contain" // 이미지가 잘리지 않도록 유지
+            <WebView
+              style={{ flex: 1, height: detailImageHeight }}
+              source={{
+                html: Utils.getImageHtml(eventInfo.detailPath),
+              }}
             />
           </View>
         )}
@@ -316,6 +310,47 @@ function EventDetail({ route }) {
         {eventTargetList && eventTargetList.length > 0 && (
           <Divider lineHeight={8} lineColor={COLORS.indigo90} />
         )}
+
+        {/* 접수 정보 */}
+        <View style={styles.contentsBox}>
+          <Text style={styles.contentsTitle}>접수 정보</Text>
+          <View style={styles.contentsInfoGroup}>
+            {/* 접수 기간 */}
+            <View style={styles.contentsInfoBox}>
+              <Text style={styles.contentsInfoTitle}>접수 기간</Text>
+              <Text style={styles.contentsInfoText}>
+                {`${formatDate(eventInfo.openDate)} -\n${formatDate(
+                  eventInfo.closeDate,
+                )}`}
+              </Text>
+            </View>
+
+            {/* 참가비 */}
+            <View style={styles.contentsInfoBox}>
+              <Text style={styles.contentsInfoTitle}>참가비</Text>
+              <Text style={styles.contentsInfoText}>
+                {eventInfo.parFee
+                  ? `${Utils.changeNumberComma(
+                      eventInfo.parFee,
+                      false,
+                      false,
+                      true,
+                    )}`
+                  : '-'}
+              </Text>
+            </View>
+
+            {/* 입금 정보 */}
+            <View style={styles.contentsInfoBox}>
+              <Text style={styles.contentsInfoTitle}>입금 정보</Text>
+              <Text style={styles.contentsInfoText}>
+                {eventInfo.bankAccount}
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        <Divider lineHeight={8} lineColor={COLORS.indigo90} />
 
         <View style={styles.contentsBox}>
           <View style={styles.topBox}>
@@ -605,6 +640,30 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 8,
   },
+  contentsInfoGroup: {
+    flexDirection: 'column',
+    gap: 24,
+  },
+  contentsInfoBox: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  contentsInfoTitle: {
+    minWidth: 70,
+    fontSize: 14,
+    fontWeight: 400,
+    color: 'rgba(46, 49, 53, 0.80)',
+    lineHeight: 20,
+    letterSpacing: 0.203,
+  },
+  contentsInfoText: {
+    fontSize: 14,
+    fontWeight: 600,
+    color: '#1A1C1E',
+    lineHeight: 20,
+    letterSpacing: 0.203,
+  },
+
   buttonBox: {
     marginHorizontal: 16,
     marginVertical: 24,

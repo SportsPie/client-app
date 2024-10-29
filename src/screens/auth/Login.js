@@ -217,7 +217,7 @@ function Login({ noMove }) {
               {Platform.OS !== 'android' && (
                 <SNSButton type={LOGIN_TYPES.APPLE.code} onPress={snsLogin} />
               )}
-              {/* <SNSButton type={LOGIN_TYPES.FACEBOOK.code} onPress={snsLogin} /> */}
+              <SNSButton type={LOGIN_TYPES.FACEBOOK.code} onPress={snsLogin} />
             </View>
 
             {/* Guest */}

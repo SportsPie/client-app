@@ -32,7 +32,6 @@ export default function SPHeader({
   rightButtonMoveParam,
   addRightCancelButton,
   addRightButtonIcon,
-  rightCancelText,
   rightTextMoveName,
   rightTextMoveParam,
   containerStyle,
@@ -69,7 +68,6 @@ export default function SPHeader({
       rightCancelButton,
       rightButtonMoveName,
       rightButtonMoveParam,
-      rightCancelText,
       rightTextMoveName,
       rightTextMoveParam,
       addRightCancelButton,
@@ -241,7 +239,7 @@ export default function SPHeader({
           </TouchableOpacity>
         </View>
       )}
-      {rightCancelText && (
+      {rightText && (
         <View style={styles.rightText}>
           <TouchableOpacity
             activeOpacity={ACTIVE_OPACITY}
@@ -258,17 +256,6 @@ export default function SPHeader({
                 NavigationService.goBack();
               }
             }}>
-            <Text style={[styles.rightTextStyle, rightTextStyle]}>
-              {rightText}
-            </Text>
-          </TouchableOpacity>
-        </View>
-      )}
-      {rightText && (
-        <View style={styles.rightText}>
-          <TouchableOpacity
-            activeOpacity={ACTIVE_OPACITY}
-            onPress={onPressRightText}>
             <Text style={[styles.rightTextStyle, rightTextStyle]}>
               {rightText}
             </Text>

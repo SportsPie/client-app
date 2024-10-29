@@ -8,8 +8,13 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
-import { apiGetMatches, apiGetProfile } from '../../api/RestAPI';
+import { ScrollView, StyleSheet, Text, View, Pressable } from 'react-native';
+import {
+  apiGetMatches,
+  apiGetProfile,
+  apiGetMyInfo,
+  apiModifyMyInfo,
+} from '../../api/RestAPI';
 import { SPSvgs } from '../../assets/svg';
 import { GENDER } from '../../common/constants/gender';
 import { MAIN_FOOT } from '../../common/constants/mainFoot';
@@ -23,6 +28,11 @@ import { CAREER_TYPE } from '../../common/constants/careerType';
 import { useFocusEffect } from '@react-navigation/native';
 import moment from 'moment/moment';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import SPModal from '../../components/SPModal';
+import Utils from '../../utils/Utils';
+import { MODAL_CLOSE_EVENT } from '../../common/constants/modalCloseEvent';
+import NavigationService from '../../navigation/NavigationService';
+import { navName } from '../../common/constants/navName';
 
 // const DATA = [
 //   {
@@ -56,6 +66,9 @@ function MoreProfile() {
   const pageSize = 30;
   const flatListRef = useRef();
   const [isLast, setIsLast] = useState(false);
+  const [nickname, setNickname] = useState(null);
+  const [registModalShow, setRegistModalShow] = useState(false);
+  const trlRef = useRef({ current: { disabled: false } });
 
   /**
    * api
@@ -124,6 +137,45 @@ function MoreProfile() {
     }, 0);
   };
 
+  // 닉네임 수정
+  const modifyNickName = async newNickname => {
+    closeModal();
+    try {
+      if (trlRef.current.disabled) return;
+      trlRef.current.disabled = true;
+      const formData = new FormData();
+
+      // JSON 파라미터
+      const params = {
+        userNickName: Utils.removeSymbolAndBlank(newNickname),
+      };
+      formData.append('dto', {
+        string: JSON.stringify(params),
+        type: 'application/json',
+      });
+
+      await apiModifyMyInfo(formData);
+      Utils.openModal({
+        title: '성공',
+        body: '수정이 완료되었습니다.',
+        closeEvent: MODAL_CLOSE_EVENT.goBack,
+      });
+    } catch (error) {
+      handleError(error);
+    } finally {
+      trlRef.current.disabled = false;
+      setIsEditing(false);
+    }
+  };
+
+  const openModal = () => {
+    setRegistModalShow(true);
+  };
+  const closeModal = () => {
+    setRegistModalShow(false);
+    setNickname(null);
+  };
+
   /**
    * useEffect
    */
@@ -142,6 +194,27 @@ function MoreProfile() {
   const renderUserSection = useMemo(() => {
     return (
       <View style={styles.userSectionWrapper}>
+        <Pressable
+          style={{
+            paddingHorizontal: 16,
+            paddingVertical: 4,
+            marginBottom: 16,
+            alignSelf: 'flex-end',
+          }}
+          onPress={() => {
+            NavigationService.navigate(navName.moreStatModify);
+          }}>
+          <Text
+            style={{
+              fontSize: 16,
+              fontWeight: 600,
+              color: '#FFF',
+              lineHeight: 24,
+              letterSpacing: -0.091,
+            }}>
+            퍼포먼스 수정
+          </Text>
+        </Pressable>
         <Avatar
           imageSize={56}
           disableEditMode
@@ -169,6 +242,13 @@ function MoreProfile() {
             style={[fontStyles.fontSize18_Semibold, { color: COLORS.white }]}>
             {member?.userNickName ?? ''}
           </Text>
+          <Pressable
+            hitSlop={5}
+            onPress={() => {
+              openModal();
+            }}>
+            <SPSvgs.Pencil width={18} height={18} fill="#fff" />
+          </Pressable>
         </View>
 
         {member?.acdmyNm && (
@@ -283,7 +363,6 @@ function MoreProfile() {
     return (
       <View style={styles.gameHistoryWrapper}>
         <Text style={fontStyles.fontSize20_Semibold}>경기 참가이력</Text>
-
         <View style={styles.gameScoreWrapper}>
           <View style={styles.scoreItem}>
             <Text style={styles.scoretitleText}>출전경기수</Text>
@@ -378,6 +457,40 @@ function MoreProfile() {
           </View>
         </View>
       </ScrollView>
+
+      <SPModal
+        title="닉네임"
+        visible={registModalShow}
+        textInputVisible={true}
+        textCancelButton
+        textAlign="center"
+        placeholder="16자 이내 한글 혹은 영문"
+        maxLength={16}
+        textInputStyle={{
+          borderWidth: 1,
+          borderRadius: 10,
+          borderColor: COLORS.orange,
+          paddingHorizontal: 30,
+        }}
+        value={nickname === null ? member?.userNickName : nickname}
+        onChangeText={value => {
+          const text = Utils.removeSymbolAndBlank(value);
+          setNickname(text);
+        }}
+        onConfirm={value => {
+          modifyNickName(value);
+        }}
+        onCancel={() => {
+          closeModal();
+        }}
+        onClose={() => {
+          closeModal();
+        }}
+        // 추가: Clear 버튼을 누르면 nickname을 null로 설정
+        // textCancelButton={{
+        //   onPress: () => setNickname(null), // 또는 원하는 클리어 로직을 넣으세요
+        // }}
+      />
     </View>
   );
 }
@@ -398,7 +511,7 @@ const styles = StyleSheet.create({
   userSectionWrapper: {
     alignItems: 'center',
     rowGap: 8,
-    paddingVertical: 24,
+    paddingBottom: 24,
   },
   usernameWrapper: {
     flexDirection: 'row',

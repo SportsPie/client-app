@@ -150,12 +150,20 @@ function Home() {
   const mainPopupRef = useRef();
   const isLogin = useSelector(selector => selector.auth)?.isLogin;
   const { width, height } = useWindowDimensions();
-  const aspectRatio = 2 / 3;
   const dynamicHeight = Math.max(144, Math.min(300, width / 3));
+  const imageHeight = Math.max((width * 10) / 16, 225);
+  const subImageHeight = width / 4;
   // const hometownHeight = Math.max(156, width / 3);
-  const imageHeight = width <= 480 ? 225 : (width * 9) / 16;
-  const subImageHeight = width > 480 ? Math.max(91, width / 4) : 91;
-  const magazineHeight = ((width - 16 - 32) / 2) * aspectRatio;
+  // const imageHeight = width <= 480 ? 225 : (width * 9) / 16;
+  // const subImageHeight = width > 480 ? Math.max(91, width / 4) : 91;
+
+  // 꿀팁 매거진 이미지
+  // const aspectRatio = 2 / 3;
+  // const magazineHeight = ((width - 16 - 32) / 2) * aspectRatio;
+  const magazineAspectRatio = 3 / 2; // 3:2 비율 적용
+  const magazineWidth = (width - 16 - 32) / 2; // 이미지 너비 계산
+  const magazineHeight = magazineWidth / magazineAspectRatio; // 3:2 비율로 높이 계산
+
   const [homeTownData, setHomeTownData] = useState([]);
   const [magazineData, setMagazineData] = useState([]);
   const [newsData, setNewsData] = useState([]);
@@ -168,6 +176,7 @@ function Home() {
   const [openEvent, setOpenEvent] = useState(false);
   const [eventIdx, setEventIdx] = useState();
   const [eventApplied, setEventApplied] = useState(false);
+  const [eventState, setEventState] = useState(null);
   const [init, setInit] = useState(false);
   const moreChallenge = () => {
     NavigationService.navigate(navName.training, {
@@ -234,8 +243,11 @@ function Home() {
       setSlidesData(response.data.data.tournament);
       setChallengeData(response.data.data.videoList);
       setEventIdx(response.data.data.eventIdx);
+      setEventState(response.data.data.event?.eventState);
       setOpenEvent(
-        response.data.data.openEvent === 'Y' && response.data.data.eventIdx,
+        response.data.data.openEvent === 'Y' &&
+          response.data.data.event.closeYn !== 'Y' &&
+          response.data.data.eventIdx,
       );
       setEventApplied(response.data.data.eventApplied);
     } catch (error) {
@@ -797,10 +809,11 @@ function Home() {
         {Array.isArray(popupData) && popupData.length > 0 && (
           <MainPopup ref={mainPopupRef} data={popupData} />
         )}
-        {isLogin && (
+        {isLogin && openEvent && (
           <EventFloatingButton
             eventIdx={eventIdx}
             eventApplied={eventApplied}
+            eventState={eventState}
           />
         )}
       </SafeAreaView>
@@ -980,7 +993,7 @@ const styles = StyleSheet.create({
   },
   swiperBackgroundBox: {
     height: '100%',
-    minHeight: 93,
+    minHeight: 90,
     flexDirection: 'column',
     justifyContent: 'center',
     padding: 16,
@@ -1053,7 +1066,9 @@ const styles = StyleSheet.create({
     letterSpacing: 0.342,
   },
   magazineImageBox: {
-    borderRadius: 12,
+    // borderRadius: 12,
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
     overflow: 'hidden',
   },
   magazineTitleBox: {

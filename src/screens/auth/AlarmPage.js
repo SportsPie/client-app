@@ -7,7 +7,6 @@ import AlertItem from '../../components/alert-page/AlertItem';
 import Header from '../../components/header';
 import { COLORS } from '../../styles/colors';
 import { handleError } from '../../utils/HandleError';
-import notificationMapper from '../../utils/notification/NotificationMapper';
 import notificationUtils from '../../utils/notification/NotificationUtils';
 import { alarmListAction } from '../../redux/reducers/list/alarmListSlice';
 import { store } from '../../redux/store';
@@ -39,7 +38,7 @@ function AlarmPage({ route }) {
   } = useSelector(selector => selector[listName]);
   const noParamReset = route?.params?.noParamReset;
   const action = alarmListAction;
-
+  const [isFocus, setIsFocus] = useState(true);
   const flatListRef = useRef();
 
   const { isLogin, userIdx } = useSelector(selector => selector.auth);
@@ -50,7 +49,7 @@ function AlarmPage({ route }) {
    */
   const getNotiList = async () => {
     try {
-      const list = await notificationMapper.selectNotificationList({
+      const list = await notificationUtils.getList({
         userIdx,
         paging: true,
         page,
@@ -93,7 +92,7 @@ function AlarmPage({ route }) {
   useFocusEffect(
     useCallback(() => {
       return () => {
-        notificationUtils.read();
+        if (noParamReset) notificationUtils.read();
       };
     }, []),
   );
@@ -105,12 +104,15 @@ function AlarmPage({ route }) {
         ...(route?.params || {}),
         noParamReset: true,
       });
+      return;
     }
+    dispatch(action.refresh());
+    setIsFocus(false);
   }, [noParamReset]);
 
   useEffect(() => {
     if (noParamReset) {
-      if (refreshing || (!refreshing && page > 1)) {
+      if ((!isFocus && refreshing) || (!refreshing && page > 1)) {
         getNotiList();
       }
     }

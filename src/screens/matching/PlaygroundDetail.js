@@ -46,7 +46,6 @@ function PlaygroundDetail({ route }) {
   const getPlaygroundDetail = async () => {
     try {
       const { data } = await apiGetPlaygroundDetail(groundIdx);
-      console.log(data);
       // instagramUrl;
       // homepageUrl;
 

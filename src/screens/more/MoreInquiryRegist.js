@@ -1,5 +1,12 @@
 import React, { memo, useRef, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import {
+  Dimensions,
+  Image,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { apiPostQnaInsert, apiPutQnaModify } from '../../api/RestAPI';
 import { MODAL_CLOSE_EVENT } from '../../common/constants/modalCloseEvent';
@@ -13,6 +20,77 @@ import Utils from '../../utils/Utils';
 import fontStyles from '../../styles/fontStyles';
 import { useDispatch } from 'react-redux';
 import { moreInquiryListAction } from '../../redux/reducers/list/moreInquiryListSlice';
+import SPSelectPhotoModal from '../../components/SPSelectPhotoModal';
+import SPIcons from '../../assets/icon';
+import Carousel from 'react-native-snap-carousel';
+
+function CarouselSection({
+  data,
+  prevData = [],
+  prevRemovePhoto,
+  removePhoto,
+}) {
+  const screenWidth = Dimensions.get('window').width;
+  const itemWidth = 64;
+  const itemHeight = 64;
+  const itemGap = 8;
+  let prev = [];
+  if (prevData && prevData.length > 0) {
+    prev = prevData.map(item => {
+      return { ...item, prev: true };
+    });
+  }
+  const list = [...prev, ...data];
+
+  const renderItem = ({ item, index }) => (
+    <View>
+      <Image
+        source={{ uri: item.prev ? item.fileUrl : item.uri }}
+        style={{
+          width: itemWidth,
+          height: itemHeight,
+          borderRadius: 12,
+          marginRight: itemGap,
+        }}
+      />
+      <TouchableOpacity
+        onPress={e => {
+          e.stopPropagation();
+          if (removePhoto) {
+            if (item.prev) {
+              prevRemovePhoto(index, item.fileIdx);
+            } else {
+              removePhoto(index - prevData.length);
+            }
+          }
+        }}
+        style={{ position: 'absolute', right: 4, top: 4 }}>
+        <Image
+          resizeMode="contain"
+          source={SPIcons.icGrayCancel}
+          style={{
+            width: 16,
+            height: 16,
+          }}
+        />
+      </TouchableOpacity>
+    </View>
+  );
+  return (
+    <Carousel
+      sliderWidth={screenWidth}
+      itemWidth={itemWidth + itemGap}
+      data={list}
+      renderItem={renderItem}
+      activeSlideAlignment="start"
+      inactiveSlideScale={1}
+      inactiveSlideOpacity={1}
+      contentContainerStyle={{ paddingHorizontal: 16 }}
+      slideStyle={{ paddingRight: 8 }}
+      vertical={false} // 수직 슬라이드 비활성화
+    />
+  );
+}
 
 function MoreInquiryRegist({ route }) {
   const dispatch = useDispatch();
@@ -23,50 +101,33 @@ function MoreInquiryRegist({ route }) {
   const [registModalShow, setRegistModalShow] = useState(false);
   const [modifyModalShow, setModifyModalShow] = useState(false);
 
-  // const handleSave = () => {
-  //   Alert.alert(
-  //     '저장하시겠습니까?',
-  //     '',
-  //     [
-  //       {
-  //         text: '취소',
-  //         style: 'cancel',
-  //       },
-  //       { text: '저장', onPress: () => saveData() },
-  //     ],
-  //     { cancelable: true },
-  //   );
-  // };
-  //
-  // const saveData = async () => {
-  //   const data = {
-  //     title,
-  //     question: content,
-  //   };
-  //   try {
-  //     if (trlRef.current.disabled) return;
-  //     trlRef.current.disabled = true;
-  //
-  //     const response = await apiPostQnaInsert(data);
-  //
-  //     NavigationService.navigate(navName.moreInquiry);
-  //   } catch (error) {
-  //     handleError(error);
-  //   } finally {
-  //     trlRef.current.disabled = false;
-  //   }
-  // };
+  const [photoList, setPhotoList] = useState([]);
+  const [prevPhotoList, setPrevPhotoList] = useState(inquiryData?.files ?? []);
+  const [removeFiles, setRemoveFiles] = useState([]); // idxs
+
+  const [showPhotoModal, setShowPhotoModal] = useState(false);
 
   const regist = async () => {
     registCloseModal();
     try {
       if (trlRef.current.disabled) return;
       trlRef.current.disabled = true;
+      const formData = new FormData();
       const params = {
         title,
         question: content,
       };
-      const { data } = await apiPostQnaInsert(params);
+      formData.append('dto', {
+        string: JSON.stringify(params),
+        type: 'application/json',
+      });
+      // photos
+      if (photoList && photoList.length > 0) {
+        photoList.forEach(item => {
+          formData.append('files', item);
+        });
+      }
+      const { data } = await apiPostQnaInsert(formData);
       dispatch(moreInquiryListAction.refresh());
       Utils.openModal({
         title: '성공',
@@ -84,13 +145,27 @@ function MoreInquiryRegist({ route }) {
     try {
       if (trlRef.current.disabled) return;
       trlRef.current.disabled = true;
+      const formData = new FormData();
       const params = {
         title,
         question: content,
         qnaState: inquiryData.qnaState,
         qnaIdx: inquiryData.qnaIdx,
+        removeFiles,
       };
-      const { data } = await apiPutQnaModify(params);
+      formData.append('dto', {
+        string: JSON.stringify(params),
+        type: 'application/json',
+      });
+
+      // photos
+      if (photoList && photoList.length > 0) {
+        photoList.forEach(item => {
+          formData.append('files', item);
+        });
+      }
+
+      const { data } = await apiPutQnaModify(formData);
       // dispatch(moreInquiryListAction.refresh());
       Utils.openModal({
         title: '성공',
@@ -102,41 +177,54 @@ function MoreInquiryRegist({ route }) {
     }
     trlRef.current.disabled = false;
   };
-  // const handleModify = () => {
-  //   Alert.alert(
-  //     '수정하시겠습니까?',
-  //     '',
-  //     [
-  //       {
-  //         text: '취소',
-  //         style: 'cancel',
-  //       },
-  //       { text: '수정', onPress: () => modifyData() },
-  //     ],
-  //     { cancelable: true },
-  //   );
-  // };
-  //
-  // const modifyData = async () => {
-  //   const data = {
-  //     title,
-  //     question: content,
-  //     qnaState: inquiryData.qnaState,
-  //     qnaIdx: inquiryData.qnaIdx,
-  //   };
-  //   try {
-  //     if (trlRef.current.disabled) return;
-  //     trlRef.current.disabled = true;
-  //
-  //     const response = await apiPutQnaModify(data);
-  //
-  //     NavigationService.navigate(navName.moreInquiry);
-  //   } catch (error) {
-  //     handleError(error);
-  //   } finally {
-  //     trlRef.current.disabled = false;
-  //   }
-  // };
+
+  const maxFilename = 60;
+  const updatePhoto = ({ fileUrl, imageName, imageType }) => {
+    const photo = {
+      uri: fileUrl,
+      name:
+        imageName.length <= maxFilename
+          ? imageName
+          : imageName.substring(
+              imageName.length - maxFilename,
+              imageName.length,
+            ),
+      type: imageType,
+    };
+    // if (prevPhotoList.length + photoList.length > 4) {
+    //   Utils.openModal({
+    //     title: '알림',
+    //     body: '이미지는 5개까지 업로드 가능합니다.',
+    //   });
+    //   return;
+    // } // 이미지는 5개까지 업로드 가능
+    setPhotoList(prev => [...prev, photo]);
+  };
+
+  const removePrevPhoto = (index, idx) => {
+    const list = [...prevPhotoList];
+    list.splice(index, 1);
+    setPrevPhotoList(list);
+    setRemoveFiles(prev => [...prev, idx]);
+  };
+
+  const removePhoto = index => {
+    const list = [...photoList];
+    list.splice(index, 1);
+    setPhotoList(list);
+  };
+
+  const openGallery = () => {
+    // if (prevPhotoList.length + photoList.length > 4) {
+    //   Utils.openModal({
+    //     title: '알림',
+    //     body: '이미지는 5개까지 업로드 가능합니다.',
+    //   });
+    // } else {
+    //   setShowPhotoModal(true);
+    // }
+    setShowPhotoModal(true);
+  };
 
   const registOpenModal = () => {
     setRegistModalShow(true);
@@ -184,6 +272,34 @@ function MoreInquiryRegist({ route }) {
               ]}>
               {Utils.changeNumberComma(content?.length, true)}/1,500
             </Text>
+          </View>
+        </View>
+        <View style={{ padding: 16 }}>
+          <CarouselSection
+            prevData={prevPhotoList}
+            prevRemovePhoto={removePrevPhoto}
+            data={photoList}
+            removePhoto={removePhoto}
+          />
+        </View>
+        <View style={styles.bottomBox}>
+          <View style={styles.galleryBox}>
+            <TouchableOpacity
+              onPress={openGallery}
+              style={{
+                width: 48,
+                height: 48,
+                borderRadius: 8,
+                overflow: 'hidden',
+              }}>
+              <Image
+                source={SPIcons.icGallery}
+                style={{
+                  width: 48,
+                  height: 48,
+                }}
+              />
+            </TouchableOpacity>
           </View>
         </View>
         {inquiryData ? (
@@ -234,6 +350,17 @@ function MoreInquiryRegist({ route }) {
             registCloseModal();
           }}
         />
+
+        <SPSelectPhotoModal
+          visible={showPhotoModal}
+          crop={false}
+          onClose={async () => {
+            setShowPhotoModal(false);
+          }}
+          onComplete={data => {
+            updatePhoto(data);
+          }}
+        />
       </SafeAreaView>
     </DismissKeyboard>
   );
@@ -247,6 +374,15 @@ const styles = StyleSheet.create({
     paddingVertical: 24,
     paddingHorizontal: 16,
     rowGap: 16,
+  },
+  bottomBox: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderTopWidth: 1,
+    borderTopColor: '#D9D9D9',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
   },
   submitButton: {
     // marginTop: 'auto',

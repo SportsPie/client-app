@@ -65,6 +65,9 @@ import ListEmptyView from '../../components/ListEmptyView';
 import { MODAL_CLOSE_EVENT } from '../../common/constants/modalCloseEvent';
 import { communityFavPlayerCommentListAction } from '../../redux/reducers/list/communityFavPlayerCommentListSlice';
 import BackHandlerUtils from '../../utils/BackHandlerUtils';
+import Swiper from 'react-native-swiper';
+import { IS_YN } from '../../common/constants/isYN';
+import { communityFavPlayerNoticeListAction } from '../../redux/reducers/list/communityFavPlayerNoticeListSlice';
 
 function CommunityFavPlayerDetails({ route }) {
   const {
@@ -108,7 +111,7 @@ function CommunityFavPlayerDetails({ route }) {
   const [modifyComment, setModifyComment] = useState('');
 
   const [imageModalShow, setImageModalShow] = useState(false);
-  const [selectedImage, setSelectedImage] = useState(null);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(null);
 
   const trlRef = useRef({ current: { disabled: false } });
   const [keyboardAvoidingViewRefresh, setKeyboardAvoidingViewRefresh] =
@@ -143,6 +146,7 @@ function CommunityFavPlayerDetails({ route }) {
     } catch (error) {
       if (error.code === 4906 || error.code === 9999) {
         dispatch(communityFavPlayerListAction.refresh());
+        dispatch(communityFavPlayerNoticeListAction.refresh());
       }
       handleError(error);
     }
@@ -171,6 +175,13 @@ function CommunityFavPlayerDetails({ route }) {
       feedDetail.cntComment = data.data.totalCnt;
       dispatch(
         communityFavPlayerListAction.modifyItem({
+          idxName: 'feedIdx',
+          idx: feedDetail.feedIdx,
+          item: feedDetail,
+        }),
+      );
+      dispatch(
+        communityFavPlayerNoticeListAction.modifyItem({
           idxName: 'feedIdx',
           idx: feedDetail.feedIdx,
           item: feedDetail,
@@ -224,6 +235,13 @@ function CommunityFavPlayerDetails({ route }) {
       }),
     );
     dispatch(
+      communityFavPlayerNoticeListAction.modifyItem({
+        idxName: 'feedIdx',
+        idx: feedDetail.feedIdx,
+        item: feedDetail,
+      }),
+    );
+    dispatch(
       moreCommunityFavPlayerListAction.modifyItem({
         idxName: 'feedIdx',
         idx: feedDetail.feedIdx,
@@ -259,6 +277,13 @@ function CommunityFavPlayerDetails({ route }) {
       Keyboard.dismiss();
       dispatch(
         communityFavPlayerListAction.modifyItem({
+          idxName: 'feedIdx',
+          idx: feedDetail.feedIdx,
+          item: feedDetail,
+        }),
+      );
+      dispatch(
+        communityFavPlayerNoticeListAction.modifyItem({
           idxName: 'feedIdx',
           idx: feedDetail.feedIdx,
           item: feedDetail,
@@ -422,7 +447,8 @@ function CommunityFavPlayerDetails({ route }) {
     return (
       <Header
         rightContent={
-          showOptionButton && (
+          showOptionButton &&
+          feedDetail?.topYn === IS_YN.N && (
             <Pressable onPress={() => openModal()}>
               <SPSvgs.EllipsesVertical />
             </Pressable>
@@ -430,7 +456,7 @@ function CommunityFavPlayerDetails({ route }) {
         }
       />
     );
-  }, [showOptionButton]);
+  }, [showOptionButton, feedDetail]);
 
   const renderImages = useMemo(() => {
     const screenWidth = Dimensions.get('window').width;
@@ -439,11 +465,11 @@ function CommunityFavPlayerDetails({ route }) {
     const calculatedHeight = screenWidth / aspectRatio; // 디바이스 크기에 비례하는 높이
     const dynamicHeight = Math.max(minHeight, calculatedHeight);
 
-    const renderItem = ({ item: imageItem }) => {
+    const renderItem = ({ item: imageItem, index }) => {
       return (
         <Pressable
           onPress={() => {
-            setSelectedImage(imageItem?.fileUrl);
+            setSelectedImageIndex(index);
             openImageModal();
           }}>
           <Image
@@ -471,6 +497,8 @@ function CommunityFavPlayerDetails({ route }) {
         inactiveSlideOpacity={0.7}
         slideStyle={{ paddingLeft: 8 }}
         vertical={false}
+        enableMomentum={true}
+        decelerationRate="fast"
       />
     );
   }, [feedDetail]);
@@ -500,7 +528,11 @@ function CommunityFavPlayerDetails({ route }) {
 
   const renderFeed = useMemo(() => {
     return (
-      <View>
+      <View
+        style={[
+          feedDetail?.adminIdx &&
+            feedDetail?.topYn === 'Y' && { backgroundColor: '#F5F5F5' },
+        ]}>
         <View style={styles.feedSection}>
           <View style={styles.userInfoSection}>
             <Avatar
@@ -509,7 +541,9 @@ function CommunityFavPlayerDetails({ route }) {
               imageURL={feedDetail.profilePath}
             />
             <View style={{ rowGap: 2 }}>
-              <Text style={styles.nameText}>{feedDetail?.userNickname}</Text>
+              <Text style={styles.nameText}>
+                {feedDetail?.userNickname || feedDetail?.adminName}
+              </Text>
               <Text style={styles.dateText}>
                 {Utils.formatTimeAgo(feedDetail?.regDate)}
               </Text>
@@ -531,6 +565,7 @@ function CommunityFavPlayerDetails({ route }) {
           </View>
           <View style={styles.likeWrapper}>
             <TouchableOpacity
+              hitSlop={15}
               onPress={() => {
                 changeLike();
               }}>
@@ -753,10 +788,7 @@ function CommunityFavPlayerDetails({ route }) {
         visible={imageModalShow}
         onRequestClose={closeImageModal}>
         <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.black }}>
-          <View
-            style={{
-              marginTop: insets.top,
-            }}>
+          <View style={{ paddingTop: insets.top }}>
             <TouchableOpacity
               onPress={closeImageModal}
               style={{
@@ -780,16 +812,23 @@ function CommunityFavPlayerDetails({ route }) {
               justifyContent: 'center',
               alignItems: 'center',
             }}>
-            {selectedImage && (
-              <Image
-                source={{ uri: selectedImage }}
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  resizeMode: 'contain',
-                }}
-              />
-            )}
+            <Swiper
+              loop={false}
+              index={selectedImageIndex}
+              showsPagination={false}>
+              {feedDetail?.files?.map((imageItem, index) => (
+                <View key={imageItem.fileUrl} style={{ flex: 1 }}>
+                  <Image
+                    source={{ uri: imageItem.fileUrl }}
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      resizeMode: 'contain',
+                    }}
+                  />
+                </View>
+              ))}
+            </Swiper>
           </View>
         </SafeAreaView>
       </Modal>
@@ -926,6 +965,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   reviewSection: {
+    backgroundColor: COLORS.white,
     paddingTop: 24,
     paddingBottom: 16,
     paddingHorizontal: 16,

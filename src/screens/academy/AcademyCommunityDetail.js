@@ -1,6 +1,13 @@
 import { useFocusEffect } from '@react-navigation/native';
 import moment from 'moment';
-import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
+import React, {
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   Dimensions,
   FlatList,
@@ -55,6 +62,8 @@ import { navName } from '../../common/constants/navName';
 import { moreCommunityListAction } from '../../redux/reducers/list/moreCommunityListSlice';
 import ListEmptyView from '../../components/ListEmptyView';
 import BackHandlerUtils from '../../utils/BackHandlerUtils';
+import Swiper from 'react-native-swiper';
+import { ACTIVE_OPACITY } from '../../common/constants/constants';
 
 // 커뮤니티 이미지 슬라이드
 function CarouselSection({ data, openFileterModal, setSelectedImage }) {
@@ -64,10 +73,11 @@ function CarouselSection({ data, openFileterModal, setSelectedImage }) {
   const calculatedHeight = screenWidth / aspectRatio; // 디바이스 크기에 비례하는 높이
   const dynamicHeight = Math.max(minHeight, calculatedHeight);
 
-  const renderItem = ({ item }) => (
+  const renderItem = ({ item, index }) => (
     <TouchableOpacity
+      activeOpacity={ACTIVE_OPACITY}
       onPress={() => {
-        setSelectedImage(item.fileUrl);
+        setSelectedImage(index);
         openFileterModal();
       }}>
       <Image
@@ -92,6 +102,8 @@ function CarouselSection({ data, openFileterModal, setSelectedImage }) {
       contentContainerStyle={{ paddingHorizontal: 16 }}
       slideStyle={{ paddingRight: 8 }}
       vertical={false} // 수직 슬라이드 비활성화
+      enableMomentum={true}
+      decelerationRate="fast"
     />
   );
 }
@@ -148,7 +160,7 @@ function AcademyCommunityDetail({ route }) {
   const [modifyComment, setModifyComment] = useState('');
 
   const [imageModalShow, setImageModalShow] = useState(false);
-  const [selectedImage, setSelectedImage] = useState(null);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(null);
 
   const trlRef = useRef({ current: { disabled: false } });
   const [keyboardAvoidingViewRefresh, setKeyboardAvoidingViewRefresh] =
@@ -439,7 +451,7 @@ function AcademyCommunityDetail({ route }) {
         setIsJoined(false);
         setSelectedComment({});
         setModifyComment({});
-        setSelectedImage();
+        setSelectedImageIndex();
         NavigationService.replace(navName.academyCommunityDetail, {
           ...(route?.params || {}),
           noParamReset: true,
@@ -487,7 +499,7 @@ function AcademyCommunityDetail({ route }) {
     }
   }, [page, isFocus, refreshing, noParamReset]);
 
-  const renderDetail = () => {
+  const renderDetail = useMemo(() => {
     return (
       <View>
         <View style={styles.communityBox}>
@@ -542,7 +554,7 @@ function AcademyCommunityDetail({ route }) {
               <CarouselSection
                 data={feedDetail.files}
                 openFileterModal={openImageModal}
-                setSelectedImage={setSelectedImage}
+                setSelectedImage={setSelectedImageIndex}
               />
             </View>
           )}
@@ -584,7 +596,7 @@ function AcademyCommunityDetail({ route }) {
         </View>
       </View>
     );
-  };
+  }, [feedDetail]);
 
   return (
     <DismissKeyboard>
@@ -823,10 +835,7 @@ function AcademyCommunityDetail({ route }) {
             visible={imageModalShow}
             onRequestClose={closeImageModal}>
             <SafeAreaView style={{ flex: 1, backgroundColor: '#000' }}>
-              <View
-                style={{
-                  marginTop: insets.top,
-                }}>
+              <View>
                 <TouchableOpacity
                   onPress={closeImageModal}
                   style={{
@@ -843,22 +852,30 @@ function AcademyCommunityDetail({ route }) {
                 </TouchableOpacity>
                 <View style={styles.searchContainer} />
               </View>
+
               <View
                 style={{
                   flex: 1,
                   justifyContent: 'center',
                   alignItems: 'center',
                 }}>
-                {selectedImage && (
-                  <Image
-                    source={{ uri: selectedImage }}
-                    style={{
-                      width: '100%',
-                      height: '100%',
-                      resizeMode: 'contain',
-                    }}
-                  />
-                )}
+                <Swiper
+                  loop={false}
+                  index={selectedImageIndex}
+                  showsPagination={false}>
+                  {feedDetail?.files?.map((imageItem, index) => (
+                    <View key={imageItem.fileUrl} style={{ flex: 1 }}>
+                      <Image
+                        source={{ uri: imageItem.fileUrl }}
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          resizeMode: 'contain',
+                        }}
+                      />
+                    </View>
+                  ))}
+                </Swiper>
               </View>
             </SafeAreaView>
           </Modal>

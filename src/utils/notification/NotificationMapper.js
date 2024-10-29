@@ -1,7 +1,6 @@
 import SqlLite from '../SqlLite/SqlLite';
 import { COLUMNS, TABLES } from '../SqlLite/SqlListConsts';
 import moment from 'moment/moment';
-import { USER_TYPE } from '../chat/ChatMapper';
 
 const notificationMapper = {
   selectNotificationList: async ({ userIdx, paging, page, size }) => {
@@ -16,6 +15,17 @@ const notificationMapper = {
       return await SqlLite.customSql(selectSql + condition + order);
     } catch (error) {
       console.log('selectNotificationList error');
+      return Promise.reject(error);
+    }
+  },
+  selectNotReadCnt: async userIdx => {
+    try {
+      const selectSql = `SELECT COUNT(*) FROM ${TABLES.notification} AS notification`;
+      const condition = ` WHERE notification.${COLUMNS.notification.column.isRead} != 'Y' AND notification.${COLUMNS.notification.column.userIdx} = ${userIdx}`;
+      const result = await SqlLite.customSql(selectSql + condition);
+      return result[0]['COUNT(*)'];
+    } catch (error) {
+      console.log('notification selectNotReadCnt error');
       return Promise.reject(error);
     }
   },

@@ -22,7 +22,6 @@ import {
 import fontStyles from '../../styles/fontStyles';
 import { COLORS } from '../../styles/colors';
 import DismissKeyboard from '../../components/DismissKeyboard';
-import SPKeyboardAvoidingView from '../../components/SPKeyboardAvoidingView';
 import Loading from '../../components/SPLoading';
 import {
   apiDeleteEventComment,
@@ -151,7 +150,7 @@ function MoreEventParticipantComment() {
         }),
       );
       Keyboard.dismiss();
-      setModifyCommentModalVisible(false);
+      closeModifyCommentModal();
       SPToast.show({ text: '댓글을 수정했어요' });
     } catch (error) {
       handleError(error);
@@ -203,6 +202,15 @@ function MoreEventParticipantComment() {
     setIsMyFeed(comment.isMine);
     setSelectedItem(comment);
     setModalVisible(true);
+  };
+
+  const closeModifyCommentModal = () => {
+    BackHandlerUtils.remove();
+    BackHandlerUtils.add(() => {
+      NavigationService.goBack();
+      return true; // 뒤로가기 이벤트 실행
+    });
+    setModifyCommentModalVisible(false);
   };
   // --------------------------------------------------
   // [ UseEffect ]
@@ -316,19 +324,19 @@ function MoreEventParticipantComment() {
 
   return (
     <DismissKeyboard>
-      <SafeAreaView
-        style={styles.container}
-        edges={['left', 'right', 'bottom']}>
-        {participantInfo?.prtState === PARTICIPATION_STATE.COMPLETE.value ? (
-          <SPKeyboardAvoidingView
+      <View style={[styles.container]}>
+        {participantInfo?.prtState === PARTICIPATION_STATE.CONFIRMED.value ? (
+          <View
+            style={{ flex: 1 }}
             key={loading ? 'loading' : 'loaded'}
             behavior="padding"
             isResize
             keyboardVerticalOffset={0}>
             {commentList && commentList.length > 0 ? (
-              <View style={{ flex: 1, paddingTop: 16 }}>
+              <View style={{ flex: 1 }}>
                 <View
                   style={{
+                    paddingTop: 16,
                     paddingHorizontal: 16,
                     paddingBottom: 16,
                     flexDirection: 'row',
@@ -379,7 +387,7 @@ function MoreEventParticipantComment() {
                     }
                   }}
                 />
-                {renderInputSection()}
+                {/* {renderInputSection()} */}
               </View>
             ) : loading ? (
               <Loading />
@@ -407,7 +415,7 @@ function MoreEventParticipantComment() {
                     댓글을 기다리고 있어요!
                   </Text>
                 </View>
-                {renderInputSection()}
+                {/* {renderInputSection()} */}
               </View>
             )}
 
@@ -430,14 +438,7 @@ function MoreEventParticipantComment() {
               animationType="fade"
               transparent={false}
               visible={modifyCommentModalVisible}
-              onRequestClose={() => {
-                BackHandlerUtils.remove();
-                BackHandlerUtils.add(() => {
-                  NavigationService.goBack();
-                  return true; // 뒤로가기 이벤트 실행
-                });
-                setModifyCommentModalVisible(false);
-              }}>
+              onRequestClose={closeModifyCommentModal}>
               <SafeAreaView style={{ flex: 1, paddingTop: insets.top }}>
                 <StatusBar
                   backgroundColor={COLORS.white}
@@ -445,14 +446,7 @@ function MoreEventParticipantComment() {
                 />
                 <SPHeader
                   title="댓글 수정"
-                  onPressLeftBtn={() => {
-                    BackHandlerUtils.remove();
-                    BackHandlerUtils.add(() => {
-                      NavigationService.goBack();
-                      return true; // 뒤로가기 이벤트 실행
-                    });
-                    setModifyCommentModalVisible(false);
-                  }}
+                  onPressLeftBtn={closeModifyCommentModal}
                   rightText="완료"
                   rightTextStyle={{
                     fontSize: 16,
@@ -502,7 +496,8 @@ function MoreEventParticipantComment() {
                 </Text>
               </SafeAreaView>
             </Modal>
-          </SPKeyboardAvoidingView>
+            {renderInputSection()}
+          </View>
         ) : (
           <View
             style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
@@ -517,7 +512,7 @@ function MoreEventParticipantComment() {
             </Text>
           </View>
         )}
-      </SafeAreaView>
+      </View>
     </DismissKeyboard>
   );
 }
