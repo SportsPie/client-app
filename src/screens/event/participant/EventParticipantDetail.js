@@ -1,14 +1,5 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import {
-  Image,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-  StatusBar,
-} from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { Pressable, StatusBar, StyleSheet, Text, View } from 'react-native';
 import {
   SafeAreaView,
   useSafeAreaInsets,
@@ -16,7 +7,6 @@ import {
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import Header from '../../../components/header';
 import LinearGradient from 'react-native-linear-gradient';
-import NavigationService from '../../../navigation/NavigationService';
 import { navName } from '../../../common/constants/navName';
 import fontStyles from '../../../styles/fontStyles';
 import { COLORS } from '../../../styles/colors';
@@ -30,26 +20,21 @@ import {
   apiPatchEventLike,
   apiPatchEventUnLike,
 } from '../../../api/RestAPI';
-import DismissKeyboard from '../../../components/DismissKeyboard';
-import SPKeyboardAvoidingView from '../../../components/SPKeyboardAvoidingView';
 import { handleError } from '../../../utils/HandleError';
-import { useFocusEffect } from '@react-navigation/native';
 import Avatar from '../../../components/Avatar';
 import { SPSvgs } from '../../../assets/svg';
 import { useAppState } from '../../../utils/AppStateContext';
 import Utils from '../../../utils/Utils';
 import { MODAL_CLOSE_EVENT } from '../../../common/constants/modalCloseEvent';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { eventParticipantCommentListAction } from '../../../redux/reducers/list/eventParticipantCommentListSlice';
 import { eventParticipantVideoListAction } from '../../../redux/reducers/list/eventParticipantVideoListSlice';
-import SPLoading from '../../../components/SPLoading';
+import { eventParticipantPartListAction } from '../../../redux/reducers/list/eventParticipantPartListSlice';
 
 const Tab = createMaterialTopTabNavigator();
 
 function EventParticipantDetail({ route }) {
-  const [selectedTab, setSelectedTab] = useState(
-    route.params?.selectedTab || 'info',
-  );
+  const dispatch = useDispatch();
   const participantIdx = route.params?.participantIdx;
   const insets = useSafeAreaInsets();
 
@@ -75,13 +60,8 @@ function EventParticipantDetail({ route }) {
     }
   };
 
-  useFocusEffect(
-    useCallback(() => {
-      getUserInfo();
-    }, []),
-  );
-
   useEffect(() => {
+    getUserInfo();
     eventParticipantVideoListAction.reset();
     eventParticipantCommentListAction.reset();
   }, []);
@@ -100,10 +80,24 @@ function EventParticipantDetail({ route }) {
       await apiPatchEventUnLike(participantInfo.participationIdx);
 
       participantInfo.cntLike -= 1;
+      dispatch(
+        eventParticipantPartListAction.modifyItem({
+          idxName: 'participationIdx',
+          idx: participantInfo.participationIdx,
+          item: JSON.parse(JSON.stringify(participantInfo)),
+        }),
+      );
     } else {
       await apiPatchEventLike(participantInfo.participationIdx);
 
       participantInfo.cntLike += 1;
+      dispatch(
+        eventParticipantPartListAction.modifyItem({
+          idxName: 'participationIdx',
+          idx: participantInfo.participationIdx,
+          item: JSON.parse(JSON.stringify(participantInfo)),
+        }),
+      );
     }
 
     participantInfo.isLike = !participantInfo.isLike;
@@ -114,135 +108,120 @@ function EventParticipantDetail({ route }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <DismissKeyboard>
-        <SPKeyboardAvoidingView
-          key={keyboardAvoidingViewRefresh ? 'key1' : 'key2'}
-          behavior="padding"
-          isResize
-          keyboardVerticalOffset={0}>
-          <View style={styles.container}>
-            {loading ? (
-              <SPLoading />
-            ) : (
-              <>
-                <LinearGradient
-                  colors={['#1955CE', '#003090']}
-                  start={{ x: 0.1, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                  style={{
-                    paddingTop: insets.top + StatusBar.currentHeight, // 안전영역에 맞게 패딩 적용
-                  }}>
-                  <Header
-                    title={participantInfo?.eventName}
-                    closeIcon
-                    leftIconColor={COLORS.white}
-                    headerContainerStyle={{
-                      backgroundColor: 'transparent',
-                      marginBottom: 28,
-                    }}
-                    headerTextStyle={{
-                      color: COLORS.white,
-                    }}
-                  />
-                </LinearGradient>
-                <View
-                  key={setParticipantInfo.participationIdx}
-                  style={styles.participantContain}>
-                  <View style={styles.topBox}>
-                    <View style={styles.topInfoContainer}>
-                      <View style={styles.avatar}>
-                        <Avatar imageSize={90} disableEditMode imageURL="" />
-                      </View>
-                      <View style={styles.topInfoBox}>
-                        <View style={styles.topInfo}>
-                          <View style={styles.topEvnetInfoBox}>
-                            <View style={styles.eventInfo}>
-                              <Text style={styles.eventInfoText}>
-                                {participantInfo.targetName}
-                              </Text>
-                            </View>
-                            <Text style={styles.nameText}>
-                              {participantInfo.participationName}
-                            </Text>
-                          </View>
-                          <Text style={styles.eventTypeText}>
-                            {participantInfo.position}
-                          </Text>
-
-                          {participantInfo?.acdmyName && (
-                            <View
-                              style={{
-                                backgroundColor: 'rgba(255, 124, 16, 0.15)',
-                                paddingHorizontal: 8,
-                                paddingVertical: 4,
-                                borderRadius: 4,
-                                alignSelf: 'flex-start',
-                              }}>
-                              <Text
-                                style={[
-                                  fontStyles.fontSize12_Semibold,
-                                  { color: '#FF7C10' },
-                                ]}>
-                                {participantInfo.acdmyName}
-                              </Text>
-                            </View>
-                          )}
-                        </View>
-
-                        {/* 좋아요 */}
-                        <Pressable
-                          hitSlop={{
-                            top: 10,
-                            bottom: 10,
-                          }}
-                          style={styles.wrapper}
-                          onPress={() => {
-                            changeLike();
-                          }}>
-                          <View style={styles.heartContainer}>
-                            {participantInfo?.isLike ? (
-                              <SPSvgs.Heart />
-                            ) : (
-                              <SPSvgs.HeartOutline />
-                            )}
-                            <Text style={styles.text}>
-                              {' '}
-                              {Utils.changeNumberComma(
-                                participantInfo?.cntLike,
-                              )}
-                            </Text>
-                          </View>
-                        </Pressable>
-                      </View>
+      <View style={styles.container}>
+        <LinearGradient
+          colors={['#1955CE', '#003090']}
+          start={{ x: 0.1, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={{
+            paddingTop: insets.top + StatusBar.currentHeight, // 안전영역에 맞게 패딩 적용
+          }}>
+          <Header
+            title={participantInfo?.eventName}
+            closeIcon
+            leftIconColor={COLORS.white}
+            headerContainerStyle={{
+              backgroundColor: 'transparent',
+              marginBottom: 28,
+            }}
+            headerTextStyle={{
+              color: COLORS.white,
+            }}
+          />
+        </LinearGradient>
+        <View
+          key={setParticipantInfo.participationIdx}
+          style={styles.participantContain}>
+          <View style={styles.topBox}>
+            <View style={styles.topInfoContainer}>
+              <View style={styles.avatar}>
+                <Avatar imageSize={90} disableEditMode imageURL="" />
+              </View>
+              <View style={styles.topInfoBox}>
+                <View style={styles.topInfo}>
+                  <View style={styles.topEvnetInfoBox}>
+                    <View style={styles.eventInfo}>
+                      <Text style={styles.eventInfoText}>
+                        {participantInfo.targetName}
+                      </Text>
                     </View>
+                    <Text style={styles.nameText}>
+                      {participantInfo.participationName}
+                    </Text>
                   </View>
+                  <Text style={styles.eventTypeText}>
+                    {participantInfo.position}
+                  </Text>
 
-                  {/* Tab */}
-                  <Tab.Navigator
-                    screenOptions={{
-                      lazy: true,
-                    }}
-                    sceneContainerStyle={{ backgroundColor: COLORS.white }}
-                    tabBar={props => <TopEventTabLabel {...props} />}>
-                    <Tab.Screen
-                      name={navName.eventParticipantInfo}
-                      component={EventParticipantInfo}
-                    />
-                    <Tab.Screen
-                      name={navName.eventVideoList}
-                      component={EventParticipantVideoList}
-                    />
-                    <Tab.Screen
-                      name={navName.eventComment}
-                      component={EventParticipantCommentList}
-                    />
-                  </Tab.Navigator>
+                  {participantInfo?.acdmyName && (
+                    <View
+                      style={{
+                        backgroundColor: 'rgba(255, 124, 16, 0.15)',
+                        paddingHorizontal: 8,
+                        paddingVertical: 4,
+                        borderRadius: 4,
+                        alignSelf: 'flex-start',
+                      }}>
+                      <Text
+                        style={[
+                          fontStyles.fontSize12_Semibold,
+                          { color: '#FF7C10' },
+                        ]}>
+                        {participantInfo.acdmyName}
+                      </Text>
+                    </View>
+                  )}
                 </View>
-              </>
-            )}
+
+                {/* 좋아요 */}
+                <Pressable
+                  hitSlop={{
+                    top: 10,
+                    bottom: 10,
+                  }}
+                  style={styles.wrapper}
+                  onPress={() => {
+                    changeLike();
+                  }}>
+                  <View style={styles.heartContainer}>
+                    {participantInfo?.isLike ? (
+                      <SPSvgs.Heart />
+                    ) : (
+                      <SPSvgs.HeartOutline />
+                    )}
+                    <Text style={styles.text}>
+                      {' '}
+                      {Utils.changeNumberComma(participantInfo?.cntLike)}
+                    </Text>
+                  </View>
+                </Pressable>
+              </View>
+            </View>
           </View>
-        </SPKeyboardAvoidingView>
-      </DismissKeyboard>
+
+          {/* Tab */}
+          <Tab.Navigator
+            screenOptions={{
+              lazy: true,
+            }}
+            sceneContainerStyle={{ backgroundColor: COLORS.white }}
+            /* eslint-disable-next-line react/no-unstable-nested-components */
+            tabBar={props => <TopEventTabLabel {...props} />}>
+            <Tab.Screen
+              name={navName.eventParticipantInfo}
+              component={EventParticipantInfo}
+            />
+            <Tab.Screen
+              name={navName.eventVideoList}
+              component={EventParticipantVideoList}
+            />
+            <Tab.Screen
+              name={navName.eventComment}
+              component={EventParticipantCommentList}
+            />
+          </Tab.Navigator>
+        </View>
+      </View>
     </SafeAreaView>
   );
 }

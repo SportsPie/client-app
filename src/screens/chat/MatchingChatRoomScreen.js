@@ -26,20 +26,16 @@ import {
   apiGetChatMessage,
   apiSelectAcademy4Match,
 } from '../../api/RestAPI';
-import NavigationService from '../../navigation/NavigationService';
 import { navName } from '../../common/constants/navName';
 import SPIcons from '../../assets/icon';
-import SPHeader from '../../components/SPHeader';
 import { IS_YN } from '../../common/constants/isYN';
 import Utils from '../../utils/Utils';
 import { JOIN_TYPE } from '../../common/constants/joinType';
 import { MATCH_STATE } from '../../common/constants/matchState';
 import SPModal from '../../components/SPModal';
 import { MODAL_CLOSE_EVENT } from '../../common/constants/modalCloseEvent';
-import SPImages from '../../assets/images';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Header from '../../components/header';
-import { SPSvgs } from '../../assets/svg';
 import SPMoreModal, {
   MODAL_MORE_BUTTONS,
   MODAL_MORE_TYPE,
@@ -57,7 +53,13 @@ function MatchingChatRoomScreen({ navigation }) {
   const { roomId } = useRoute().params;
   const chatState = useSelector(state => state.chat);
   const authState = useSelector(state => state.auth);
-  const { chatList, newMessageTimeId, participantList, notiYn } = chatState;
+  const {
+    chatList,
+    newMessageTimeId,
+    participantList,
+    notiYn,
+    messageTaskProcessing,
+  } = chatState;
   const dispatch = useDispatch();
 
   const [targetAcademyDetail, setTargetAcademyDetail] = useState({});
@@ -328,12 +330,14 @@ function MatchingChatRoomScreen({ navigation }) {
 
   useFocusEffect(
     useCallback(() => {
-      if (newMessageTimeId) {
-        if (!isFirstItemVisible) setShowNewMessageBox(true);
-      } else {
-        setShowNewMessageBox(false);
+      if (!messageTaskProcessing) {
+        if (newMessageTimeId) {
+          if (!isFirstItemVisible) setShowNewMessageBox(true);
+        } else {
+          setShowNewMessageBox(false);
+        }
       }
-    }, [newMessageTimeId, roomId]),
+    }, [newMessageTimeId, roomId, messageTaskProcessing]),
   );
 
   /**
@@ -486,7 +490,10 @@ function MatchingChatRoomScreen({ navigation }) {
               style={[styles.input, { height: inputHeight, maxHeight: 120 }]}
             />
             {inputValue !== '' && (
-              <TouchableOpacity style={styles.sendButton} onPress={send}>
+              <TouchableOpacity
+                style={styles.sendButton}
+                onPress={send}
+                disabled={messageTaskProcessing}>
                 <Image
                   source={SPIcons.icSend}
                   style={{ width: 40, height: 28 }}

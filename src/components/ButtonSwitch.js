@@ -6,7 +6,14 @@ import fontStyles from '../styles/fontStyles';
 import { COLORS } from '../styles/colors';
 import moment from 'moment';
 
-function ButtonSwitch({ title, subTitle, subTitle2, onPress, isActive }) {
+function ButtonSwitch({
+  title,
+  subTitle,
+  subTitle2,
+  onPress,
+  isActive,
+  disabled,
+}) {
   return (
     <View style={styles.container}>
       <View style={styles.titleWrapper}>
@@ -46,7 +53,7 @@ function ButtonSwitch({ title, subTitle, subTitle2, onPress, isActive }) {
         {subTitle2 ? moment(subTitle2).format('YYYY.MM.DD') : ''}
       </Text>
 
-      <SPSwitch switchOn={isActive} onChange={onPress} />
+      <SPSwitch switchOn={isActive} onChange={onPress} disabled={disabled} />
     </View>
   );
 }

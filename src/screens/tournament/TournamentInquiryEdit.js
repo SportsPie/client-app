@@ -2,6 +2,7 @@ import React, { memo, useCallback, useRef, useState } from 'react';
 import {
   Dimensions,
   Image,
+  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -10,6 +11,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   apiGetTournamentQnaDetail,
+  apiGetTournamentTitle,
   apiPostTournamentQnaInsert,
   apiPutTournamentQnaModify,
 } from '../../api/RestAPI';
@@ -28,6 +30,8 @@ import SPIcons from '../../assets/icon';
 import Carousel from 'react-native-snap-carousel';
 import { tournamentInquiryListAction } from '../../redux/reducers/list/tournamentInquiryListSlice';
 import { useFocusEffect } from '@react-navigation/native';
+import { COLORS } from '../../styles/colors';
+import SPKeyboardAvoidingView from '../../components/SPKeyboardAvoidingView';
 
 function CarouselSection({
   data,
@@ -104,7 +108,6 @@ function TournamentInquiryEdit({ route }) {
   const dispatch = useDispatch();
   const tournamentIdx = route?.params?.tournamentIdx;
   const qnaIdx = route?.params?.qnaIdx;
-  const tournamentName = route?.params?.tournamentName;
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const trlRef = useRef({ current: { disabled: false } });
@@ -118,9 +121,23 @@ function TournamentInquiryEdit({ route }) {
 
   const [showPhotoModal, setShowPhotoModal] = useState(false);
 
+  const [tournamentCount, setTournamentCount] = useState();
+  const [tournamentName, setTournamentName] = useState();
+
   /**
    * api
    */
+
+  const getTournamentName = async () => {
+    try {
+      const { data } = await apiGetTournamentTitle(tournamentIdx);
+      setTournamentCount(data.data.trnCnt);
+      setTournamentName(data.data.title);
+    } catch (error) {
+      handleError(error);
+    }
+  };
+
   const getInquiryData = async () => {
     try {
       const { data } = await apiGetTournamentQnaDetail(qnaIdx);
@@ -271,142 +288,185 @@ function TournamentInquiryEdit({ route }) {
     setModifyModalShow(false);
   };
 
+  const scrollViewRef = useRef();
+  const contentInputRef = useRef();
+  const scrollToInput = () => {
+    setTimeout(() => {
+      if (contentInputRef.current && scrollViewRef.current) {
+        contentInputRef.current.measure((fx, fy, width, height, px, py) => {
+          scrollViewRef.current.scrollTo({
+            y: py + height,
+            animated: true,
+          });
+        });
+      }
+    }, 300);
+  };
+
   /**
    * useEffect
    */
   useFocusEffect(
     useCallback(() => {
-      if (qnaIdx) getInquiryData();
+      getTournamentName();
+      if (qnaIdx) {
+        getInquiryData();
+      }
     }, [qnaIdx]),
   );
 
   return (
     <DismissKeyboard>
-      <SafeAreaView edges={['top']} style={{ flex: 1 }}>
-        <Header title="1:1 문의 작성" />
-        <View style={{ paddingTop: 16, paddingHorizontal: 16 }}>
-          <Text style={{ ...fontStyles.fontSize20_Semibold }}>
-            {tournamentName}
-          </Text>
-        </View>
+      <SPKeyboardAvoidingView
+        behavior="padding"
+        isResize
+        keyboardVerticalOffset={0}
+        style={{
+          flex: 1,
+          backgroundColor: COLORS.white,
+        }}>
+        <SafeAreaView edges={['top']} style={{ flex: 1 }}>
+          <Header title="1:1 문의 작성" />
+          <ScrollView style={{ flex: 1 }} ref={scrollViewRef}>
+            <View style={{ paddingTop: 16, paddingHorizontal: 16 }}>
+              <Text style={{ ...fontStyles.fontSize20_Semibold }}>
+                {tournamentCount &&
+                  `제${Utils.changeNumberComma(tournamentCount)}회 `}{' '}
+                {tournamentName}
+              </Text>
+            </View>
 
-        <View style={styles.container}>
-          <SPInput
-            title="제목"
-            placeholder="제목을 입력하세요"
-            value={title}
-            onChangeText={setTitle}
-          />
-
-          <View style={{ rowGap: 4 }}>
-            <SPInput
-              title="내용"
-              numberOfLines={6}
-              placeholder="문의 내용을 적어주세요"
-              textAlignVertical="top"
-              value={content}
-              onChangeText={setContent}
-              maxLength={1500}
-            />
-            <Text
-              style={[
-                fontStyles.fontSize12_Regular,
-                {
-                  marginLeft: 'auto',
-                },
-              ]}>
-              {Utils.changeNumberComma(content?.length, true)}/1,500
-            </Text>
-          </View>
-        </View>
-        <View style={{ padding: 16 }}>
-          <CarouselSection
-            prevData={prevPhotoList}
-            prevRemovePhoto={removePrevPhoto}
-            data={photoList}
-            removePhoto={removePhoto}
-          />
-        </View>
-        <View style={styles.bottomBox}>
-          <View style={styles.galleryBox}>
-            <TouchableOpacity
-              onPress={openGallery}
-              style={{
-                width: 48,
-                height: 48,
-                borderRadius: 8,
-                overflow: 'hidden',
-              }}>
-              <Image
-                source={SPIcons.icGallery}
-                style={{
-                  width: 48,
-                  height: 48,
-                }}
+            <View style={styles.container}>
+              <SPInput
+                title="제목"
+                placeholder="제목을 입력하세요"
+                value={title}
+                onChangeText={setTitle}
+                maxLength={45}
               />
-            </TouchableOpacity>
+
+              <View style={{ rowGap: 4 }}>
+                <SPInput
+                  boxRef={contentInputRef}
+                  title="내용"
+                  numberOfLines={6}
+                  placeholder="문의 내용을 적어주세요"
+                  textAlignVertical="top"
+                  value={content}
+                  onChangeText={setContent}
+                  maxLength={1500}
+                  onFocus={scrollToInput}
+                />
+                <Text
+                  style={[
+                    fontStyles.fontSize12_Regular,
+                    {
+                      marginLeft: 'auto',
+                      color: 'rgba(46, 49, 53, 0.80)',
+                    },
+                  ]}>
+                  {Utils.changeNumberComma(content?.length, true)}/1,500
+                </Text>
+              </View>
+            </View>
+          </ScrollView>
+          <View style={{ padding: 16 }}>
+            <CarouselSection
+              prevData={prevPhotoList}
+              prevRemovePhoto={removePrevPhoto}
+              data={photoList}
+              removePhoto={removePhoto}
+            />
           </View>
-        </View>
-        {qnaIdx ? (
-          <PrimaryButton
-            onPress={() => {
-              modifyOpenModal();
+          <View style={styles.bottomBox}>
+            <View
+              style={{
+                borderTopWidth: 1,
+                borderTopColor: '#D9D9D9',
+                flex: 1,
+                paddingVertical: 8,
+              }}>
+              <View style={styles.galleryBox}>
+                <TouchableOpacity
+                  onPress={openGallery}
+                  style={{
+                    width: 48,
+                    height: 48,
+                    borderRadius: 8,
+                    overflow: 'hidden',
+                  }}>
+                  <Image
+                    source={SPIcons.icGallery}
+                    style={{
+                      width: 48,
+                      height: 48,
+                    }}
+                  />
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+          {qnaIdx ? (
+            <PrimaryButton
+              onPress={() => {
+                modifyOpenModal();
+              }}
+              text="수정"
+              buttonStyle={styles.submitButton}
+              disabled={!title || !content}
+            />
+          ) : (
+            <PrimaryButton
+              onPress={() => {
+                registOpenModal();
+              }}
+              text="저장"
+              buttonStyle={styles.submitButton}
+              disabled={!title || !content}
+            />
+          )}
+          <SPModal
+            title="문의하기 확인"
+            contents="문의하기를 수정하시겠습니까?"
+            visible={modifyModalShow}
+            onConfirm={() => {
+              modify();
             }}
-            text="수정"
-            buttonStyle={styles.submitButton}
-            disabled={!title || !content}
-          />
-        ) : (
-          <PrimaryButton
-            onPress={() => {
-              registOpenModal();
+            onCancel={() => {
+              modifyCloseModal();
             }}
-            text="저장"
-            buttonStyle={styles.submitButton}
-            disabled={!title || !content}
+            onClose={() => {
+              modifyCloseModal();
+            }}
           />
-        )}
-        <SPModal
-          title="문의하기 확인"
-          contents="문의하기를 수정하시겠습니까?"
-          visible={modifyModalShow}
-          onConfirm={() => {
-            modify();
-          }}
-          onCancel={() => {
-            modifyCloseModal();
-          }}
-          onClose={() => {
-            modifyCloseModal();
-          }}
-        />
 
-        <SPModal
-          title="문의하기 확인"
-          contents="문의하기를 등록하시겠습니까?"
-          visible={registModalShow}
-          onConfirm={() => {
-            regist();
-          }}
-          onCancel={() => {
-            registCloseModal();
-          }}
-          onClose={() => {
-            registCloseModal();
-          }}
-        />
+          <SPModal
+            title="문의하기 확인"
+            contents="문의하기를 등록하시겠습니까?"
+            visible={registModalShow}
+            onConfirm={() => {
+              regist();
+            }}
+            onCancel={() => {
+              registCloseModal();
+            }}
+            onClose={() => {
+              registCloseModal();
+            }}
+          />
 
-        <SPSelectPhotoModal
-          visible={showPhotoModal}
-          crop={false}
-          onClose={async () => {
-            setShowPhotoModal(false);
-          }}
-          onComplete={data => {
-            updatePhoto(data);
-          }}
-        />
-      </SafeAreaView>
+          <SPSelectPhotoModal
+            visible={showPhotoModal}
+            crop={false}
+            onClose={async () => {
+              setShowPhotoModal(false);
+            }}
+            onComplete={data => {
+              updatePhoto(data);
+            }}
+          />
+        </SafeAreaView>
+      </SPKeyboardAvoidingView>
     </DismissKeyboard>
   );
 }
@@ -416,7 +476,8 @@ export default memo(TournamentInquiryEdit);
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingVertical: 24,
+    paddingTop: 16,
+    paddingBottom: 24,
     paddingHorizontal: 16,
     rowGap: 16,
   },
@@ -424,10 +485,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    borderTopWidth: 1,
-    borderTopColor: '#D9D9D9',
     paddingHorizontal: 16,
-    paddingVertical: 8,
   },
   submitButton: {
     // marginTop: 'auto',

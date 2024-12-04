@@ -14,7 +14,7 @@ function AlertItem({ item }) {
       case NOTI_TYPE.ACADEMY:
         return <SPSvgs.School width={24} height={24} />;
       case NOTI_TYPE.LOGO:
-        return <SPSvgs.Social width={24} height={24} />;
+        return <SPSvgs.AvatarColor width={24} height={24} />;
       case NOTI_TYPE.COMMUNITY:
         return <SPSvgs.Comment width={24} height={24} />;
       case NOTI_TYPE.TOURNAMENT:
@@ -39,11 +39,14 @@ function AlertItem({ item }) {
     return moment(item?.regDate).format('YYYY년 M월 D일');
   }, [item?.regDate]);
 
+  // const isRead = item?.isRead === 'Y';
+  const isRead = item?.readYn === 'Y';
+
   return (
     <Pressable
       style={[
         styles.container,
-        item?.isRead !== 'Y' && {
+        !isRead && {
           backgroundColor: COLORS.peach,
         },
       ]}

@@ -117,6 +117,8 @@ const SPIcons = {
   icFillRadio: require('./ic_fill_radio.png'),
   icBasicRadio: require('./ic_basic_radio.png'),
   icSoccerBall: require('./ic_soccer_ball.png'),
+  icSoccerBallBlue: require('./ic_soccer_ball_blue.png'),
+  icSoccerBallRed: require('./ic_soccer_ball_red.png'),
   icThreeStar: require('./ic_three_star.png'),
   icFullScreen: require('./ic_full_screen.png'),
   icGrayStar: require('./ic_gray_star.png'),

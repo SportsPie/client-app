@@ -54,6 +54,15 @@ const SPImages = {
   myInfoCard: require('./my_info_card.png'),
   myInfoCardSol: require('./my_info_card_sol.png'),
   solMark: require('./sol_mark.png'),
+  defaultPointImg: require('./default_point_img.png'),
+  productImg: require('./product_img.png'),
+  barcodeImg: require('./barcode_img.png'),
+  expiredImg: require('./expired_img.png'),
+  usedImg: require('./used_img.png'),
+  defaultHomeBanner: require('./default_home_banner.png'),
+  defaultHomeLineBanner: require('./default_home_line_banner.png'),
+  defaultAcademyBanner: require('./default_academy_banner.png'),
+  defaultPieTrainingBanner: require('./default_pie_training_banner.png'),
 };
 
 export default SPImages;

@@ -1,5 +1,5 @@
 /* eslint-disable react/jsx-no-constructed-context-values */
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState } from 'react';
 
 const AppStateContext = createContext();
 
@@ -51,6 +51,10 @@ export function AppStateProvider({ children }) {
   );
   const [fromMore, setFromMore] = useState(false);
   const [participantInfo, setParticipantInfo] = useState({});
+  const [tournamentApplyModalShow, setTournamentApplyModalShow] =
+    useState(false);
+  const [tournamentApplyModalReset, setTournamentApplyModalReset] =
+    useState(false);
 
   const resetApplyData = () => {
     setApplyData(JSON.parse(JSON.stringify(initApplyData)));
@@ -68,6 +72,10 @@ export function AppStateProvider({ children }) {
         setFromMore,
         participantInfo,
         setParticipantInfo,
+        tournamentApplyModalShow,
+        setTournamentApplyModalShow,
+        tournamentApplyModalReset,
+        setTournamentApplyModalReset,
       }}>
       {children}
     </AppStateContext.Provider>

@@ -13,6 +13,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   apiGetTournamentOpen,
+  apiGetTournamentTitle,
   apiPostTournamentReview,
 } from '../../api/RestAPI';
 import SPIcons from '../../assets/icon';
@@ -23,21 +24,38 @@ import { handleError } from '../../utils/HandleError';
 import fontStyles from '../../styles/fontStyles';
 import Utils from '../../utils/Utils';
 import { MODAL_CLOSE_EVENT } from '../../common/constants/modalCloseEvent';
+import { useDispatch } from 'react-redux';
+import { academyMatchingRegistrationListAction } from '../../redux/reducers/list/academyMatchingRegistrationListSlice';
+import { store } from '../../redux/store';
+import SPInput from '../../components/SPInput';
 
 export default function TournamentReviewEdit({ route }) {
   // --------------------------------------------------
   // [ State ]
   // --------------------------------------------------
   const tournamentIdx = route?.params?.tournamentIdx;
-  const tournamentName = route?.params?.tournamentName;
+  const dispatch = useDispatch();
   const [rating, setRating] = useState(5);
   const [review, setReview] = useState('');
   const [isDisabled, setIsDisabled] = useState(true);
   const [tournamentDetail, setTournamentDetail] = useState({});
 
+  const [tournamentCount, setTournamentCount] = useState();
+  const [tournamentName, setTournamentName] = useState();
+
   // --------------------------------------------------
   // [ Apis ]
   // --------------------------------------------------
+
+  const getTournamentName = async () => {
+    try {
+      const { data } = await apiGetTournamentTitle(tournamentIdx);
+      setTournamentCount(data.data.trnCnt);
+      setTournamentName(data.data.title);
+    } catch (error) {
+      handleError(error);
+    }
+  };
 
   const getTournamentDetail = async () => {
     try {
@@ -49,11 +67,6 @@ export default function TournamentReviewEdit({ route }) {
   };
 
   const saveReview = async () => {
-    if (rating === 0 || review === '') {
-      Alert.alert('오류', '모든 항목을 입력해주세요.');
-      return;
-    }
-
     const param = {
       tournamentIdx,
       rating,
@@ -62,6 +75,9 @@ export default function TournamentReviewEdit({ route }) {
 
     try {
       const { data } = await apiPostTournamentReview(param);
+      dispatch(
+        academyMatchingRegistrationListAction.reviewWrited(tournamentIdx),
+      );
       Utils.openModal({
         title: '리뷰 작성 완료',
         body: '리뷰 작성이 성공적으로 완료됐습니다. \n의견을 들려주셔서 감사합니다!',
@@ -101,6 +117,7 @@ export default function TournamentReviewEdit({ route }) {
   // --------------------------------------------------
 
   useEffect(() => {
+    getTournamentName();
     getTournamentDetail();
   }, []);
 
@@ -178,7 +195,7 @@ export default function TournamentReviewEdit({ route }) {
                 placeholder={`대회에서의 경험을 공유해주세요. \n다른 사람들에 도움이 됩니다!`}
                 autoCorrect={false}
                 autoCapitalize="none"
-                style={styles.box}
+                style={[styles.box, { height: 100 }]}
               />
               <View
                 style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>

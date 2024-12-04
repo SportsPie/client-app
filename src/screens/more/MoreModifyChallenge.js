@@ -122,6 +122,7 @@ function MoreModifyChallenge() {
                 placeholder="훈련 제목을 입력하세요"
                 value={title}
                 onChangeText={setTitle}
+                maxLength={45}
               />
 
               <SPInput

@@ -1,7 +1,12 @@
 import { useFocusEffect } from '@react-navigation/native';
 import React, { memo, useCallback, useState } from 'react';
 import { Platform, ScrollView, StyleSheet } from 'react-native';
-import { apiGetMyInfo, apiPostAuthAgreeMarketing } from '../../api/RestAPI';
+import {
+  apiGetMyInfo,
+  apiGetPushSetting,
+  apiPatchPushSetting,
+  apiPostAuthAgreeMarketing,
+} from '../../api/RestAPI';
 import ButtonSwitch from '../../components/ButtonSwitch';
 import { handleError } from '../../utils/HandleError';
 import { RESULTS } from 'react-native-permissions';
@@ -25,31 +30,37 @@ function MoreNotification() {
       ? '설정 > 애플리케이션 > footballcash > 권한 > 알림 권한을 허용해주세요.'
       : '설정 > footballcash 앱에 알림 권한을 허용해주세요.';
 
-  const [notificationStates, setNotificationStates] = useState({
-    [FCM_TYPE.SERVICE]: false,
-    [FCM_TYPE.ACADEMY]: false,
-    [FCM_TYPE.MATCH]: false,
-    [FCM_TYPE.BOARD]: false,
-    [FCM_TYPE.TOURNAMENT]: false,
-    [FCM_TYPE.WALLET]: false,
-    [FCM_TYPE.MARKETING]: false,
-    [FCM_TYPE.EMPTY]: false,
-  });
+  const [notificationStates, setNotificationStates] = useState({});
+  const [hasNotificationPermission, setHasNotificationPermission] =
+    useState(false);
 
   /**
    * api
    */
-
   const getUserInfo = async () => {
     try {
       const { data } = await apiGetMyInfo();
       setMarketingDate(data.data.marketingDate);
-      setNotificationStates(prev => {
-        return {
-          ...prev,
-          [FCM_TYPE.MARKETING]: !!data.data.marketingDate,
-        };
-      });
+    } catch (error) {
+      handleError(error);
+    }
+  };
+
+  const getPushSetting = async () => {
+    try {
+      const result = await requestPostNotificationsPermission();
+      if (result.status !== RESULTS.GRANTED) {
+        setHasNotificationPermission(false);
+        await setStorage(`pushSetting_${userIdx}`, JSON.stringify({}));
+        return;
+      }
+      const { data } = await apiGetPushSetting();
+      await setStorage(
+        `pushSetting_${userIdx}`,
+        JSON.stringify(data?.data || {}),
+      );
+      setNotificationStates(data?.data || {});
+      setHasNotificationPermission(true);
     } catch (error) {
       handleError(error);
     }
@@ -57,56 +68,8 @@ function MoreNotification() {
 
   const updateMarketingDate = async () => {
     try {
-      const now = new Date();
-      const params = {
-        now,
-      };
-      const { data } = await apiPostAuthAgreeMarketing(params);
-      setMarketingDate(now);
-    } catch (error) {
-      handleError(error);
-    }
-  };
-
-  /**
-   * function
-   */
-  const loadNotificationStates = useCallback(async () => {
-    try {
-      const result = await requestPostNotificationsPermission();
-      if (result.status !== RESULTS.GRANTED) {
-        await setAllFalse();
-        return;
-      }
-
-      const storedNotificationStates = await getStorage(
-        `notificationStates_${userIdx}`,
-      );
-      if (storedNotificationStates) {
-        setNotificationStates(JSON.parse(storedNotificationStates));
-      }
-    } catch (error) {
-      handleError(error);
-    }
-  }, []);
-
-  const setAllFalse = async () => {
-    try {
-      const updatedState = {
-        [FCM_TYPE.SERVICE]: false,
-        [FCM_TYPE.ACADEMY]: false,
-        [FCM_TYPE.MATCH]: false,
-        [FCM_TYPE.BOARD]: false,
-        [FCM_TYPE.TOURNAMENT]: false,
-        [FCM_TYPE.WALLET]: false,
-        [FCM_TYPE.MARKETING]: false,
-        [FCM_TYPE.EMPTY]: false,
-      };
-      await setStorage(
-        `notificationStates_${userIdx}`,
-        JSON.stringify(updatedState), // 사용자 ID를 키로 사용하여 저장
-      );
-      setNotificationStates(updatedState);
+      const { data } = await apiPostAuthAgreeMarketing();
+      setMarketingDate(new Date());
     } catch (error) {
       handleError(error);
     }
@@ -114,22 +77,25 @@ function MoreNotification() {
 
   const toggleNotification = async key => {
     try {
+      const notifKey = key?.toLowerCase();
       const result = await requestPostNotificationsPermission();
       if (result.status !== RESULTS.GRANTED) {
+        await setStorage(`pushSetting_${userIdx}`, JSON.stringify({}));
         Utils.openModal({ title: '알림', body: notificationPermissionText });
         return;
       }
-
-      const updatedState = {
-        ...notificationStates,
-        [key]: !notificationStates[key],
+      // api 호출
+      const params = {
+        [notifKey]: notificationStates[notifKey] === 'Y' ? 'N' : 'Y',
       };
-      await setStorage(
-        `notificationStates_${userIdx}`,
-        JSON.stringify(updatedState), // 사용자 ID를 키로 사용하여 저장
-      );
-      setNotificationStates(updatedState);
-      if (key === FCM_TYPE.MARKETING) {
+      const { data } = await apiPatchPushSetting(params);
+      setNotificationStates(prev => {
+        const obj = { ...prev, [notifKey]: prev[notifKey] === 'Y' ? 'N' : 'Y' };
+        setStorage(`pushSetting_${userIdx}`, JSON.stringify(obj));
+        return obj;
+      });
+
+      if (notifKey === FCM_TYPE.MARKETING.toLowerCase()) {
         await updateMarketingDate();
       }
     } catch (error) {
@@ -143,7 +109,7 @@ function MoreNotification() {
   useFocusEffect(
     useCallback(() => {
       getUserInfo();
-      loadNotificationStates();
+      getPushSetting();
     }, []),
   );
 
@@ -157,42 +123,44 @@ function MoreNotification() {
         <ButtonSwitch
           title="서비스 알림"
           subTitle="앱 점검 또는 업데이트에 대한 알림 수신"
-          isActive={notificationStates[FCM_TYPE.SERVICE]}
+          isActive={notificationStates[FCM_TYPE.SERVICE.toLowerCase()] === 'Y'}
           onPress={() => toggleNotification(FCM_TYPE.SERVICE)}
         />
 
         <ButtonSwitch
           title="아카데미 활동"
           subTitle="아카데미 가입 신청 및 모든 활동에 대한 알림 수신"
-          isActive={notificationStates[FCM_TYPE.ACADEMY]}
+          isActive={notificationStates[FCM_TYPE.ACADEMY.toLowerCase()] === 'Y'}
           onPress={() => toggleNotification(FCM_TYPE.ACADEMY)}
         />
 
         <ButtonSwitch
           title="경기 활동 알림"
           subTitle="스포츠파이 매칭 관련 알림 수신"
-          isActive={notificationStates[FCM_TYPE.MATCH]}
+          isActive={notificationStates[FCM_TYPE.MATCH.toLowerCase()] === 'Y'}
           onPress={() => toggleNotification(FCM_TYPE.MATCH)}
         />
 
         <ButtonSwitch
           title="게시물 및 댓글"
           subTitle="콘텐츠, 커뮤니티의 댓글 및 기타 활동에 대한 알림 수신"
-          isActive={notificationStates[FCM_TYPE.BOARD]}
+          isActive={notificationStates[FCM_TYPE.BOARD.toLowerCase()] === 'Y'}
           onPress={() => toggleNotification(FCM_TYPE.BOARD)}
         />
 
         <ButtonSwitch
           title="대회 알림"
           subTitle="대회 참가 신청 또는 개최 안내에 대한 알림 수신"
-          isActive={notificationStates[FCM_TYPE.TOURNAMENT]}
+          isActive={
+            notificationStates[FCM_TYPE.TOURNAMENT.toLowerCase()] === 'Y'
+          }
           onPress={() => toggleNotification(FCM_TYPE.TOURNAMENT)}
         />
 
         <ButtonSwitch
           title="토큰 알림"
           subTitle="토큰 적립 및 소진에 대한 알림 수신"
-          isActive={notificationStates[FCM_TYPE.WALLET]}
+          isActive={notificationStates[FCM_TYPE.WALLET.toLowerCase()] === 'Y'}
           onPress={() => toggleNotification(FCM_TYPE.WALLET)}
         />
 
@@ -200,9 +168,13 @@ function MoreNotification() {
           title="마케팅 정보 수신 동의"
           subTitle="각종 대회 및 이벤트 알림"
           subTitle2={
-            notificationStates[FCM_TYPE.MARKETING] ? marketingDate : null
+            notificationStates[FCM_TYPE.MARKETING.toLowerCase()] === 'Y'
+              ? marketingDate
+              : null
           }
-          isActive={notificationStates[FCM_TYPE.MARKETING]}
+          isActive={
+            notificationStates[FCM_TYPE.MARKETING.toLowerCase()] === 'Y'
+          }
           onPress={() => toggleNotification(FCM_TYPE.MARKETING)}
         />
       </ScrollView>

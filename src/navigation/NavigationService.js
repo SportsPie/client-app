@@ -7,6 +7,7 @@ import Utils from '../utils/Utils';
 import { MODAL_CLOSE_EVENT } from '../common/constants/modalCloseEvent';
 import GeoLocationUtils from '../utils/GeoLocationUtils';
 import { wifiSliceActions } from '../redux/reducers/wifiSlice';
+import { handleError } from '../utils/HandleError';
 
 let navigationRef;
 export const Stack = createNativeStackNavigator();
@@ -60,6 +61,17 @@ const permissionCheck = async routeName => {
   // geo locaion permission
   if (needLocationPermissionNavName.includes(routeName)) {
     const hasPermission = await GeoLocationUtils.checkPermission();
+    if (hasPermission) {
+      const latitude = store.getState()?.geoLocation?.latitude;
+      const longitude = store.getState()?.geoLocation?.longitude;
+      if (!(latitude && longitude)) {
+        try {
+          await GeoLocationUtils.watchLocation();
+        } catch (error) {
+          handleError(error);
+        }
+      }
+    }
     return hasPermission;
   }
   return true;

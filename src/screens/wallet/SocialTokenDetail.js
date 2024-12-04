@@ -152,7 +152,7 @@ function SocialTokenDetail({ route }) {
       <View style={styles.headerContainer}>
         <SPSvgs.SocialToken width={48} height={48} />
         <Text style={[fontStyles.fontSize14_Semibold, { color: COLORS.white }]}>
-          보유 소셜토큰
+          보유 포인트
         </Text>
         <Text style={[fontStyles.fontSize24_Bold, { color: COLORS.white }]}>
           {Utils.changeNumberComma(point)} P

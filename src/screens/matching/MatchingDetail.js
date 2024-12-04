@@ -524,7 +524,7 @@ function MatchingDetail({ route }) {
             type={MODAL_MORE_TYPE.RECRUIT}
             adminButtons={[MODAL_MORE_BUTTONS.EDIT, MODAL_MORE_BUTTONS.SHARE]}
             memberButtons={[MODAL_MORE_BUTTONS.SHARE]}
-            shareLink={`matching?id=${matchIdx}`}
+            shareLink={`type=matching&id=${matchIdx}`}
             shareTitle={matchInfo?.title ?? ''}
             shareDescription={matchInfo?.description ?? ''}
           />

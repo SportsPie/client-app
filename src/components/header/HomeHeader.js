@@ -10,6 +10,8 @@ import { useFocusEffect } from '@react-navigation/native';
 import NotificationUtils from '../../utils/notification/NotificationUtils';
 import { handleError } from '../../utils/HandleError';
 import fontStyles from '../../styles/fontStyles';
+import { apiGetNotiNotRead } from '../../api/RestAPI';
+import walletUtils from '../../utils/WalletUtils';
 
 function HomeHeader() {
   const { isLogin } = useSelector(selector => selector.auth);
@@ -39,8 +41,11 @@ function HomeHeader() {
 
   const getNotReadCnt = async () => {
     try {
-      const result = await NotificationUtils.getNotReadCnt();
-      setNotReadCnt(result);
+      // const result = await NotificationUtils.getNotReadCnt();
+      // setNotReadCnt(result);
+      const walletAddr = await walletUtils.getWalletAddress();
+      const { data } = await apiGetNotiNotRead({ walletAddr });
+      setNotReadCnt(data.data);
     } catch (error) {
       handleError(error);
     }

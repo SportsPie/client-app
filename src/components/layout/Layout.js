@@ -15,28 +15,6 @@ export default function Layout({
   footer,
   ...props
 }) {
-  const nav = useNavigation();
-  const authState = useSelector(selector => selector.auth);
-  const chatState = useSelector(selector => selector.chat);
-  const { isLogin } = authState;
-  const { moveRoomId } = chatState;
-
-  useEffect(() => {
-    if (isLogin && moveRoomId) {
-      setTimeout(() => {
-        NavigationService.replace(navName.matchingChatRoomScreen, {
-          roomId: moveRoomId,
-        });
-        // NavigationService.navigate(navName.matchingChatRoomListScreen);
-        store.dispatch(chatSliceActions.resetMoveRoomId());
-      }, 0);
-    }
-  }, [moveRoomId]);
-
-  if (isLogin && moveRoomId) {
-    return <View style={{ flex: 1 }} />;
-  }
-
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <Component {...props} />

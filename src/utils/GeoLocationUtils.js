@@ -7,10 +7,15 @@ import { SP_PERMISSIONS } from '../common/constants/permissions';
 import { checkPermission } from './PermissionUtils';
 import Utils from './Utils';
 import { LOCATION_PERMISSION_TEXT } from '../common/constants/constants';
+import { geoLocationSliceActions } from '../redux/reducers/geoLocationSlice';
+import { store } from '../redux/store';
 
 const GeoLocationUtils = {
   checkPermission: async noAlert => {
-    const result = await checkPermission(SP_PERMISSIONS.LOCATION.permission);
+    const result = await checkPermission(
+      SP_PERMISSIONS.LOCATION.permission,
+      true,
+    );
     if (!result && !noAlert) {
       Utils.openModal({
         title: '요청',
@@ -19,7 +24,19 @@ const GeoLocationUtils = {
     }
     return result;
   },
-  getLocation: (showAlert = true) => {
+  getLocation: async (showAlert = true) => {
+    const hasPermission = await GeoLocationUtils.checkPermission(true);
+    if (hasPermission) {
+      return store.getState()?.geoLocation;
+    }
+    if (showAlert) {
+      handleError(
+        new CustomException('위치 정보 조회 권한을 허용해주시기 바랍니다.'),
+      );
+    }
+    return null;
+  },
+  getCurrentLocation: (showAlert = true) => {
     return new Promise((resolve, reject) => {
       Geolocation.getCurrentPosition(
         position => {
@@ -49,23 +66,39 @@ const GeoLocationUtils = {
       );
     });
   },
-  watchLocation: setter => {
-    const watchId = Geolocation.watchPosition(
-      position => {
-        const obj = {
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
-          timestamp: position.timestamp,
-        };
-        console.log('watch position', obj);
-        setter(obj);
-      },
-      error => {
-        handleError(error);
-      },
-      { enableHighAccuracy: true },
-    );
-    return watchId;
+  watchLocation: async () => {
+    return new Promise((resolve, reject) => {
+      const id = store.getState()?.geoLocation?.watchId;
+      if (id !== '' && id !== null && id !== undefined) {
+        Geolocation.clearWatch(id);
+      }
+      const watchId = Geolocation.watchPosition(
+        position => {
+          const obj = {
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+            timestamp: position.timestamp,
+          };
+          store.dispatch(geoLocationSliceActions.changeGeoLocationInfo(obj));
+          resolve(obj);
+        },
+        error => {
+          handleError(error);
+          reject(error);
+        },
+        {
+          accuracy: {
+            android: 'high',
+            ios: 'best',
+          },
+          distanceFilter: 5,
+          enableHighAccuracy: true,
+          timeout: 15000,
+          maximumAge: 60 * 1000,
+        },
+      );
+      store.dispatch(geoLocationSliceActions.changeId(watchId));
+    });
   },
   clearWatch: id => {
     Geolocation.clearWatch(id);

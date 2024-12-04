@@ -22,6 +22,7 @@ import {
   apiGetTournamentMngCheckReview,
   apiGetTournamentOpen,
   apiGetTournamentReviewList,
+  apiGetTournamentTitle,
 } from '../../api/RestAPI';
 import { handleError } from '../../utils/HandleError';
 import Utils from '../../utils/Utils';
@@ -35,7 +36,6 @@ function TournamentReviewList({ route }) {
    */
   const { isLogin, userIdx } = useSelector(selector => selector.auth);
   const tournamentIdx = route?.params?.tournamentIdx;
-  const tournamentName = route?.params?.tournamentName;
 
   const flatListRef = useRef();
   const [tournamentDetail, setTournamentDetail] = useState({});
@@ -50,9 +50,23 @@ function TournamentReviewList({ route }) {
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  const [tournamentCount, setTournamentCount] = useState();
+  const [tournamentName, setTournamentName] = useState();
+
   /**
    * api
    */
+
+  const getTournamentName = async () => {
+    try {
+      const { data } = await apiGetTournamentTitle(tournamentIdx);
+      setTournamentCount(data.data.trnCnt);
+      setTournamentName(data.data.title);
+    } catch (error) {
+      handleError(error);
+    }
+  };
+
   const getTournamentDetail = async () => {
     try {
       const { data } = await apiGetTournamentOpen({ tournamentIdx });
@@ -133,6 +147,7 @@ function TournamentReviewList({ route }) {
    */
   useFocusEffect(
     useCallback(() => {
+      getTournamentName();
       getTournamentDetail();
       checkReviewWrited();
       return () => {};
@@ -189,6 +204,8 @@ function TournamentReviewList({ route }) {
         <Header title="대회 리뷰" />
         <View style={{ padding: 16 }}>
           <Text style={{ ...fontStyles.fontSize20_Semibold }}>
+            {tournamentCount &&
+              `제${Utils.changeNumberComma(tournamentCount)}회 `}{' '}
             {tournamentName}
           </Text>
         </View>
@@ -358,7 +375,7 @@ function TournamentReviewList({ route }) {
                   justifyContent: 'center',
                   alignItems: 'center',
                 }}>
-                <Text style={{ ...fontStyles.fontSize12_Regular }}>
+                <Text style={{ ...fontStyles.fontSize16_Regular }}>
                   리뷰를 작성해 주시기 바랍니다.
                 </Text>
               </View>
@@ -369,7 +386,6 @@ function TournamentReviewList({ route }) {
                   onPress={() => {
                     NavigationService.navigate(navName.tournamentReviewEdit, {
                       tournamentIdx,
-                      tournamentName,
                     });
                   }}
                 />

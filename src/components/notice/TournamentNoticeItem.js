@@ -8,12 +8,12 @@ import Divider from '../Divider';
 import fontStyles from '../../styles/fontStyles';
 import { COLORS } from '../../styles/colors';
 
-function TournamentNoticeItem({ item, tournamentName }) {
+function TournamentNoticeItem({ item }) {
   const detailPage = async tournament => {
     try {
       NavigationService.navigate(navName.tournamentNoticeDetail, {
         noticeIdx: tournament.noticeIdx,
-        tournamentName,
+        tournamentIdx: item.tournamentIdx,
       });
     } catch (error) {
       handleError(error);
@@ -23,6 +23,7 @@ function TournamentNoticeItem({ item, tournamentName }) {
     <View style={styles.container}>
       <Pressable style={styles.content} onPress={() => detailPage(item)}>
         <Text
+          numberOfLines={1}
           style={[
             fontStyles.fontSize16_Semibold,
             {

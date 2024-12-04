@@ -251,6 +251,7 @@ function MoreInquiryRegist({ route }) {
             placeholder="제목을 입력하세요"
             value={title}
             onChangeText={setTitle}
+            maxLength={45}
           />
 
           <View style={{ rowGap: 4 }}>

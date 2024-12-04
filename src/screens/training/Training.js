@@ -446,7 +446,7 @@ function Training({ route }) {
                 showsVerticalScrollIndicator={false}>
                 <View>
                   {/* 슬라이드 배너 */}
-                  {bannerList.length > 0 && (
+                  {bannerList.length > 0 ? (
                     <View style={(styles.swiperBox, { height: imageHeight })}>
                       <Swiper
                         style={{ height: imageHeight }}
@@ -499,6 +499,13 @@ function Training({ route }) {
                           );
                         })}
                       </Swiper>
+                    </View>
+                  ) : (
+                    <View style={[styles.slide, { height: imageHeight }]}>
+                      <Image
+                        source={SPImages.defaultPieTrainingBanner}
+                        style={styles.image}
+                      />
                     </View>
                   )}
 
@@ -582,7 +589,7 @@ const styles = StyleSheet.create({
   image: {
     width: '100%',
     height: '100%',
-    resizeMode: 'cover',
+    resizeMode: 'stretch',
   },
   background: {
     // paddingBottom: 28,

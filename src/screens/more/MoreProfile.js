@@ -4,17 +4,20 @@ import React, {
   Fragment,
   memo,
   useCallback,
+  useEffect,
   useMemo,
   useRef,
   useState,
 } from 'react';
-import { ScrollView, StyleSheet, Text, View, Pressable } from 'react-native';
 import {
-  apiGetMatches,
-  apiGetProfile,
-  apiGetMyInfo,
-  apiModifyMyInfo,
-} from '../../api/RestAPI';
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import { apiGetProfile, apiModifyMyInfo } from '../../api/RestAPI';
 import { SPSvgs } from '../../assets/svg';
 import { GENDER } from '../../common/constants/gender';
 import { MAIN_FOOT } from '../../common/constants/mainFoot';
@@ -29,28 +32,11 @@ import { useFocusEffect } from '@react-navigation/native';
 import moment from 'moment/moment';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import SPModal from '../../components/SPModal';
+import SPSelectPhotoModal from '../../components/SPSelectPhotoModal';
 import Utils from '../../utils/Utils';
 import { MODAL_CLOSE_EVENT } from '../../common/constants/modalCloseEvent';
 import NavigationService from '../../navigation/NavigationService';
 import { navName } from '../../common/constants/navName';
-
-// const DATA = [
-//   {
-//     id: Utils.UUIDV4(),
-//     title: '2024 축구대회[초등부 남자]',
-//     value: '2024.04.06',
-//   },
-//   {
-//     id: Utils.UUIDV4(),
-//     title: '2024 축구대회[초등부 남자]',
-//     value: '2024.04.06',
-//   },
-//   {
-//     id: Utils.UUIDV4(),
-//     title: '2024 축구대회[초등부 남자]',
-//     value: '2024.04.06',
-//   },
-// ];
 
 function MoreProfile() {
   /**
@@ -61,14 +47,18 @@ function MoreProfile() {
   const [player, setPlayer] = useState({});
   const [stats, setStats] = useState({});
   const [userIdx, setUserIdx] = useState({});
-  const [matchHistory, setMatchHistory] = useState({});
-  const [page, setPage] = useState(1);
-  const pageSize = 30;
-  const flatListRef = useRef();
   const [isLast, setIsLast] = useState(false);
   const [nickname, setNickname] = useState(null);
   const [registModalShow, setRegistModalShow] = useState(false);
+  const [tournamentHistory, setTournamentHistory] = useState({});
   const trlRef = useRef({ current: { disabled: false } });
+
+  const [selectedTab, setSelectedTab] = useState('matching'); // matching, tournament
+
+  const [logoImage, setLogoImage] = useState();
+  const [showProfilePhotoSelectModal, setShowProfilePhotoSelectModal] =
+    useState(false);
+  const maxFilename = 60;
 
   /**
    * api
@@ -83,6 +73,7 @@ function MoreProfile() {
         setMember(info.member || {});
         setPlayer(info.player || {});
         setStats(info.stats || {});
+        setTournamentHistory(info.tournamentHistory || {});
         setUserIdx(data.data.member.userIdx);
       }
     } catch (error) {
@@ -94,48 +85,9 @@ function MoreProfile() {
   const today = moment();
   const age = today.diff(birthday, 'years');
 
-  const getUserMatchHistory = async () => {
-    const params = {
-      size: pageSize,
-      page,
-      academyIdx: member.academyIdx,
-    };
-    try {
-      const { data } = await apiGetMatches(params);
-      if (Array.isArray(data.data.list)) {
-        const newList = data.data.list;
-        setIsLast(data.data.isLast); // 현재 페이지가 마지막 페이지임을 설정
-        setMatchHistory(prevArticles =>
-          page === 1 ? newList : [...prevArticles, ...newList],
-        );
-      }
-    } catch (error) {
-      handleError(error);
-    }
-  };
-
   /**
    * function
    */
-  const handleScroll = event => {
-    const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent;
-    const paddingToBottom = 20;
-    const isScrolledToBottom =
-      layoutMeasurement.height + contentOffset.y >=
-      contentSize.height - paddingToBottom;
-
-    if (isScrolledToBottom) {
-      loadMoreProjects();
-    }
-  };
-
-  const loadMoreProjects = () => {
-    setTimeout(() => {
-      if (!isLast) {
-        setPage(prevPage => prevPage + 1);
-      }
-    }, 0);
-  };
 
   // 닉네임 수정
   const modifyNickName = async newNickname => {
@@ -164,8 +116,23 @@ function MoreProfile() {
       handleError(error);
     } finally {
       trlRef.current.disabled = false;
-      setIsEditing(false);
     }
+  };
+
+  // 프로필 이미지 수정
+  const updateProfile = async ({ fileUrl, imageName, imageType }) => {
+    // 로고 이미지 상태 업데이트
+    setLogoImage({
+      uri: fileUrl,
+      name:
+        imageName.length <= maxFilename
+          ? imageName
+          : imageName.substring(
+              imageName.length - maxFilename,
+              imageName.length,
+            ),
+      type: imageType,
+    });
   };
 
   const openModal = () => {
@@ -176,19 +143,44 @@ function MoreProfile() {
     setNickname(null);
   };
 
+  const fileUpload = async () => {
+    try {
+      if (trlRef.current.disabled) return;
+      trlRef.current.disabled = true;
+
+      // FormData 생성
+      const formData = new FormData();
+      const data = {
+        userIdx: member.userIdx,
+      };
+      formData.append('dto', {
+        string: JSON.stringify(data),
+        type: 'application/json',
+      });
+      if (logoImage) formData.append('profile', logoImage);
+
+      await apiModifyMyInfo(formData);
+    } catch (error) {
+      handleError(error);
+    } finally {
+      trlRef.current.disabled = false;
+      NavigationService.goBack();
+    }
+  };
+
   /**
    * useEffect
    */
+  useEffect(() => {
+    if (logoImage) {
+      fileUpload();
+    }
+  }, [logoImage]);
+
   useFocusEffect(
     useCallback(() => {
       getProfile();
     }, []),
-  );
-
-  useFocusEffect(
-    useCallback(() => {
-      getUserMatchHistory();
-    }, [page, userIdx]),
   );
 
   const renderUserSection = useMemo(() => {
@@ -217,8 +209,10 @@ function MoreProfile() {
         </Pressable>
         <Avatar
           imageSize={56}
-          disableEditMode
           imageURL={member?.userProfilePath ?? ''}
+          onPress={() => {
+            setShowProfilePhotoSelectModal(true);
+          }}
         />
 
         <View style={styles.usernameWrapper}>
@@ -334,12 +328,14 @@ function MoreProfile() {
                 const lastItem = index === member?.careerType?.length - 1;
                 if (lastItem) {
                   return (
+                    // eslint-disable-next-line react/no-array-index-key
                     <Text key={index} style={[fontStyles.fontSize20_Semibold]}>
                       {CAREER_TYPE[item]?.desc}
                     </Text>
                   );
                 }
                 return (
+                  // eslint-disable-next-line react/no-array-index-key
                   <Fragment key={index}>
                     <Text style={[fontStyles.fontSize20_Semibold]}>
                       {CAREER_TYPE[item]?.desc}
@@ -362,48 +358,137 @@ function MoreProfile() {
   const renderGameParticipantHistory = useMemo(() => {
     return (
       <View style={styles.gameHistoryWrapper}>
-        <Text style={fontStyles.fontSize20_Semibold}>경기 참가이력</Text>
-        <View style={styles.gameScoreWrapper}>
-          <View style={styles.scoreItem}>
-            <Text style={styles.scoretitleText}>출전경기수</Text>
-            <Text style={fontStyles.fontSize20_Semibold}>
-              {player?.totalMatch ? player.totalMatch : '0'}
+        <View
+          style={{
+            flexDirection: 'row',
+            borderBottomWidth: 1,
+            borderBottomColor: COLORS.lineBorder,
+            paddingHorizontal: 16,
+            gap: 16,
+          }}>
+          <TouchableOpacity
+            activeOpacity={1}
+            onPress={() => setSelectedTab('matching')}
+            style={[
+              styles.tabWrap,
+              selectedTab === 'matching' && styles.tabWrapActive,
+            ]}>
+            <Text
+              style={[
+                styles.tabText,
+                selectedTab === 'matching' && styles.tabTextActive,
+              ]}>
+              경기 참가이력
             </Text>
-          </View>
-          <View style={styles.scoreItem}>
-            <Text style={styles.scoretitleText}>득점</Text>
-            <Text style={fontStyles.fontSize20_Semibold}>
-              {player?.totalScore ? player.totalScore : '0'}
+          </TouchableOpacity>
+          <TouchableOpacity
+            activeOpacity={1}
+            onPress={() => setSelectedTab('tournament')}
+            style={[
+              styles.tabWrap,
+              selectedTab === 'tournament' && styles.tabWrapActive,
+            ]}>
+            <Text
+              style={[
+                styles.tabText,
+                selectedTab === 'tournament' && styles.tabTextActive,
+              ]}>
+              대회 참가이력
             </Text>
-          </View>
-          <View style={styles.scoreItem}>
-            <Text style={styles.scoretitleText}>MVP</Text>
-            <Text style={fontStyles.fontSize20_Semibold}>
-              {player?.totalMvp ? player.totalMvp : '0'}
-            </Text>
-          </View>
-          <View style={styles.scoreItem}>
-            <Text style={styles.scoretitleText}>도움</Text>
-            <Text style={fontStyles.fontSize20_Semibold}>
-              {player?.totalAssistance ? player.totalAssistance : '0'}
-            </Text>
-          </View>
-          <View style={styles.scoreItem}>
-            <Text style={styles.scoretitleText}>경고</Text>
-            <Text style={fontStyles.fontSize20_Semibold}>
-              {player?.totalYellowCard ? player.totalYellowCard : '0'}
-            </Text>
-          </View>
-          <View style={styles.scoreItem}>
-            <Text style={styles.scoretitleText}>퇴장</Text>
-            <Text style={fontStyles.fontSize20_Semibold}>
-              {player?.totalRedCard ? player.totalRedCard : '0'}
-            </Text>
-          </View>
+          </TouchableOpacity>
         </View>
+        {selectedTab === 'matching' ? (
+          <View style={styles.gameScoreWrapper}>
+            <View style={styles.scoreItem}>
+              <Text style={styles.scoretitleText}>출전 경기 수</Text>
+              <Text style={fontStyles.fontSize20_Semibold}>
+                {player?.totalMatch
+                  ? Utils.changeNumberComma(player.totalMatch)
+                  : '0'}
+              </Text>
+            </View>
+            <View style={styles.scoreItem}>
+              <Text style={styles.scoretitleText}>득점</Text>
+              <Text style={fontStyles.fontSize20_Semibold}>
+                {player?.totalScore
+                  ? Utils.changeNumberComma(player.totalScore)
+                  : '0'}
+              </Text>
+            </View>
+            <View style={styles.scoreItem}>
+              <Text style={styles.scoretitleText}>MVP</Text>
+              <Text style={fontStyles.fontSize20_Semibold}>
+                {player?.totalMvp
+                  ? Utils.changeNumberComma(player.totalMvp)
+                  : '0'}
+              </Text>
+            </View>
+            <TouchableOpacity
+              activeOpacity={1}
+              onPress={() => {
+                NavigationService.navigate(navName.moreGameSchedule);
+              }}
+              style={styles.historyMoveButton}>
+              <Text style={styles.historyButtonText}>내 경기 이력 보기</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <View style={{ gap: 8, paddingHorizontal: 16 }}>
+            <View style={{ flexDirection: 'row', gap: 8 }}>
+              <View style={styles.tournamentItem}>
+                <Text style={styles.scoretitleText}>MVP</Text>
+                <Text style={fontStyles.fontSize20_Semibold}>
+                  {tournamentHistory?.tournamentMvpCount
+                    ? Utils.changeNumberComma(
+                        tournamentHistory.tournamentMvpCount,
+                      )
+                    : '0'}
+                </Text>
+              </View>
+              <View style={styles.tournamentItem}>
+                <Text style={styles.scoretitleText}>득점</Text>
+                <Text style={fontStyles.fontSize20_Semibold}>
+                  {tournamentHistory?.tournamentScoreCount
+                    ? Utils.changeNumberComma(
+                        tournamentHistory.tournamentScoreCount,
+                      )
+                    : '0'}
+                </Text>
+              </View>
+              <View style={styles.tournamentItem}>
+                <Text style={styles.scoretitleText}>경고</Text>
+                <Text style={fontStyles.fontSize20_Semibold}>
+                  {tournamentHistory?.tournamentWaringCnt
+                    ? Utils.changeNumberComma(
+                        tournamentHistory.tournamentWaringCnt,
+                      )
+                    : '0'}
+                </Text>
+              </View>
+              <View style={styles.tournamentItem}>
+                <Text style={styles.scoretitleText}>퇴장</Text>
+                <Text style={fontStyles.fontSize20_Semibold}>
+                  {tournamentHistory?.tournamentExpulsionCount
+                    ? Utils.changeNumberComma(
+                        tournamentHistory.tournamentExpulsionCount,
+                      )
+                    : '0'}
+                </Text>
+              </View>
+            </View>
+            <TouchableOpacity
+              activeOpacity={1}
+              onPress={() => {
+                NavigationService.navigate(navName.moreTournamentHistory);
+              }}
+              style={styles.historyMoveButton}>
+              <Text style={styles.historyButtonText}>내 대회 이력 보기</Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </View>
     );
-  }, [player]);
+  }, [player, tournamentHistory, selectedTab]);
 
   return (
     <View style={styles.container}>
@@ -421,43 +506,30 @@ function MoreProfile() {
         // rightContent={renderHeaderRightButtons}
       />
 
-      <ScrollView
-        onScroll={handleScroll}
-        scrollEventThrottle={16}
-        showsVerticalScrollIndicator={false}>
+      <ScrollView showsVerticalScrollIndicator={false}>
         {renderUserSection}
 
         <View style={styles.content}>
           {/* Body Statistic */}
-          {renderBodyStatistic}
+          <View style={{ paddingHorizontal: 16 }}>{renderBodyStatistic}</View>
 
           {/* Game participation history */}
           {renderGameParticipantHistory}
-
-          {/* List history */}
-          <View
-            style={{
-              rowGap: 16,
-              paddingVertical: 16,
-              flexDirection: 'column',
-            }}>
-            {matchHistory &&
-              matchHistory.length > 0 &&
-              matchHistory.map((item, index) => {
-                return (
-                  // eslint-disable-next-line react/no-array-index-key
-                  <View key={index} style={styles.historyItemWrapper}>
-                    <Text style={styles.subTitle}>{item.title}</Text>
-                    <Text style={styles.subText}>
-                      {moment(item.matchDate).format('YYYY-MM-DD')}
-                    </Text>
-                  </View>
-                );
-              })}
-          </View>
         </View>
       </ScrollView>
 
+      <SPSelectPhotoModal
+        visible={showProfilePhotoSelectModal}
+        crop
+        cropWithRate={1}
+        cropHeightRate={1}
+        onClose={async () => {
+          setShowProfilePhotoSelectModal(false);
+        }}
+        onComplete={data => {
+          updateProfile(data);
+        }}
+      />
       <SPModal
         title="닉네임"
         visible={registModalShow}
@@ -473,10 +545,12 @@ function MoreProfile() {
           paddingHorizontal: 30,
         }}
         value={nickname === null ? member?.userNickName : nickname}
+        /* eslint-disable-next-line no-shadow */
         onChangeText={value => {
           const text = Utils.removeSymbolAndBlank(value);
           setNickname(text);
         }}
+        /* eslint-disable-next-line no-shadow */
         onConfirm={value => {
           modifyNickName(value);
         }}
@@ -494,6 +568,7 @@ function MoreProfile() {
     </View>
   );
 }
+
 export default memo(MoreProfile);
 
 const styles = StyleSheet.create({
@@ -529,8 +604,8 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.white,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    paddingHorizontal: 16,
     paddingTop: 24,
+    paddingBottom: 24,
   },
   basicInfoWrapper: {
     flexDirection: 'row',
@@ -555,12 +630,22 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
+    paddingHorizontal: 16,
   },
   scoreItem: {
     // backgroundColor: COLORS.fillNormal,
     backgroundColor: '#F1F5FF',
-    width: (SCREEN_WIDTH - 49) / 3,
+    width: Math.floor((SCREEN_WIDTH - 49) / 3),
     padding: 8,
+    borderRadius: 8,
+    rowGap: 8,
+    alignItems: 'center',
+  },
+  tournamentItem: {
+    flex: 1,
+    // backgroundColor: COLORS.fillNormal,
+    backgroundColor: '#F1F5FF',
+    paddingVertical: 8,
     borderRadius: 8,
     rowGap: 8,
     alignItems: 'center',
@@ -589,5 +674,38 @@ const styles = StyleSheet.create({
     color: 'rgba(46, 49, 53, 0.60)',
     lineHeight: 16,
     letterSpacing: 0.302,
+  },
+  tabWrap: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: 'transparent',
+    paddingVertical: 8,
+  },
+  tabWrapActive: {
+    borderBottomColor: '#FF7C10',
+  },
+  tabText: {
+    ...fontStyles.fontSize14_Semibold,
+    color: 'rgba(46, 49, 53, 0.60)',
+  },
+  tabTextActive: {
+    color: '#FB8225',
+  },
+  historyMoveButton: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#FB8225',
+    paddingVertical: 12,
+    paddingHorizontal: 28,
+    borderRadius: 10,
+    marginTop: 8,
+  },
+  historyButtonText: {
+    ...fontStyles.fontSize16_Semibold,
+    color: '#FB8225',
   },
 });

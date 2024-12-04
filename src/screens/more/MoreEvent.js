@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Pressable, StatusBar, StyleSheet, Text, View } from 'react-native';
 import {
   SafeAreaView,
@@ -27,6 +27,7 @@ import { moreEventVideoListAction } from '../../redux/reducers/list/moreEventVid
 import { eventParticipantCommentListAction } from '../../redux/reducers/list/eventParticipantCommentListSlice';
 import DismissKeyboard from '../../components/DismissKeyboard';
 import SPKeyboardAvoidingView from '../../components/SPKeyboardAvoidingView';
+import { useFocusEffect } from '@react-navigation/native';
 
 const Tab = createMaterialTopTabNavigator();
 
@@ -72,148 +73,140 @@ function MoreEvent() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <DismissKeyboard>
-        <SPKeyboardAvoidingView
-          key={keyboardAvoidingViewRefresh ? 'key1' : 'key2'}
-          behavior="padding"
-          isResize
-          keyboardVerticalOffset={0}>
-          <View style={styles.container}>
-            <LinearGradient
-              colors={['#1955CE', '#003090']}
-              start={{ x: 0.1, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={{
-                paddingTop: insets.top + StatusBar.currentHeight, // 안전영역에 맞게 패딩 적용
-              }}>
-              <Header
-                title={participantInfo?.eventName}
-                closeIcon
-                leftIconColor={COLORS.white}
-                headerContainerStyle={{
-                  backgroundColor: 'transparent',
-                  marginBottom: 28,
-                }}
-                headerTextStyle={{
-                  color: COLORS.white,
-                }}
-              />
-            </LinearGradient>
+      <View style={styles.container}>
+        <LinearGradient
+          colors={['#1955CE', '#003090']}
+          start={{ x: 0.1, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={{
+            paddingTop: insets.top + StatusBar.currentHeight, // 안전영역에 맞게 패딩 적용
+          }}>
+          <Header
+            title={participantInfo?.eventName}
+            closeIcon
+            leftIconColor={COLORS.white}
+            headerContainerStyle={{
+              backgroundColor: 'transparent',
+              marginBottom: 28,
+            }}
+            headerTextStyle={{
+              color: COLORS.white,
+            }}
+          />
+        </LinearGradient>
 
-            <View style={styles.tabDetailBox}>
-              <View style={styles.topBox}>
-                {participantInfo?.participationIdx && (
-                  <View>
-                    {participantInfo?.depositState ===
-                      DEPOSIT_STATE.DEPOSIT_WAIT.code && (
-                      <Text style={styles.topMsg}>
-                        {'오늘 23:59까지\n입금되지 않으면 접수가 취소됩니다.'}
-                      </Text>
-                    )}
-                    <View style={styles.topInfoContainer}>
-                      <View style={styles.avatar}>
-                        <Avatar
-                          imageSize={90}
-                          imageURL={participantInfo?.profilePath ?? ''}
-                          disableEditMode
-                        />
-                      </View>
-                      <View style={styles.topInfoBox}>
-                        <View style={styles.topInfo}>
-                          <View style={styles.topEvnetInfoBox}>
-                            <View style={styles.eventInfo}>
-                              <Text style={styles.eventInfoText}>
-                                {participantInfo?.targetName}
-                              </Text>
-                            </View>
-                            <Text style={styles.nameText} textAlign="center">
-                              {participantInfo?.participationName}
-                            </Text>
-                          </View>
-                          <Text style={styles.eventTypeText}>
-                            {participantInfo?.position
-                              ? POSITION_DETAIL_TYPE[participantInfo?.position]
-                                  .enDesc
-                              : '-'}
-                          </Text>
-                          {participantInfo?.acdmyName && (
-                            <View
-                              style={{
-                                backgroundColor: 'rgba(255, 124, 16, 0.15)',
-                                paddingHorizontal: 8,
-                                paddingVertical: 4,
-                                borderRadius: 4,
-                                alignSelf: 'flex-start',
-                              }}>
-                              <Text
-                                style={[
-                                  fontStyles.fontSize12_Semibold,
-                                  { color: '#FF7C10' },
-                                ]}>
-                                {participantInfo?.acdmyName}
-                              </Text>
-                            </View>
-                          )}
-                        </View>
-                        {/* 좋아요 */}
-                        <Pressable
-                          hitSlop={{
-                            top: 10,
-                            bottom: 10,
-                          }}
-                          style={styles.wrapper}
-                          onPress={() => {
-                            changeLike();
-                          }}>
-                          <View style={styles.heartContainer}>
-                            {participantInfo?.isLike ? (
-                              <SPSvgs.Heart />
-                            ) : (
-                              <SPSvgs.HeartOutline />
-                            )}
-                            <Text style={styles.text}>
-                              {Utils.changeNumberComma(
-                                participantInfo?.cntLike,
-                              )}
-                            </Text>
-                          </View>
-                        </Pressable>
-                      </View>
-                    </View>
-                  </View>
+        <View style={styles.tabDetailBox}>
+          <View style={styles.topBox}>
+            {participantInfo?.participationIdx && (
+              <View>
+                {participantInfo?.depositState ===
+                  DEPOSIT_STATE.DEPOSIT_WAIT.code && (
+                  <Text style={styles.topMsg}>
+                    {'오늘 23:59까지\n입금되지 않으면 접수가 취소됩니다.'}
+                  </Text>
                 )}
+                <View style={styles.topInfoContainer}>
+                  <View style={styles.avatar}>
+                    <Avatar
+                      imageSize={90}
+                      imageURL={participantInfo?.profilePath ?? ''}
+                      disableEditMode
+                    />
+                  </View>
+                  <View style={styles.topInfoBox}>
+                    <View style={styles.topInfo}>
+                      <View style={styles.topEvnetInfoBox}>
+                        <View style={styles.eventInfo}>
+                          <Text style={styles.eventInfoText}>
+                            {participantInfo?.targetName}
+                          </Text>
+                        </View>
+                        <Text style={styles.nameText} textAlign="center">
+                          {participantInfo?.participationName}
+                        </Text>
+                      </View>
+                      <Text style={styles.eventTypeText}>
+                        {participantInfo?.position
+                          ? POSITION_DETAIL_TYPE[participantInfo?.position]
+                              .enDesc
+                          : '-'}
+                      </Text>
+                      {participantInfo?.acdmyName && (
+                        <View
+                          style={{
+                            backgroundColor: 'rgba(255, 124, 16, 0.15)',
+                            paddingHorizontal: 8,
+                            paddingVertical: 4,
+                            borderRadius: 4,
+                            alignSelf: 'flex-start',
+                          }}>
+                          <Text
+                            style={[
+                              fontStyles.fontSize12_Semibold,
+                              { color: '#FF7C10' },
+                            ]}>
+                            {participantInfo?.acdmyName}
+                          </Text>
+                        </View>
+                      )}
+                    </View>
+                    {/* 좋아요 */}
+                    <Pressable
+                      hitSlop={{
+                        top: 10,
+                        bottom: 10,
+                      }}
+                      style={styles.wrapper}
+                      onPress={() => {
+                        changeLike();
+                      }}>
+                      <View style={styles.heartContainer}>
+                        {participantInfo?.isLike ? (
+                          <SPSvgs.Heart />
+                        ) : (
+                          <SPSvgs.HeartOutline />
+                        )}
+                        <Text style={styles.text}>
+                          {Utils.changeNumberComma(participantInfo?.cntLike)}
+                        </Text>
+                      </View>
+                    </Pressable>
+                  </View>
+                </View>
               </View>
+            )}
+          </View>
 
-              <Tab.Navigator
-                screenOptions={{
-                  lazy: true,
-                }}
-                sceneContainerStyle={{ backgroundColor: COLORS.white }}
-                tabBar={props => <TopEventTabLabel {...props} />}>
-                <Tab.Screen
-                  name={navName.eventMyInfo}
-                  component={MoreEventParticipantInfo}
-                />
-                {/* 사커비 임시 주석 */}
-                {/* <Tab.Screen
+          <Tab.Navigator
+            screenOptions={{
+              lazy: true,
+            }}
+            sceneContainerStyle={{ backgroundColor: COLORS.white }}
+            tabBar={props => <TopEventTabLabel {...props} />}>
+            <Tab.Screen
+              name={navName.eventMyInfo}
+              component={MoreEventParticipantInfo}
+            />
+            {/* 사커비 임시 주석 */}
+            {/* <Tab.Screen
             name={navName.eventSoccerBee}
             component={MoreEventParticipantSoccerbee}
           /> */}
-                <Tab.Screen
-                  name={navName.eventVideoList}
-                  component={MoreEventParticipantVideoList}
-                />
-                <Tab.Screen
-                  name={navName.eventComment}
-                  component={MoreEventParticipantComment}
-                />
-              </Tab.Navigator>
-            </View>
+            <Tab.Screen
+              name={navName.eventVideoList}
+              component={MoreEventParticipantVideoList}
+            />
+            <Tab.Screen
+              name={navName.eventComment}
+              component={MoreEventParticipantComment}
+            />
+          </Tab.Navigator>
+        </View>
 
-            {/* 기존 코드 주석처리 */}
-            {/* <Header title="메가 이벤트" closeIcon /> */}
+        {/* 기존 코드 주석처리 */}
+        {/* <Header title="메가 이벤트" closeIcon /> */}
 
-            {/* <View style={{ flex: 1 }}>
+        {/* <View style={{ flex: 1 }}>
         <PrimaryButton
           onPress={() => {
             NavigationService.navigate(navName.eventParticipantVideoReels);
@@ -228,9 +221,7 @@ function MoreEvent() {
         <Text>tab3</Text>
         <MoreEventParticipantSoccerbee />
       </View> */}
-          </View>
-        </SPKeyboardAvoidingView>
-      </DismissKeyboard>
+      </View>
     </SafeAreaView>
   );
 }

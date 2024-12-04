@@ -130,7 +130,11 @@ function Login({ noMove }) {
     useCallback(() => {
       if (navigationInited) {
         if (isLogin) {
-          NavigationService.replace(route?.from || navName.home, route);
+          if (route?.goBack) {
+            NavigationService.goBack();
+          } else {
+            NavigationService.replace(route?.from || navName.home, route);
+          }
         }
       } else {
         awitNavigation();

@@ -110,6 +110,17 @@ import EventWrite from './EventWrite';
 import QrScanner from './QrScanner';
 import DownloadFile from './DownloadFile';
 import Document from './Document';
+import GenderMale from './GenderMale';
+import GenderFemale from './GenderFemale';
+import Record from './Record';
+import AvatarColor from './AvatarColor';
+import ShootBall from './ShootBall';
+import Exchange from './Exchange';
+import Coupon from './Coupon';
+import Created from './Created';
+import Expired from './Expired';
+import ArrowDown from './ArrowDown';
+import Loding from './Loding';
 
 export class SPSvgs {
   static SportsPieLogo = SportsPieLogo;
@@ -123,6 +134,7 @@ export class SPSvgs {
   static CheckOrange = CheckOrange;
   static WarningCircle = WarningCircle;
   static Avatar = Avatar;
+  static AvatarColor = AvatarColor;
   static Camera = Camera;
   static ChevronDown = ChevronDown;
   static Back = Back;
@@ -212,6 +224,16 @@ export class SPSvgs {
   static EventDetail = EventDetail;
   static EventWrite = EventWrite;
   static QrScanner = QrScanner;
+  static GenderMale = GenderMale;
+  static GenderFemale = GenderFemale;
+  static Record = Record;
+  static ShootBall = ShootBall;
+  static Exchange = Exchange;
+  static Coupon = Coupon;
+  static Created = Created;
+  static Expired = Expired;
+  static ArrowDown = ArrowDown;
+  static Loding = Loding;
 
   //Bottom tab
   static BottomTabHomeOutline = BottomTabHomeOutline;

@@ -71,6 +71,31 @@ function TournamentSearchScreen({
     }
   };
 
+  const cityNameMapping = {
+    부산광역시: '부산',
+    서울특별시: '서울',
+    충청남도: '충남',
+    충청북도: '충북',
+    경상남도: '경남',
+    경상북도: '경북',
+    제주특별자치도: '제주',
+    세종특별자치시: '세종',
+    인천광역시: '인천',
+    경기도: '경기',
+    대전광역시: '대전',
+    전북특별자치도: '전북',
+    전라남도: '전남',
+    광주광역시: '광주',
+    강원특별자치도: '강원',
+    대구광역시: '대구',
+    울산광역시: '울산',
+  };
+
+  const formatCityName = city => {
+    // 매핑된 값이 있으면 그 값을 반환하고, 없으면 원본 도시명 반환
+    return cityNameMapping[city] || city;
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
@@ -100,7 +125,7 @@ function TournamentSearchScreen({
                       selectedRegion === region.code &&
                         styles.selectedButtonText,
                     ]}>
-                    {region.label}
+                    {formatCityName(region.label)} {/* 변환된 값 */}
                   </Text>
                 </TouchableOpacity>
               ))}
@@ -137,14 +162,16 @@ function TournamentSearchScreen({
                         setSelectedMonth(month);
                       }
                     }}>
-                    <Text
-                      style={[
-                        styles.buttonText,
-                        `${selectedMonth}` === month &&
-                          styles.selectedButtonText,
-                      ]}>
-                      {month}월
-                    </Text>
+                    <View style={styles.monthButtonText}>
+                      <Text
+                        style={[
+                          styles.buttonText,
+                          `${selectedMonth}` === month &&
+                            styles.selectedButtonText,
+                        ]}>
+                        {month}월
+                      </Text>
+                    </View>
                   </TouchableOpacity>
                 ))}
               </View>
@@ -252,8 +279,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'center',
-    marginHorizontal: -4,
+    marginHorizontal: -10,
     marginVertical: -8,
+    columnGap: 8,
   },
   button: {
     borderWidth: 1,
@@ -261,9 +289,9 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingVertical: 12,
     paddingHorizontal: 0,
-    marginHorizontal: 4,
+    // marginHorizontal: 4,
     marginVertical: 8,
-    width: 109,
+    width: '30%',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -277,7 +305,8 @@ const styles = StyleSheet.create({
     fontWeight: 500,
     lineHeight: 24,
     textAlign: 'center',
-    color: 'rgba(46, 49, 53, 0.8)',
+    color: 'rgba(46, 49, 53, 0.6)',
+    letterSpacing: 0.091,
   },
   selectedButtonText: {
     color: '#fff',
@@ -286,22 +315,37 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
+    // paddingHorizontal: 16,
     width: '100%',
   },
 
   chevronButton: {
-    padding: 12,
+    margin: 12,
+    width: 24,
+    height: 24,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   year: {
-    fontSize: 18,
-    fontWeight: 'bold',
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1A1C1E',
+    lineHeight: 24,
+    letterSpacing: 0.091,
+  },
+  monthButtonText: {
+    minWidth: 32,
+    minHeight: 32,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   monthButton: {
     borderRadius: 8,
-    paddingVertical: 12,
+    paddingVertical: 10,
     paddingHorizontal: 0,
-    width: 110,
+    flexBasis: '33.33%',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -318,13 +362,13 @@ const styles = StyleSheet.create({
 
   footer: {
     flexDirection: 'row',
-    paddingVertical: 16,
-    paddingHorizontal: 24,
+    paddingVertical: 24,
+    paddingHorizontal: 16,
     gap: 8,
   },
   resetButton: {
-    width: 66,
-    height: 48,
+    // width: 66,
+    // height: 48,
     backgroundColor: '#FFFFFF',
     borderRadius: 10,
     borderWidth: 1,
@@ -334,22 +378,26 @@ const styles = StyleSheet.create({
     padding: 12,
   },
   resetButtonText: {
-    color: 'rgba(0, 38, 114, 1)',
-    fontWeight: 'bold',
-    fontSize: 14,
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#002672',
+    lineHeight: 24,
+    letterSpacing: 0.091,
   },
   searchButton: {
     flex: 1,
     backgroundColor: '#FF7C10',
     borderRadius: 10,
-    height: 48,
+    // height: 48,
     justifyContent: 'center',
     alignItems: 'center',
   },
   searchButtonText: {
-    color: '#FFFFFF',
-    fontWeight: 'bold',
     fontSize: 16,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    lineHeight: 24,
+    letterSpacing: 0.091,
   },
   categoryButtonGroup: {
     flexDirection: 'row',
@@ -363,7 +411,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     borderWidth: 1,
     borderColor: '#E0E0E0',
-    height: 28,
+    // height: 28,
     justifyContent: 'center',
     alignItems: 'center',
     alignSelf: 'flex-start',
@@ -389,7 +437,7 @@ const styles = StyleSheet.create({
   categoryDivider: {
     borderTopWidth: 1,
     borderTopColor: '#E0E0E0',
-    marginBottom: 8,
+    marginBottom: 4,
   },
 });
 

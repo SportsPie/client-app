@@ -11,8 +11,8 @@ const PARAM_ROUTE = 'route';
 const DynamicLinkUtils = {
   // 공유하기 ( with 링크생성 )
   share: async ({
-    title = '축구파이',
-    description = '축구파이 설명',
+    title = '스포츠파이',
+    description = '스포츠파이 설명',
     route = 'home',
     params = {},
   }) => {
@@ -73,11 +73,11 @@ const DynamicLinkUtils = {
   // 링크 생성
   createDynamicLink: async ({
     uri = process.env.FIREBASE_DYNAMIC_LINK_SHARE_URL,
-    title = '축구파이',
-    description = 'FootballPie 세계 최초 축구 훈련 리워드 어플',
+    title = '스포츠파이',
+    description = 'SportsPie 세계 최초 축구 훈련 리워드 어플',
   }) => {
     const link = await dynamicLinks().buildShortLink({
-      link: `${process.env.FIREBASE_DYNAMIC_LINK_SHARE_URL}/${uri}`,
+      link: `${process.env.FIREBASE_DYNAMIC_LINK_SHARE_URL}?${uri}`,
       domainUriPrefix: process.env.FIREBASE_DYNAMIC_LINK_HOST_URL,
       android: {
         packageName: process.env.FIREBASE_DYNAMIC_LINK_ANDROID,
@@ -90,15 +90,17 @@ const DynamicLinkUtils = {
       },
       social: {
         title,
-        descriptionText: description,
+        descriptionText:
+          description?.length > 100
+            ? `${description?.slice(0, 100)}...`
+            : description,
         // imageUrl: 'https://example.com/image.png',
       },
       navigation: {
-        forcedRedirectEnabled: true,
+        forcedRedirectEnabled: false,
       },
     });
 
-    // console.log('[ Created Link ] ::: ', link);
     return link;
   },
 
@@ -129,7 +131,7 @@ const DynamicLinkUtils = {
     }
 
     // 이동
-    console.log('Link to >>> ' + targetRoute);
+    console.log(`Link to >>> ${targetRoute}`);
     NavigationService.navigate(navName[targetRoute || defaultRoute], {
       ...targetParam,
     });

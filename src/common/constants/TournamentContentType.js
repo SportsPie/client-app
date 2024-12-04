@@ -1,0 +1,4 @@
+export const TOURNAMENT_CONTENT_TYPE = {
+  YOUTUBE: 'YOUTUBE',
+  PICTURE: 'PICTURE',
+};

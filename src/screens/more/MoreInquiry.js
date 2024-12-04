@@ -158,6 +158,7 @@ function MoreInquiry({ route }) {
                 PROGRESS_STATUS[item.qnaState] === PROGRESS_STATUS.WAIT
                   ? COLORS.peach
                   : 'rgba(49, 55, 121, 0.10)',
+              flexWrap: 'wrap',
             },
           ]}>
           <Text

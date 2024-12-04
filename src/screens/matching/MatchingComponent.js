@@ -342,7 +342,7 @@ function MatchingComponent({ initCity, cityList, ...props }) {
       setSelectedGu(null);
       setSelectedMonth(new Date().getMonth() + 1);
       setSelectedYear(new Date().getFullYear());
-      matchingFilterRef?.current?.refresh();
+      matchingFilterRef?.current?.reset();
       dispatch(action.setListParamReset(false));
     }
   }, [listParamReset]);

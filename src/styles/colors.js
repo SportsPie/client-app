@@ -52,6 +52,7 @@ export const COLORS = {
   textDisabled: '#8D8D8D',
   deepGreen: '#4cc35a',
   red2: '#ff0e0e',
+  darkRed: '#C30002',
   gray80: '#717171',
   gray85: '#555555',
   grayBg: '#cecece',

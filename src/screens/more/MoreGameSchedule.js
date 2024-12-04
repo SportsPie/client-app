@@ -1,6 +1,6 @@
 import { useFocusEffect } from '@react-navigation/native';
 import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
-import { FlatList, RefreshControl, StyleSheet } from 'react-native';
+import { FlatList, RefreshControl, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { apiGetMatches } from '../../api/RestAPI';
 import ListEmptyView from '../../components/ListEmptyView';
@@ -128,7 +128,10 @@ function MoreGameSchedule({ route }) {
       ) : loading ? (
         <Loading />
       ) : (
-        renderEmptyList()
+        <View
+          style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          {renderEmptyList()}
+        </View>
       )}
     </SafeAreaView>
   );

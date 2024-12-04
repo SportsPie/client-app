@@ -77,9 +77,7 @@ function MoreCouponRegister() {
           </Text>
           <Text style={styles.termText}>
             • 쿠폰 등록 내역은{' '}
-            <Text style={fontStyles.fontSize12_Bold}>
-              {'더보기 > 소셜토큰'}
-            </Text>{' '}
+            <Text style={fontStyles.fontSize12_Bold}>{'더보기 > 포인트'}</Text>{' '}
             내역에서 확인할 수 있어요.
           </Text>
           <Text style={styles.termText}>

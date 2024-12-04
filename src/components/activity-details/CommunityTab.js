@@ -7,7 +7,11 @@ import {
   Text,
   View,
 } from 'react-native';
-import { apiGetFeeds, apiGetHolderFeeds } from '../../api/RestAPI';
+import {
+  apiGetFeeds,
+  apiGetHolderFeeds,
+  apiGetMyInfo,
+} from '../../api/RestAPI';
 import { handleError } from '../../utils/HandleError';
 import ListEmptyView from '../ListEmptyView';
 import FeedItemCommunity from './FeedItemCommunity';
@@ -41,10 +45,26 @@ function CommunityTab() {
   } = useSelector(selector => selector[vipListName]);
   const vipAction = moreCommunityFavPlayerListAction;
 
+  const [init, setInit] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('normal');
   const pageSize = 30;
   const flatListRef = useRef();
   const vipFlatListRef = useRef();
+  const [showVipFilterButton, setShowVipFilterButton] = useState(false);
+
+  const getUserInfo = async () => {
+    try {
+      const { data } = await apiGetMyInfo();
+
+      if (data) {
+        setShowVipFilterButton(data.data.holderYn === 'Y');
+      }
+    } catch (error) {
+      handleError(error);
+    }
+    setInit(true);
+  };
+
   const getFeeds = async () => {
     const params = {
       size: pageSize,
@@ -120,9 +140,15 @@ function CommunityTab() {
   }, []);
 
   useEffect(() => {
-    onRefresh();
-    onVipRefresh();
+    getUserInfo();
   }, []);
+
+  useEffect(() => {
+    if (init) {
+      onRefresh();
+      if (showVipFilterButton) onVipRefresh();
+    }
+  }, [init]);
 
   useEffect(() => {
     if (refreshing || (!refreshing && page > 1)) {
@@ -131,10 +157,12 @@ function CommunityTab() {
   }, [page, refreshing]);
 
   useEffect(() => {
-    if (vipRefreshing || (!vipRefreshing && vipPage > 1)) {
-      getVipFeeds();
+    if (showVipFilterButton) {
+      if (vipRefreshing || (!vipRefreshing && vipPage > 1)) {
+        getVipFeeds();
+      }
     }
-  }, [vipPage, vipRefreshing]);
+  }, [vipPage, vipRefreshing, showVipFilterButton]);
 
   const renderCommunityItem = ({ item }) => {
     return (
@@ -165,66 +193,70 @@ function CommunityTab() {
 
   return (
     <View style={{ flex: 1 }}>
-      <View style={styles.filterWrapper}>
-        <Pressable
-          onPress={() => {
-            setSelectedCategory('normal');
-          }}
-          style={[
-            styles.filterButton,
-            {
-              backgroundColor:
-                selectedCategory === 'normal'
-                  ? COLORS.orange
-                  : COLORS.fillStrong,
-              borderColor:
-                selectedCategory === 'normal'
-                  ? COLORS.orange
-                  : 'rgba(135, 141, 150, 0.16)',
-            },
-          ]}>
-          <Text
+      {showVipFilterButton && (
+        <View style={styles.filterWrapper}>
+          <Pressable
+            onPress={() => {
+              setSelectedCategory('normal');
+            }}
             style={[
-              fontStyles.fontSize14_Medium,
+              styles.filterButton,
               {
-                color:
+                backgroundColor:
                   selectedCategory === 'normal'
-                    ? COLORS.white
-                    : COLORS.labelAlternative,
+                    ? COLORS.orange
+                    : COLORS.fillStrong,
+                borderColor:
+                  selectedCategory === 'normal'
+                    ? COLORS.orange
+                    : 'rgba(135, 141, 150, 0.16)',
               },
             ]}>
-            일반
-          </Text>
-        </Pressable>
-        <Pressable
-          onPress={() => {
-            setSelectedCategory('vip');
-          }}
-          style={[
-            styles.filterButton,
-            {
-              backgroundColor:
-                selectedCategory === 'vip' ? COLORS.orange : COLORS.fillStrong,
-              borderColor:
-                selectedCategory === 'vip'
-                  ? COLORS.orange
-                  : 'rgba(135, 141, 150, 0.16)',
-            },
-          ]}>
-          <Text
+            <Text
+              style={[
+                fontStyles.fontSize14_Medium,
+                {
+                  color:
+                    selectedCategory === 'normal'
+                      ? COLORS.white
+                      : COLORS.labelAlternative,
+                },
+              ]}>
+              일반
+            </Text>
+          </Pressable>
+          <Pressable
+            onPress={() => {
+              setSelectedCategory('vip');
+            }}
             style={[
-              fontStyles.fontSize14_Medium,
+              styles.filterButton,
               {
-                color:
+                backgroundColor:
                   selectedCategory === 'vip'
-                    ? COLORS.white
-                    : COLORS.labelAlternative,
+                    ? COLORS.orange
+                    : COLORS.fillStrong,
+                borderColor:
+                  selectedCategory === 'vip'
+                    ? COLORS.orange
+                    : 'rgba(135, 141, 150, 0.16)',
               },
             ]}>
-            SOL11
-          </Text>
-        </Pressable>
-      </View>
+            <Text
+              style={[
+                fontStyles.fontSize14_Medium,
+                {
+                  color:
+                    selectedCategory === 'vip'
+                      ? COLORS.white
+                      : COLORS.labelAlternative,
+                },
+              ]}>
+              SOL11
+            </Text>
+          </Pressable>
+        </View>
+      )}
       <View style={{ flex: 1, position: 'relative' }}>
         <View
           style={[

@@ -22,11 +22,11 @@ function GameScheduleItem({ item }) {
   };
 
   if (item?.hostScore > item?.participantScore) {
-    scoreBackgroundColor = COLORS.statusPositive; // 호스트 스코어가 더 높으면 분홍색
+    scoreBackgroundColor = COLORS.statusPositive; // 호스트 스코어가 더 높으면 초록색
   } else if (item?.hostScore < item?.participantScore) {
-    scoreBackgroundColor = COLORS.peach; // 호스트 스코어가 더 낮으면 파란색
+    scoreBackgroundColor = COLORS.peach; // 호스트 스코어가 더 낮으면 분홍색
   } else {
-    scoreBackgroundColor = COLORS.darkBlue; // 무승부일 경우 그레이색
+    scoreBackgroundColor = COLORS.darkBlue; // 무승부일 경우 파란색
   }
 
   const renderMatchStatus = useMemo(() => {

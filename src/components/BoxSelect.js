@@ -6,9 +6,10 @@ import {
   WINDOW_HEIGHT,
 } from '@gorhom/bottom-sheet';
 import React, { memo, useCallback, useMemo, useRef } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View, Image } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { SPSvgs } from '../assets/svg';
+import SPIcons from '../assets/icon';
 import { COLORS } from '../styles/colors';
 import fontStyles from '../styles/fontStyles';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -24,6 +25,7 @@ function BoxSelect({
   boxStyle,
   onPressBox,
   disabled,
+  isArrowDropDown,
 }) {
   const insets = useSafeAreaInsets();
   const bottomRef = useRef();
@@ -81,7 +83,11 @@ function BoxSelect({
           ]}>
           {renderText}
         </Text>
-        <SPSvgs.ChevronDown />
+        {isArrowDropDown ? (
+          <Image source={SPIcons.icArrowDropDown} />
+        ) : (
+          <SPSvgs.ChevronDown />
+        )}
       </Pressable>
 
       <BottomSheetModal

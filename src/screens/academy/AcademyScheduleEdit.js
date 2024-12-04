@@ -366,6 +366,7 @@ function AcademyScheduleEdit({ route }) {
                   onStateChange={state => {
                     setSpinning(state === 'spinning');
                   }}
+                  theme="light"
                 />
                 <View style={styles.buttonContainer}>
                   <TouchableOpacity

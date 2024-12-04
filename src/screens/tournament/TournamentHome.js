@@ -116,16 +116,16 @@ function TournamentHome({
    */
   const renderItem = ({ item }) => (
     <TournamentCard
-      // key={item.tournamentIdx}
+      tournamentIdx={item.tournamentIdx}
       title={item.trnName}
       tournamentCount={item.trnCount}
       startDate={item.startDate}
       endDate={item.endDate}
       location={item.trnPlace}
       image={item.thumbPath}
-      dDay={item.dDay}
       status={item.trnState}
       openDate={item.openDate}
+      closeDate={item.closeDate}
     />
   );
 

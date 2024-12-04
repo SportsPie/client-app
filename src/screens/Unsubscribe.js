@@ -113,18 +113,12 @@ function Unsubscribe() {
             </Text>
           </View>
           <Text style={styles.subHeaderText}>
-            {
-              '탈퇴하시면 지금껏 모으신 소셜토큰과 코인이\n사라져 복구가 불가해요'
-            }
+            {'탈퇴하시면 지금껏 모으신 포인트과 코인이\n사라져 복구가 불가해요'}
           </Text>
         </View>
 
         <View style={styles.boxWrapper}>
-          <BoxItem
-            title="즉시 소멸"
-            label="잔여 소셜토큰"
-            value={`${point} P`}
-          />
+          <BoxItem title="즉시 소멸" label="잔여 포인트" value={`${point} P`} />
           <BoxItem
             title="즉시 소멸"
             label="잔여 코인"

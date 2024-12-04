@@ -571,7 +571,7 @@ export const TRIGGER = {
   },
 
   [navName.createWallet]: {
-    desc: '더보기 소셜토큰 지갑을 만들어보세요 클릭시 이동 페이지',
+    desc: '더보기 포인트 지갑을 만들어보세요 클릭시 이동 페이지',
     value: navName.createWallet,
   },
   [navName.privateKeyConfirm]: {
@@ -595,7 +595,7 @@ export const TRIGGER = {
     value: navName.walletBackupCheck,
   },
   [navName.walletDetail]: {
-    desc: '더보기 소셜토큰 지갑 상세 페이지',
+    desc: '더보기 포인트 지갑 상세 페이지',
     value: navName.walletDetail,
   },
   [navName.walletPwd]: {
@@ -624,19 +624,19 @@ export const TRIGGER = {
   },
 
   [navName.socialToken]: {
-    desc: '더보기 소셜토큰 쓰러가기 클릭시 이동 페이지',
+    desc: '더보기 포인트 쓰러가기 클릭시 이동 페이지',
     value: navName.socialToken,
   },
   [navName.socialTokenDetail]: {
-    desc: '소셜토큰 상세 페이지',
+    desc: '포인트 상세 페이지',
     value: navName.socialTokenDetail,
   },
   [navName.swap]: {
-    desc: '소셜토큰 스왑 페이지',
+    desc: '포인트 스왑 페이지',
     value: navName.swap,
   },
   [navName.swapTranfer]: {
-    desc: '소셜토큰 스왑 진행중 페이지',
+    desc: '포인트 스왑 진행중 페이지',
     value: navName.swapTranfer,
   },
 };

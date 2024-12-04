@@ -133,7 +133,7 @@ function Swap() {
   useEffect(() => {
     if (swapTo === SWAP_TYPE.WALLET) {
       if (Number(getReturnedSwapValue || 0) > Number(point)) {
-        setErrorMessage('보유 소셜토큰 자금이 부족합니다.');
+        setErrorMessage('보유 포인트 자금이 부족합니다.');
       } else {
         setErrorMessage('');
       }
@@ -170,7 +170,7 @@ function Swap() {
                 </Text>
                 <Text style={[styles.currentTokenValue]}>
                   {swapTo === SWAP_TYPE.WALLET
-                    ? `보유 소셜토큰 : ${Utils.changeNumberComma(point)}P`
+                    ? `보유 포인트 : ${Utils.changeNumberComma(point)}P`
                     : `보유 PIE : ${Utils.changeNumberComma(balance)} PIE`}
                 </Text>
               </View>
@@ -222,7 +222,7 @@ function Swap() {
                 <Text style={[styles.currentTokenValue]}>
                   {swapTo === SWAP_TYPE.WALLET
                     ? `보유 PIE : ${Utils.changeNumberComma(balance)} PIE`
-                    : `보유 소셜토큰 : ${Utils.changeNumberComma(point)}P`}
+                    : `보유 포인트 : ${Utils.changeNumberComma(point)}P`}
                 </Text>
               </View>
 

@@ -109,13 +109,18 @@ function MoreFlipCard({ isSol, member, academy, stats, point, width, height }) {
                   <View
                     style={[
                       styles.usernameBox,
-                      { backgroundColor: isSol ? '#26467B' : '#D5D5D5' },
+                      {
+                        backgroundColor: isSol ? '#26467B' : '#D5D5D5',
+                        flexShrink: 1,
+                      },
                     ]}>
                     <Text
                       style={[
                         styles.usernameText,
                         { color: isSol ? '#93DEFC' : 'rgba(46, 49, 53, 0.80)' },
-                      ]}>
+                      ]}
+                      numberOfLines={2} // 2줄까지 보여짐
+                      ellipsizeMode="tail">
                       {member.acdmyNm ? member.acdmyNm : '-'}
                     </Text>
                   </View>
@@ -246,6 +251,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
+    paddingHorizontal: 20,
   },
   usernameBox: {
     backgroundColor: '#26467B',

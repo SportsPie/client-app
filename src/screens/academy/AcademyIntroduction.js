@@ -243,7 +243,7 @@ function AcademyIntroduction({ route }) {
             ? MODAL_MORE_BUTTONS.LEAVE
             : null,
         ]}
-        shareLink={`academyIntro?id=${academyIdx}`}
+        shareLink={`type=academyIntro&id=${academyIdx}`}
         shareTitle={academyDetail?.academyName ?? ''}
         shareDescription={academyDetail?.description ?? ''}
       />

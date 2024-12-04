@@ -7,11 +7,13 @@ import AlertItem from '../../components/alert-page/AlertItem';
 import Header from '../../components/header';
 import { COLORS } from '../../styles/colors';
 import { handleError } from '../../utils/HandleError';
-import notificationUtils from '../../utils/notification/NotificationUtils';
 import { alarmListAction } from '../../redux/reducers/list/alarmListSlice';
 import { store } from '../../redux/store';
 import NavigationService from '../../navigation/NavigationService';
 import { navName } from '../../common/constants/navName';
+import { apiGetNotiList, apiPatchNoti } from '../../api/RestAPI';
+import walletUtils from '../../utils/WalletUtils';
+import SPLoading from '../../components/SPLoading';
 
 export const NOTI_TYPE = {
   TRAINING: 'TRAINING',
@@ -42,31 +44,53 @@ function AlarmPage({ route }) {
   const flatListRef = useRef();
 
   const { isLogin, userIdx } = useSelector(selector => selector.auth);
-  const [size, setSize] = useState(30);
+  const [size, setSize] = useState(100);
 
   /**
    * sql lite
    */
   const getNotiList = async () => {
     try {
-      const list = await notificationUtils.getList({
-        userIdx,
-        paging: true,
+      // const list = await notificationUtils.getList({
+      //   userIdx,
+      //   paging: true,
+      //   page,
+      //   size,
+      // });
+      // dispatch(action.setIsLast(list.length < size));
+      const walletAddr = await walletUtils.getWalletAddress();
+      const params = {
         page,
         size,
-      });
-      dispatch(action.setIsLast(list.length < size));
-      if (page === 1) {
-        dispatch(action.setList(list));
-      } else {
-        const prevList = store.getState()[listName].list;
-        dispatch(action.setList([...prevList, ...list]));
+        walletAddr,
+      };
+      const { data } = await apiGetNotiList(params);
+      if (data && Array.isArray(data.data.list)) {
+        dispatch(action.setTotalCnt(data.data.totalCnt));
+        dispatch(action.setIsLast(data.data.isLast));
+        if (page === 1) {
+          // dispatch(action.setList(list));
+          dispatch(action.setList(data.data.list));
+        } else {
+          const prevList = store.getState()[listName].list;
+          // dispatch(action.setList([...prevList, ...list]));
+          dispatch(action.setList([...prevList, ...data.data.list]));
+        }
       }
     } catch (error) {
       handleError(error);
     } finally {
       dispatch(action.setRefreshing(false));
       dispatch(action.setLoading(false));
+    }
+  };
+
+  const read = async () => {
+    try {
+      const walletAddr = await walletUtils.getWalletAddress();
+      const { data } = await apiPatchNoti({ walletAddr });
+    } catch (error) {
+      console.log('error', error);
     }
   };
 
@@ -92,7 +116,10 @@ function AlarmPage({ route }) {
   useFocusEffect(
     useCallback(() => {
       return () => {
-        if (noParamReset) notificationUtils.read();
+        if (noParamReset) {
+          // notificationUtils.read();
+          read();
+        }
       };
     }, []),
   );
@@ -135,7 +162,7 @@ function AlarmPage({ route }) {
     <SafeAreaView style={{ flex: 1 }}>
       <Header title="알림" />
 
-      {notiList && notiList.length ? (
+      {notiList && notiList.length > 0 ? (
         <FlatList
           ref={flatListRef}
           data={notiList}
@@ -147,12 +174,14 @@ function AlarmPage({ route }) {
           onEndReachedThreshold={0.5}
           ListFooterComponent={renderFooter}
         />
+      ) : loading ? (
+        <SPLoading />
       ) : (
         <View
           style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
           <Text
             style={{
-              fontSize: 13,
+              fontSize: 16,
               fontWeight: 500,
               color: 'rgba(46, 49, 53, 0.60)',
               lineHeight: 18,

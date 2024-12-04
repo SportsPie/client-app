@@ -6,11 +6,10 @@ import NavigationService from '../navigation/NavigationService';
 
 function DynamicLinksListener() {
   const handleNavigate = async link => {
-    //Ex: https://footballcash.page.link/shared/academy?id=1
+    //Ex: https://footballcash.page.link/shared/?type=academy&id=1
     const url = new URL(link);
-    const pathSegments = url.pathname.split('/');
     const queryParams = new URLSearchParams(url.search);
-    const pathSegment = pathSegments[pathSegments.length - 1]; // => "academy"
+    const pathSegment = queryParams.get('type'); // => "academy"
     const id = queryParams.get('id'); // => 1
 
     switch (pathSegment) {

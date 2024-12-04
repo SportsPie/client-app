@@ -430,8 +430,7 @@ function Academy({ navigation }) {
                 width: 24,
                 height: 3,
               }}>
-              {bannerList &&
-                bannerList.length > 0 &&
+              {bannerList && bannerList.length > 0 ? (
                 bannerList.map((img, index) => {
                   return (
                     <TouchableOpacity
@@ -453,7 +452,16 @@ function Academy({ navigation }) {
                       />
                     </TouchableOpacity>
                   );
-                })}
+                })
+              ) : (
+                <View style={[styles.slide, { height: imageHeight }]}>
+                  <Image
+                    // resizeMode="cover"
+                    source={SPImages.defaultAcademyBanner}
+                    style={[styles.image]}
+                  />
+                </View>
+              )}
             </Swiper>
           </View>
           {/* 아카데미 미소속 */}

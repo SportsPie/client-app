@@ -8,4 +8,5 @@ export const SPGifs = {
   handClap: require('./hand-clap.gif'),
   gift: require('./gift.gif'),
   check: require('./check.gif'),
+  done: require('./done.gif'),
 };

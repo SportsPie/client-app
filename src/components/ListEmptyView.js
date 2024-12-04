@@ -19,8 +19,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   textStyle: {
-    ...fontStyles.fontSize12_Medium,
-    color: COLORS.labelAlternative,
+    ...fontStyles.fontSize16_Medium,
+    // color: COLORS.labelAlternative,
+    color: 'rgba(46, 49, 53, 0.60)',
     textAlign: 'center',
     letterSpacing: 0.3,
   },

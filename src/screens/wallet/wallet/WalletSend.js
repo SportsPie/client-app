@@ -282,7 +282,7 @@ function WalletSend() {
           </View>
 
           <View style={styles.menuWrapper}>
-            <Text style={styles.menuText}>남은 소셜토큰</Text>
+            <Text style={styles.menuText}>남은 포인트</Text>
             <Text style={styles.menuValueText}>
               {Utils.changeNumberComma(
                 Number(point) - Number(fee) ?? '0',

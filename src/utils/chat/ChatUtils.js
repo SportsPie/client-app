@@ -18,9 +18,9 @@ import {
 } from '../../api/RestAPI';
 import { SPToast } from '../../components/SPToast';
 import NavigationService from '../../navigation/NavigationService';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { FCM_TYPE } from '../../common/constants/fcmType';
 import Utils from '../Utils';
+import { getStorage } from '../AsyncStorageUtils';
 
 const chatUtils = {
   /**
@@ -657,9 +657,9 @@ const chatUtils = {
       }
 
       if (isChatRoomPage) {
-        const chatList = [...(state.chatList ? state.chatList : [])];
-        chatList.unshift(insertedMessage);
-        store.dispatch(chatSliceActions.setChatList(chatList));
+        const newChatList = [...(state.newChatList ? state.newChatList : [])];
+        newChatList.unshift(insertedMessage);
+        store.dispatch(chatSliceActions.setNewChatList(newChatList));
       }
     } catch (error) {
       console.log('receivedGroupFstMsg error');
@@ -1036,11 +1036,13 @@ const chatUtils = {
       if (isChatRoomPage) {
         // 읽음 표시를 위해 메시지 보내기
         await chatUtils.read(roomId);
-        const chatList = [...(chatState.chatList ? chatState.chatList : [])];
-        chatList.unshift(insertedMessage);
-        store.dispatch(chatSliceActions.setChatList(chatList));
+        const newChatList = [...(chatState.newChatList ?? [])];
+        newChatList.unshift(insertedMessage);
+        store.dispatch(chatSliceActions.setNewChatList(newChatList));
         if (!myMessage) {
-          store.dispatch(chatSliceActions.setNewMessageTimeId(message.timeId));
+          store.dispatch(
+            chatSliceActions.setNewMessageTimeIdTemp(message.timeId),
+          );
         }
       } else {
         await chatUtils.showNotification(message);
@@ -1143,7 +1145,6 @@ const chatUtils = {
     store.dispatch(chatSliceActions.setChatRoomId(roomId));
     store.dispatch(chatSliceActions.resetNewMessageTimeId());
     store.dispatch(chatSliceActions.setNotiYn(me.notiYn));
-    store.dispatch(chatSliceActions.resetMoveRoomId());
     chatUtils.read(roomId);
   },
   outChatRoom: () => {
@@ -1188,6 +1189,10 @@ const chatUtils = {
     const chatState = store.getState().chat;
     const authState = store.getState().auth;
     const pushAuthStatus = await messaging().hasPermission();
+    let pushSettingObj = await getStorage(`pushSetting_${authState.userIdx}`);
+    pushSettingObj = JSON.parse(pushSettingObj) || {};
+    const hasPushPermission =
+      pushSettingObj[FCM_TYPE.MATCH.toLowerCase()] === 'Y';
     const sender = await ChatMapper.selectMemberByIdx(message.sendUserIdx);
     const isMyMessage =
       `${authState.userType}` === `${message.sendUserType}` &&
@@ -1195,16 +1200,12 @@ const chatUtils = {
 
     // 알림 표시
     // 알림 허용 확인
-    const storedNotificationStates = await AsyncStorage.getItem(
-      `notificationStates_${authState.userIdx}`,
-    );
-    const userNotiPermissions = JSON.parse(storedNotificationStates);
 
     if (
       !isMyMessage &&
       // me.notiYn === 'Y' && // 이 프로젝트에서는 notiYn 대신 userNotiPermissions로 확인
-      userNotiPermissions[FCM_TYPE.MATCH] &&
       pushAuthStatus &&
+      hasPushPermission &&
       chatState.messageShowMinTimeId < message.timeId
     ) {
       const notiMessage = {
@@ -1212,6 +1213,8 @@ const chatUtils = {
           roomId: message.roomId,
           title: sender?.userNickName || '스포츠파이',
           body: message.msg,
+          timeId: message.timeId,
+          type: FCM_TYPE.CHAT,
         },
       };
       console.log('received chat message and open notify');

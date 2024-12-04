@@ -24,6 +24,7 @@ import { handleError } from '../../utils/HandleError';
 import { getVideoMetaData } from 'react-native-compressor';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { VIDEO_UPLOAD_TYPE } from '../../common/constants/VideoUploadType';
+import fontStyles from '../../styles/fontStyles';
 
 // 상수값
 const MAX_FILE_NAME_LENGTH = 60; // 업로드 동영상 파일명
@@ -87,14 +88,14 @@ function VideoRegistering({ route }) {
 
   // [ state ] 동영상 & 썸네일
   const [videoDurationSec, setVideoDurationSec] = useState(''); // 동영상 재생시간
-  const [compressionProgress, setCompressionProgress] = useState(''); // 압축 진행률
+  const [compressionProgress, setCompressionProgress] = useState(0); // 압축 진행률
   const [compressedVideoPath, setCompressedVideoPath] = useState(''); // 압축 동영상 경로
 
   const [thumbnailImagePath, setThumbnailImagePath] = useState(''); // 썸네일 경로
   const [thumbnailImageType, setThumbnailImageType] = useState(''); // 썸네일 타입
   const [thumbnailImageName, setThumbnailImageName] = useState(''); // 썸네일 이름
 
-  const [uploadProgress, setUploadProgress] = useState(''); // 업로드 진행률
+  const [uploadProgress, setUploadProgress] = useState(0); // 업로드 진행률
 
   // [ util ] 동영상 압축
   const compressUploadVideo = async videoPath => {
@@ -232,6 +233,10 @@ function VideoRegistering({ route }) {
     compressedVideoPath,
   ]);
 
+  const overallProgress = Math.floor(
+    (compressionProgress + uploadProgress) / 2,
+  );
+
   // [ return ]
   return (
     <SafeAreaView style={styles.container}>
@@ -240,44 +245,42 @@ function VideoRegistering({ route }) {
           source={SPGifs.registering}
           style={{ width: 140, height: 140, marginBottom: 24 }}
         />
+        <View
+          style={{
+            width: 172,
+            justifyContent: 'center',
+            alignItems: 'center',
+            gap: 8,
+            marginBottom: 24,
+          }}>
+          <Text style={{ ...fontStyles.fontSize16_Regular, color: '#002672' }}>
+            {overallProgress} %
+          </Text>
+          <View
+            style={{
+              flexDirection: 'row',
+              height: 8,
+              width: '100%',
+              backgroundColor: '#E9E9E9',
+              borderRadius: 16,
+              alignItems: 'center',
+              padding: 2,
+            }}>
+            <View
+              style={{
+                height: 4,
+                flex: overallProgress / 100,
+                backgroundColor: 'blue',
+                borderRadius: 16,
+              }}
+            />
+          </View>
+        </View>
         <Text style={styles.mainText}>영상을 등록하는 중입니다.</Text>
         <View>
           <Text style={styles.subText}>잠시만 기다리시면</Text>
           <Text style={styles.subText}>영상 등록이 완료됩니다.</Text>
         </View>
-        {/* Progressbar */}
-        {/* <View */}
-        {/*  style={{ */}
-        {/*    flexDirection: 'row', */}
-        {/*    height: 20, */}
-        {/*    width: '100%', */}
-        {/*    backgroundColor: 'gray', */}
-        {/*    borderRadius: 10, */}
-        {/*  }}> */}
-        {/*  <View */}
-        {/*    style={{ */}
-        {/*      flex: compressionProgress / 100, */}
-        {/*      backgroundColor: 'blue', */}
-        {/*      borderRadius: 10, */}
-        {/*    }} */}
-        {/*  /> */}
-        {/* </View> */}
-        {/* <View */}
-        {/*  style={{ */}
-        {/*    flexDirection: 'row', */}
-        {/*    height: 20, */}
-        {/*    width: '100%', */}
-        {/*    backgroundColor: 'gray', */}
-        {/*    borderRadius: 10, */}
-        {/*  }}> */}
-        {/*  <View */}
-        {/*    style={{ */}
-        {/*      flex: uploadProgress / 100, */}
-        {/*      backgroundColor: 'blue', */}
-        {/*      borderRadius: 10, */}
-        {/*    }} */}
-        {/*  /> */}
-        {/* </View> */}
       </View>
     </SafeAreaView>
   );

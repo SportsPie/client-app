@@ -1,17 +1,20 @@
 import React, { memo, useCallback, useEffect, useState } from 'react';
 import { FlatList, RefreshControl, StyleSheet, Text, View } from 'react-native';
 import Header from '../../components/header';
-import { apiGetTournamentNotice } from '../../api/RestAPI';
+import {
+  apiGetTournamentNotice,
+  apiGetTournamentTitle,
+} from '../../api/RestAPI';
 import { handleError } from '../../utils/HandleError';
 import fontStyles from '../../styles/fontStyles';
 import { COLORS } from '../../styles/colors';
 import Loading from '../../components/SPLoading';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import TournamentNoticeItem from '../../components/notice/TournamentNoticeItem';
+import Utils from '../../utils/Utils';
 
 function TournamentNoticeList({ route }) {
   const tournamentIdx = route?.params?.tournamentIdx;
-  const tournamentName = route?.params?.tournamentName;
   const [page, setPage] = useState(1);
   const [totalCnt, setTotalCnt] = useState(0);
   const [isLast, setIsLast] = useState(false);
@@ -19,7 +22,20 @@ function TournamentNoticeList({ route }) {
   const [refreshing, setRefreshing] = useState(false);
   const [noticeList, setNoticeList] = useState([]);
 
+  const [tournamentCount, setTournamentCount] = useState();
+  const [tournamentName, setTournamentName] = useState();
+
   const pageSize = 30;
+
+  const getTournamentName = async () => {
+    try {
+      const { data } = await apiGetTournamentTitle(tournamentIdx);
+      setTournamentCount(data.data.trnCnt);
+      setTournamentName(data.data.title);
+    } catch (error) {
+      handleError(error);
+    }
+  };
 
   const getTournamentNoticeList = async () => {
     const params = {
@@ -63,17 +79,11 @@ function TournamentNoticeList({ route }) {
   }, []);
 
   const renderNoticesItem = useCallback(({ item }) => {
-    return (
-      <TournamentNoticeItem
-        event
-        eventName={tournamentName}
-        item={item}
-        tournamentName={tournamentName}
-      />
-    );
+    return <TournamentNoticeItem item={item} tournamentName={tournamentName} />;
   }, []);
 
   useEffect(() => {
+    getTournamentName();
     onRefresh();
   }, []);
 
@@ -88,9 +98,9 @@ function TournamentNoticeList({ route }) {
       <View style={styles.emptyViewWrapper}>
         <Text
           style={[
-            fontStyles.fontSize12_Medium,
+            fontStyles.fontSize16_Medium,
             {
-              color: COLORS.labelAlternative,
+              color: 'rgba(46, 49, 53, 0.6)',
               textAlign: 'center',
             },
           ]}>
@@ -109,6 +119,8 @@ function TournamentNoticeList({ route }) {
       <Header title="대회 공지사항" />
       <View style={{ padding: 16 }}>
         <Text style={{ ...fontStyles.fontSize20_Semibold }}>
+          {tournamentCount &&
+            `제${Utils.changeNumberComma(tournamentCount)}회 `}{' '}
           {tournamentName}
         </Text>
       </View>

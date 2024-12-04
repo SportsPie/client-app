@@ -8,6 +8,7 @@ import { CustomException } from '../common/exceptions';
 import ChatUtils from './chat/ChatUtils';
 import { store } from '../redux/store';
 import { chatSliceActions } from '../redux/reducers/chatSlice';
+import { AppState } from 'react-native';
 
 init({
   size: 10000,
@@ -103,6 +104,27 @@ function onMessageArrived(message) {
       // eslint-disable-next-line no-plusplus
       pendingCount--;
       if (pendingCount === 0) {
+        const chatState = store.getState().chat;
+        const newChatList = [...(chatState.newChatList ?? [])];
+        if (newChatList.length > 0) {
+          const chatList = [...(chatState.chatList ?? [])];
+          const lastChat = newChatList[0];
+          if (lastChat && `${chatState.roomId}` === `${lastChat.roomId}`) {
+            const { newMessageTimeIdTemp } = chatState;
+            store.dispatch(
+              chatSliceActions.setChatList([...newChatList, ...chatList]),
+            );
+            store.dispatch(chatSliceActions.setNewChatList([]));
+            store.dispatch(
+              chatSliceActions.setNewMessageTimeId(newMessageTimeIdTemp),
+            );
+            store.dispatch(chatSliceActions.setNewMessageTimeIdTemp(0));
+          }
+        }
+        const appState = AppState.currentState;
+        if (appState === 'background') {
+          MqttUtils.disconnect();
+        }
         store.dispatch(chatSliceActions.setMessageTaskProcessing(false));
       }
     });

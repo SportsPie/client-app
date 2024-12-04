@@ -49,6 +49,10 @@ import tournamentInquiryList from './list/tournamentInquiryListSlice';
 import tournamentOngoingList from './list/tournamentOngoingListSlice';
 import tournamentInProgressList from './list/tournamentInProgressListSlice';
 import tournamentFinishedList from './list/tournamentFinishedListSlice';
+import moreTournamentHistoryList from './list/moreTournamentHistoryListSlice';
+import appState from './appStateSlice';
+import couponList from './list/couponListSlice';
+import geoLocation from './geoLocationSlice';
 
 export default {
   auth,
@@ -101,4 +105,8 @@ export default {
   tournamentOngoingList,
   tournamentInProgressList,
   tournamentFinishedList,
+  moreTournamentHistoryList,
+  appState,
+  couponList,
+  geoLocation,
 };

@@ -1,12 +1,21 @@
 import { useFocusEffect, useRoute } from '@react-navigation/native';
 import moment from 'moment/moment';
 import React, { memo, useCallback, useEffect, useState } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import {
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { COLORS } from '../../styles/colors';
 import fontStyles from '../../styles/fontStyles';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Header from '../../components/header';
-import { apiGetTournamentNoticeDetail } from '../../api/RestAPI';
+import {
+  apiGetTournamentNoticeDetail,
+  apiGetTournamentTitle,
+} from '../../api/RestAPI';
 import { handleError } from '../../utils/HandleError';
 import { SCREEN_WIDTH } from '@gorhom/bottom-sheet';
 import ImageSizeGetter from '../../components/ImageSizeGetter';
@@ -15,9 +24,21 @@ import { WebView } from 'react-native-webview';
 
 function TournamentNoticeDetail() {
   const route = useRoute();
-  const { noticeIdx, tournamentName } = route.params;
+  const { noticeIdx, tournamentIdx } = route.params;
   const [noticeDetail, setNoticeDetail] = useState({});
-  const [imageHeight, setImageHeight] = useState();
+  const [imageHeight, setImageHeight] = useState({});
+  const [tournamentCount, setTournamentCount] = useState();
+  const [tournamentName, setTournamentName] = useState();
+
+  const getTournamentName = async () => {
+    try {
+      const { data } = await apiGetTournamentTitle(tournamentIdx);
+      setTournamentCount(data.data.trnCnt);
+      setTournamentName(data.data.title);
+    } catch (error) {
+      handleError(error);
+    }
+  };
 
   const getNoticeDetail = async () => {
     try {
@@ -28,12 +49,15 @@ function TournamentNoticeDetail() {
     }
   };
 
-  const handleLayout = ({ width, height }) => {
-    setImageHeight(height);
+  const handleLayout = ({ width, height }, fileIdx) => {
+    setImageHeight(prev => {
+      return { ...prev, [fileIdx]: height };
+    });
   };
 
   useFocusEffect(
     useCallback(() => {
+      getTournamentName();
       getNoticeDetail();
     }, []),
   );
@@ -43,15 +67,23 @@ function TournamentNoticeDetail() {
       <Header title="대회 공지사항" />
       <View style={{ paddingTop: 16, paddingHorizontal: 16 }}>
         <Text style={{ ...fontStyles.fontSize20_Semibold }}>
+          {tournamentCount &&
+            `제${Utils.changeNumberComma(tournamentCount)}회 `}{' '}
           {tournamentName}
         </Text>
       </View>
-      {noticeDetail?.files?.length > 0 && (
-        <ImageSizeGetter
-          source={noticeDetail.files[0].fileUrl}
-          getter={handleLayout}
-        />
-      )}
+      {noticeDetail?.files?.length > 0 &&
+        noticeDetail?.files?.map((item, index) => {
+          return (
+            <ImageSizeGetter
+              key={item.fileIdx}
+              source={item.fileUrl}
+              getter={value => {
+                handleLayout(value, item.fileIdx);
+              }}
+            />
+          );
+        })}
       <ScrollView
         contentContainerStyle={styles.container}
         showsVerticalScrollIndicator={false}>
@@ -76,16 +108,28 @@ function TournamentNoticeDetail() {
           {noticeDetail?.notice?.regDate &&
             moment(noticeDetail?.notice?.regDate).format('YYYY.MM.DD')}
         </Text>
-        {noticeDetail?.files?.length > 0 && (
-          <WebView
-            style={{ height: imageHeight }}
-            source={{
-              html: Utils.getImageHtml(noticeDetail.files[0].fileUrl),
-            }}
-            // onLoadStart={() => setLoading(true)}
-            // onLoadEnd={() => setLoading(false)}
-          />
-        )}
+        <View>
+          {noticeDetail?.files?.length > 0 &&
+            noticeDetail?.files?.map((item, index) => {
+              return (
+                <TouchableOpacity
+                  /* eslint-disable-next-line react/no-array-index-key */
+                  key={index}
+                  activeOpacity={1}
+                  onPress={() => {}}>
+                  <WebView
+                    key={item.fileIdx}
+                    style={{ height: imageHeight[item.fileIdx] }}
+                    source={{
+                      html: Utils.getImageHtml(item.fileUrl),
+                    }}
+                    // onLoadStart={() => setLoading(true)}
+                    // onLoadEnd={() => setLoading(false)}
+                  />
+                </TouchableOpacity>
+              );
+            })}
+        </View>
         <Text
           style={[
             fontStyles.fontSize14_Medium,

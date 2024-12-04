@@ -1,22 +1,17 @@
-import React, { memo, useCallback, useEffect, useMemo, useState } from 'react';
+import React, { memo, useCallback, useMemo, useState } from 'react';
 import {
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
+  TouchableOpacity,
   useWindowDimensions,
   View,
 } from 'react-native';
-import {
-  apiGetAcademyDetail,
-  apiGetEventApplyState,
-  apiGetMain,
-} from '../../api/RestAPI';
+import { apiGetAcademyDetail, apiGetMain } from '../../api/RestAPI';
 import { SPSvgs } from '../../assets/svg';
 import { LOGIN_TYPES } from '../../common/constants/loginTypes';
-import { MAIN_FOOT } from '../../common/constants/mainFoot';
 import { navName } from '../../common/constants/navName';
-import Avatar from '../../components/Avatar';
 import MenuSection from '../../components/MenuSection';
 import { PrimaryButton } from '../../components/PrimaryButton';
 import Header from '../../components/header';
@@ -28,7 +23,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import Utils from '../../utils/Utils';
 import MoreFlipCard from './MoreFlipCard';
-import { SCREEN_WIDTH, WINDOW_WIDTH } from '@gorhom/bottom-sheet';
 
 function MoreMyInfo() {
   const { width: screenWidth } = useWindowDimensions();
@@ -98,7 +92,8 @@ function MoreMyInfo() {
     return (
       <View style={styles.userSectionWrapper}>
         <PrimaryButton
-          onPress={() => {
+          onPress={e => {
+            e.stopPropagation();
             NavigationService.navigate(navName.moreProfile);
           }}
           text="프로필 보기"
@@ -108,9 +103,14 @@ function MoreMyInfo() {
           }}
         />
 
-        <View style={styles.socialTokenWrapper}>
+        <TouchableOpacity
+          activeOpacity={1}
+          onPress={() => {
+            NavigationService.navigate(navName.socialToken);
+          }}
+          style={styles.socialTokenWrapper}>
           <Text style={[fontStyles.fontSize14_Medium, { color: COLORS.white }]}>
-            소셜토큰
+            포인트
           </Text>
 
           <View style={styles.tokenWrapper}>
@@ -123,14 +123,15 @@ function MoreMyInfo() {
             </Text>
 
             <Pressable
+              hitSlop={20}
               onPress={() => {
-                NavigationService.navigate(navName.socialToken);
+                NavigationService.navigate(navName.pointShop);
               }}
               style={styles.userInfoButton}>
               <Text style={styles.userInfoButtonText}>포인트 쓰러가기</Text>
             </Pressable>
           </View>
-        </View>
+        </TouchableOpacity>
       </View>
     );
   }, [member, stats, point]);
@@ -200,7 +201,14 @@ function MoreMyInfo() {
           containerStyle={styles.noBorder}
           titleTextStyle={styles.customTitleText}
         />
-
+        <MenuSection
+          title="대회 내역"
+          onPress={() => {
+            NavigationService.navigate(navName.moreTournamentHistory);
+          }}
+          containerStyle={styles.noBorder}
+          titleTextStyle={styles.customTitleText}
+        />
         <MenuSection
           title="활동 내역"
           onPress={() => {

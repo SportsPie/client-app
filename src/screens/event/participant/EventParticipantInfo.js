@@ -1,30 +1,13 @@
-import React, {
-  Fragment,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import Header from '../../../components/header';
-import NavigationService from '../../../navigation/NavigationService';
-import { navName } from '../../../common/constants/navName';
+import React, { Fragment, useCallback, useMemo, useState } from 'react';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import fontStyles from '../../../styles/fontStyles';
-import { PrimaryButton } from '../../../components/PrimaryButton';
 import { COLORS } from '../../../styles/colors';
-import DismissKeyboard from '../../../components/DismissKeyboard';
-import SPKeyboardAvoidingView from '../../../components/SPKeyboardAvoidingView';
 import { apiGetEventOpenApplicantList } from '../../../api/RestAPI';
 import { handleError } from '../../../utils/HandleError';
 import { useFocusEffect } from '@react-navigation/native';
-import MenuTile from '../../../components/more-profile/MenuTile';
-import { GENDER } from '../../../common/constants/gender';
-import moment from 'moment';
 import { MAIN_FOOT } from '../../../common/constants/mainFoot';
 import { CAREER_TYPE } from '../../../common/constants/careerType';
 import { SPSvgs } from '../../../assets/svg';
-import MenuThree from '../../../components/more-profile/MenuThree';
 import { SCREEN_WIDTH } from '@gorhom/bottom-sheet';
 import { useAppState } from '../../../utils/AppStateContext';
 

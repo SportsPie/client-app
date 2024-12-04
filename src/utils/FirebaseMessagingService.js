@@ -1,42 +1,37 @@
 import messaging from '@react-native-firebase/messaging';
 import PushNotification from 'react-native-push-notification';
-import { Platform, AppState } from 'react-native';
+import { AppState, Platform } from 'react-native';
 import {
   checkNotifications,
   requestNotifications,
   RESULTS,
 } from 'react-native-permissions';
 import { CONSTANTS } from '../common/constants/constants';
-import { getStorage, setStorage } from './AsyncStorageUtils';
+import { setStorage } from './AsyncStorageUtils';
 
 import { store } from '../redux/store';
-import { chatSliceActions } from '../redux/reducers/chatSlice';
-import { handleError } from './HandleError';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { FCM_TYPE } from '../common/constants/fcmType';
-import notificationUtils from './notification/NotificationUtils';
-import { MqttUtils } from './MqttUtils';
-import { waitForReduxState } from '../redux/store/store';
-import NavigationService from '../navigation/NavigationService';
-import { navName } from '../common/constants/navName';
 import { navSliceActions } from '../redux/reducers/navSlice';
-import WalletUtils from './WalletUtils';
+import { waitForReduxState } from '../redux/store/store';
+import { LinkType } from '../components/NavMoveListener';
 
 // 앱 초기화 코드에 로컬 알림 설정
 PushNotification.configure({
   // 알림을 클릭했을 때 호출될 함수
-  onNotification: notification => {
+  onNotification: async notification => {
     if (notification.userInteraction) {
       try {
         // 알림을 클릭했을 때만 동작하도록 조건 추가
-        console.log('Notification clicked:', notification);
         if (notification?.data?.roomId) {
-          store.dispatch(
-            chatSliceActions.setMoveRoomId(notification.data.roomId),
-          );
-          NavigationService.navigate(navName.matchingChatRoomScreen, {
-            roomId: notification?.data?.roomId,
-          });
+          // 이미 해당 페이지에 있으면 페이지 이동하지 않음
+          const enterdRoomId = store.getState().chat?.roomId;
+          if (`${notification.data.roomId}` !== `${enterdRoomId}`) {
+            store.dispatch(
+              navSliceActions.changeMoveUrl(
+                `/${LinkType.CHAT_ROOM}/${notification.data.roomId}`,
+              ),
+            );
+          }
         }
         if (notification?.data?.linkUrl) {
           store.dispatch(
@@ -171,20 +166,7 @@ export const registerForegroundHandler = async () => {
     if (remoteMessage) {
       const type = remoteMessage?.data?.type;
       if (!type || type !== FCM_TYPE.CHAT) {
-        const authState = store.getState().auth;
-        const userWant = await pushNotifPermissionCheck(remoteMessage);
-        if (userWant && authState.isLogin) {
-          if (remoteMessage?.data?.walletAddr) {
-            const walletAddr = await WalletUtils.getWalletAddress();
-            if (walletAddr === remoteMessage?.data?.walletAddr) {
-              notificationUtils.receivedNotification(remoteMessage);
-              pushNotif(remoteMessage);
-            }
-          } else {
-            notificationUtils.receivedNotification(remoteMessage);
-            pushNotif(remoteMessage);
-          }
-        }
+        pushNotif(remoteMessage);
       }
     }
   });
@@ -205,26 +187,11 @@ export const registerBackgroundMessageHandler = async () => {
     if (remoteMessage) {
       await waitForReduxState();
       const type = remoteMessage?.data?.type;
-      const authState = store.getState().auth;
-      const userWant = await pushNotifPermissionCheck(remoteMessage);
       const appState = AppState.currentState;
       if (!type || type !== FCM_TYPE.CHAT) {
-        if (userWant && authState.isLogin) {
-          if (remoteMessage?.data?.walletAddr) {
-            const walletAddr = await WalletUtils.getWalletAddress();
-            if (walletAddr === remoteMessage?.data?.walletAddr) {
-              notificationUtils.receivedNotification(remoteMessage);
-              pushNotif(remoteMessage);
-            }
-          } else {
-            notificationUtils.receivedNotification(remoteMessage);
-            pushNotif(remoteMessage);
-          }
-        }
-      } else if (appState === 'background' || appState === 'inactive') {
-        if (userWant && authState.isLogin) {
-          MqttUtils.reconnect();
-        }
+        pushNotif(remoteMessage);
+      } else {
+        // MqttUtils.reconnect();
       }
     }
   });
@@ -245,13 +212,6 @@ export const registerBackgroundAndQuitStateHandler = async () => {
           ' OS :: ',
           Platform.OS,
         );
-        if (remoteMessage.data.roomId) {
-          setTimeout(() => {
-            store.dispatch(
-              chatSliceActions.setMoveRoomId(remoteMessage.data.roomId),
-            );
-          }, 0);
-        }
       }
     });
 
@@ -263,29 +223,6 @@ export const registerBackgroundAndQuitStateHandler = async () => {
       Platform.OS,
     );
   });
-};
-
-export const pushNotifPermissionCheck = async message => {
-  try {
-    const authState = store.getState().auth;
-    if (!authState.isLogin) return;
-    const storedNotificationStates = await AsyncStorage.getItem(
-      `notificationStates_${authState.userIdx}`,
-    );
-    let type = message?.data?.type;
-    const userNotiPermissions = JSON.parse(storedNotificationStates);
-
-    // 채팅은 경기 활동 알림에 종속된다.
-    if (type === FCM_TYPE.CHAT) {
-      type = FCM_TYPE.MATCH;
-    }
-    if (userNotiPermissions?.[type]) {
-      return userNotiPermissions[type];
-    }
-    return false;
-  } catch (error) {
-    console.log('error', error);
-  }
 };
 
 /**
@@ -312,10 +249,11 @@ export const pushNotif = async message => {
   // const { body } = message.notification;
   const title = message?.data?.title;
   const body = message?.data?.body;
+
   PushNotification.createChannel(
     {
-      channelId: 'specialid', // (required)
-      channelName: 'Special messasge', // (required)
+      channelId: 'sports-pie', // (required)
+      channelName: 'sports-pie message', // (required)
       channelDescription: 'Notification for special message', // (optional) default: undefined.
       importance: 4, // (optional) default: 4. Int value of the Android notification importance
       vibrate: true, // (optional) default: true. Creates the default vibration patten if true.
@@ -324,13 +262,36 @@ export const pushNotif = async message => {
   );
 
   PushNotification.localNotification({
-    channelId: 'specialid', // this must be same with channelid in createchannel
+    channelId: 'sports-pie', // this must be same with channelid in createchannel
     title,
     message: body,
     data: message.data,
     userInfo: message.data,
     playSound: true, // (optional) default: true
     soundName: 'default', // (optional) See `soundName` parameter of `localNotification` function
+  });
+};
+
+export const nofit = (title, message) => {
+  PushNotification.createChannel(
+    {
+      channelId: 'download', // (required)
+      channelName: 'download messasge', // (required)
+      channelDescription: 'Notification for special message', // (optional) default: undefined.
+      importance: 4, // (optional) default: 4. Int value of the Android notification importance
+      vibrate: true, // (optional) default: true. Creates the default vibration patten if true.
+    },
+    //   created => console.log(`createChannel  '${created}'returned`), // (optional) callback returns whether the channel was created, false means it already existed.
+  );
+
+  PushNotification.localNotification({
+    channelId: 'download',
+    title,
+    message,
+    playSound: true,
+    soundName: 'default',
+    importance: 'high',
+    vibrate: true,
   });
 };
 

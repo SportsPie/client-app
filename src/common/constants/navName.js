@@ -1,3 +1,7 @@
+import PointCouponDetail from '../../screens/point/PointCouponDetail';
+import PointMyCoupon from '../../screens/point/PointMyCoupon';
+import PointProductDetail from '../../screens/point/PointProductDetail';
+
 // authPage : 로그인 후 갈 수 있는 페이지
 const authPage = {
   socialToken: 'socialToken',
@@ -64,7 +68,9 @@ const authPage = {
   moreCouponComplete: 'moreCouponComplete',
   moreArticleBookmarks: 'moreArticleBookmarks',
   moreGameSchedule: 'moreGameSchedule',
+  moreTournamentHistory: 'moreTournamentHistory',
   moreMatchDetail: 'moreMatchDetail',
+  moreTournamentHistoryDetail: 'moreTournamentHistoryDetail',
   moreActiveHistory: 'moreActiveHistory',
   moreTermsService: 'moreTermsService',
   academyRecruitmentForAdmin: 'academyRecruitmentForAdmin',
@@ -130,6 +136,17 @@ const authPage = {
   tournamentInquiryDetail: 'tournamentInquiryDetail',
   tournamentReviewEdit: 'tournamentReviewEdit',
   tournamentInquiryEdit: 'tournamentInquiryEdit',
+  tournamentRefundRequestForm: 'tournamentRefundRequestForm',
+  tournamentRefundRequest: 'tournamentRefundRequest',
+  tournamentRefundRequestComplete: 'tournamentRefundRequestComplete',
+  tournamentApplyDetail: 'tournamentApplyDetail',
+
+  // ponit shop
+  pointShop: 'pointShop',
+  pointExchange: 'pointExchange',
+  pointMyCoupon: 'pointMyCoupon',
+  pointCouponDetail: 'pointCouponDetail',
+  pointProductDetail: 'pointProductDetail',
 };
 
 // noAuthPage : 로그인과 상관없이 갈 수 있는 페이지
@@ -168,6 +185,7 @@ const noAuthPage = {
   matchingHistory: 'matchingHistory',
   matchingReview: 'matchingReview',
   tournamentDetail: 'tournamentDetail',
+  tournamentInfoDetail: 'tournamentInfoDetail',
   alarmPage: 'alarmPage',
   communityDetails: 'communityDetails',
   playgroundDetail: 'playgroundDetail',
@@ -186,6 +204,8 @@ const noAuthPage = {
   tournamentReviewList: 'tournamentReviewList',
   tournamentInquiryList: 'tournamentInquiryList',
   tournamentSketch: 'tournamentSketch',
+  tournamentSketchPicture: 'tournamentSketchPicture',
+  tournamentSketchVideo: 'tournamentSketchVideo',
   tournamentOngoing: 'tournamentOngoing',
   tournamentInProgress: 'tournamentInProgress',
   tournamentEnded: 'tournamentEnded',

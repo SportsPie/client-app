@@ -42,7 +42,16 @@ function ParticipantCard({ participant, eventIdx }) {
       key={participant.participationIdx}
       style={styles.participantContainer}>
       <View style={styles.participantMemo}>
-        <Avatar imageSize={56} disableEditMode imageURL="" />
+        <Avatar
+          imageSize={56}
+          disableEditMode
+          imageURL={participant?.profilePath}
+          onPress={() => {
+            NavigationService.navigate(navName.eventParticipantDetail, {
+              participantIdx: participant.participationIdx,
+            });
+          }}
+        />
         <View style={styles.infoContainer}>
           <Text style={styles.nameText}>{participant.participationName}</Text>
           <Text style={styles.positionText}>{participant.position}</Text>

@@ -4,13 +4,17 @@ import auth from '@react-native-firebase/auth';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import moment from 'moment';
 import { decodeToken } from 'react-jwt';
-import { Alert, Linking } from 'react-native';
+import { Alert, Linking, Platform } from 'react-native';
 import DeviceInfo from 'react-native-device-info';
 import { LoginManager } from 'react-native-fbsdk-next';
 import ImageCropPicker from 'react-native-image-crop-picker';
 import { RESULTS } from 'react-native-permissions';
 import uuid from 'react-native-uuid';
-import { apiGetMyInfo } from '../api/RestAPI';
+import {
+  apiGetMyInfo,
+  apiGetPushSetting,
+  apiPatchFcmToken,
+} from '../api/RestAPI';
 import SPIcons from '../assets/icon';
 import { FCM_TYPE } from '../common/constants/fcmType';
 import { JOIN_TYPE } from '../common/constants/joinType';
@@ -26,7 +30,11 @@ import {
 } from '../redux/reducers/modalSlice';
 import { store } from '../redux/store';
 import { getStorage, setStorage } from './AsyncStorageUtils';
-import { requestPostNotificationsPermission } from './FirebaseMessagingService';
+import {
+  getFcmToken,
+  nofit,
+  requestPostNotificationsPermission,
+} from './FirebaseMessagingService';
 import { handleError } from './HandleError';
 import { MqttUtils } from './MqttUtils';
 import { USER_TYPE } from './chat/ChatMapper';
@@ -35,6 +43,11 @@ import SqlLite from './SqlLite/SqlLite';
 import quillCss from '../common/constants/quillCss';
 import VersionCheck from 'react-native-version-check';
 import RNFS from 'react-native-fs';
+import { checkPermissions } from './PermissionUtils';
+import { SP_PERMISSIONS } from '../common/constants/permissions';
+import { ALBUM_PERMISSION_TEXT } from '../common/constants/constants';
+import messaging from '@react-native-firebase/messaging';
+import { CameraRoll } from '@react-native-camera-roll/camera-roll';
 const emojiRegex = require('emoji-regex');
 const Utils = {
   // 이메일 체크
@@ -501,33 +514,15 @@ const Utils = {
         data.userType || USER_TYPE.MEMBER,
         data.userIdx,
       );
-      MqttUtils.connect(mqttClientId, topic);
-
-      // 알림 권한 설정 :: 최초 로그인시 확인 후 기본 알림 여부 설정
-      const noFirstNotiCheck = await getStorage(
-        `noFirstNotiCheck_${data.userIdx}`,
-      );
-      if (!noFirstNotiCheck) {
-        console.log('FirstNotiCheck');
-        const result = await requestPostNotificationsPermission();
-        const notiObj = {};
-        if (result.status !== RESULTS.GRANTED) {
-          Object.keys(FCM_TYPE).forEach(key => {
-            notiObj[key] = false;
-          });
-        } else {
-          Object.keys(FCM_TYPE).forEach(key => {
-            notiObj[key] = true;
-          });
-          const { data: myInfo } = await apiGetMyInfo();
-          notiObj[FCM_TYPE.MARKETING] = !!myInfo.data.marketingDate;
-        }
-        await setStorage(
-          `notificationStates_${data.userIdx}`,
-          JSON.stringify(notiObj),
-        );
-        await setStorage('firstNotiCheck', true);
+      // 권한 체크
+      const hasPushAuth = await messaging().hasPermission();
+      let settingData = {};
+      if (hasPushAuth) {
+        const { data: pushSettingData } = await apiGetPushSetting();
+        settingData = JSON.stringify(pushSettingData?.data || {});
       }
+      await setStorage(`pushSetting_${data.userIdx}`, settingData);
+      MqttUtils.connect(mqttClientId, topic);
     } catch (error) {
       handleError(error);
     }
@@ -537,6 +532,11 @@ const Utils = {
       // await removeStorage('accessToken');
       // await removeStorage('refreshToken');
       // await removeStorage(CONSTANTS.KEY_AUTO_LOGIN);
+
+      const fcmToken = await getFcmToken();
+      if (fcmToken) {
+        await apiPatchFcmToken({ fcmToken });
+      }
 
       await Utils.googleSignout();
       LoginManager.logOut();
@@ -722,6 +722,14 @@ const Utils = {
 
     return `${year}.${month}.${day}(${dayOfWeek})`;
   },
+  convertMillisecondsToFormattedDateNoTimeWithoutDay: milliseconds => {
+    const date = new Date(milliseconds);
+    const year = date.getFullYear();
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
+
+    return `${year}.${month}.${day}`;
+  },
   getLocationDelta: (lat, long, accuracy) => {
     const oneDegreeOfLongitudeInMeters = 111.32 * 1000;
     const circumference = (40075 / 360) * 1000;
@@ -903,9 +911,158 @@ const Utils = {
     if (storedVersion !== currentVersion) {
       // 캐시된 이미지를 메모리와 디스크에서 제거
       const cacheDir = RNFS.CachesDirectoryPath; // 캐시 디렉토리 경로
-      await RNFS.unlink(cacheDir); // 캐시 디렉토리 삭제
+      if (Platform.OS === 'android') {
+        await RNFS.unlink(cacheDir); // 캐시 디렉토리 삭제
+      } else {
+        const files = await RNFS.readDir(cacheDir); // 디렉토리 내의 파일 목록 가져오기
+        // eslint-disable-next-line no-restricted-syntax
+        for (const file of files) {
+          // eslint-disable-next-line no-await-in-loop
+          await RNFS.unlink(file.path); // 각 파일 삭제
+        }
+      }
       await setStorage(key, currentVersion);
     }
+  },
+  fileDownLoad: async (fileUrl, fileName) => {
+    // 권한 체크:
+    const result = await checkPermissions(
+      SP_PERMISSIONS.PHOTO_LIBRARY_ADD_ONLY.permission,
+    );
+    if (RESULTS.DENIED === result || RESULTS.BLOCKED === result) {
+      Utils.openModal({ title: '알림', body: ALBUM_PERMISSION_TEXT });
+      return false;
+    }
+
+    let uniqueFileName = fileName;
+
+    // 다운로드 할 파일의 경로 설정
+    const downLoadPath =
+      Platform.OS === 'android'
+        ? `${RNFS.DownloadDirectoryPath}`
+        : `${RNFS.DocumentDirectoryPath}`;
+
+    try {
+      let nameWithoutExtension = fileName.split('.').slice(0, -1).join('.');
+      nameWithoutExtension = nameWithoutExtension.slice(0, 225);
+      const extension = fileName.split('.').pop();
+      uniqueFileName = `${nameWithoutExtension}_${new Date().getTime()}.${extension}`;
+
+      const localFilePath = `${downLoadPath}/${uniqueFileName}`;
+
+      const dirExists = await RNFS.exists(downLoadPath);
+      if (!dirExists) {
+        await RNFS.mkdir(downLoadPath);
+      }
+
+      const downloadResult = await RNFS.downloadFile({
+        fromUrl: fileUrl,
+        toFile: localFilePath,
+        background: true,
+        discretionary: false,
+      }).promise;
+
+      if (downloadResult.statusCode === 200) {
+        SPToast.show({ text: `파일을 저장하였습니다.`, style: { zIndex: 1 } });
+        // nofit('', '파일이 저장되었습니다.');
+      } else {
+        Utils.openModal({ title: '실패', body: '파일 다운로드 실패' });
+      }
+    } catch (error) {
+      console.log('error', error);
+    }
+  },
+  imageFileDownLoad: async (fileUrl, fileName) => {
+    const result = await checkPermissions(
+      SP_PERMISSIONS.PHOTO_LIBRARY_ADD_ONLY.permission,
+    );
+    if (RESULTS.DENIED === result || RESULTS.BLOCKED === result) {
+      Utils.openModal({ title: '알림', body: ALBUM_PERMISSION_TEXT });
+      return false;
+    }
+    let uniqueFileName = fileName;
+    // 다운로드 할 파일의 경로 설정
+    const downLoadPath =
+      Platform.OS === 'android'
+        ? `${RNFS.DownloadDirectoryPath}`
+        : `${RNFS.DocumentDirectoryPath}`;
+
+    try {
+      let nameWithoutExtension = fileName.split('.').slice(0, -1).join('.');
+      nameWithoutExtension = nameWithoutExtension.slice(0, 225);
+      const extension = fileName.split('.').pop();
+      uniqueFileName = `${nameWithoutExtension}_${new Date().getTime()}.${extension}`;
+
+      const localFilePath = `${downLoadPath}/${uniqueFileName}`;
+
+      const dirExists = await RNFS.exists(downLoadPath);
+      if (!dirExists) {
+        await RNFS.mkdir(downLoadPath);
+      }
+      const downloadResult = await RNFS.downloadFile({
+        fromUrl: fileUrl,
+        toFile: localFilePath,
+        background: true,
+        discretionary: false,
+      }).promise;
+
+      if (downloadResult.statusCode === 200) {
+        await CameraRoll.save(localFilePath, {
+          type: 'photo',
+          album: '스포츠파이',
+        })
+          .then(e => {
+            SPToast.show({ text: '이미지가 저장 되었습니다.' });
+            // 저장한 파일 삭제
+            RNFS.unlink(localFilePath);
+          })
+          .catch(e => {
+            console.log('error', e);
+            if (e.message?.includes('Access to photo library was denied')) {
+              Utils.openModal({ title: '실패', body: ALBUM_PERMISSION_TEXT });
+            } else {
+              Utils.openModal({
+                title: '실패',
+                body: '이미지 다운에 실패하였습니다.',
+              });
+            }
+          });
+        // nofit('', '파일이 저장되었습니다.');
+      } else {
+        Utils.openModal({ title: '실패', body: '파일 다운로드 실패' });
+      }
+    } catch (error) {
+      handleError(error);
+    }
+  },
+  depositExceedDate: regDate => {
+    if (!regDate) return '';
+    // 오전 9시 이후일 경우 2일 후 오전 9시까지
+    // 오전 9시 이전 또는 정각일 경우 다음날 오전 9시까지
+    const date = moment(regDate).format('YYYY-MM-DD HH:mm:ss');
+    const resultDate = moment(date).toDate();
+    const targetTime = moment(moment(date).format('YYYY-MM-DD 09:00:00'))
+      .toDate()
+      .getTime();
+
+    // 기준 날짜의 시간 설정
+    const time = resultDate.getTime();
+
+    if (time > targetTime) {
+      // 오전 9시 이후일 경우 2일 후 오전 9시로 설정
+      resultDate.setDate(resultDate.getDate() + 2);
+    } else {
+      // 오전 9시 이전 또는 9시 정각일 경우 다음날 오전 9시로 설정
+      resultDate.setDate(resultDate.getDate() + 1);
+    }
+
+    // 오전 9시로 시간 설정
+    resultDate.setHours(9);
+    resultDate.setMinutes(0);
+    resultDate.setSeconds(0);
+    resultDate.setMilliseconds(0);
+
+    return moment(resultDate).format('YYYY.MM.DD HH:mm');
   },
 };
 

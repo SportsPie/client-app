@@ -6,6 +6,7 @@ import { SPSvgs } from '../../assets/svg';
 import fontStyles from '../../styles/fontStyles';
 import NavigationService from '../../navigation/NavigationService';
 import { navName } from '../../common/constants/navName';
+import Utils from '../../utils/Utils';
 
 function SocialTokenBalance({ value }) {
   return (
@@ -16,10 +17,12 @@ function SocialTokenBalance({ value }) {
       style={styles.container}>
       <View style={styles.topContent}>
         <SPSvgs.SocialToken />
-        <Text style={fontStyles.fontSize20_Semibold}>소셜토큰</Text>
+        <Text style={fontStyles.fontSize20_Semibold}>포인트</Text>
       </View>
 
-      <Text style={fontStyles.fontSize28_Bold}>{value}</Text>
+      <Text style={fontStyles.fontSize28_Bold}>
+        {Utils.changeNumberComma(value || 0)} P
+      </Text>
     </Pressable>
   );
 }

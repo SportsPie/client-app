@@ -66,6 +66,10 @@ const persistConfig = {
     'tournamentOngoingList',
     'tournamentInProgressList',
     'tournamentFinishedList',
+    'moreTournamentHistoryList',
+    'appState',
+    'couponList',
+    'geoLocation',
   ],
 };
 

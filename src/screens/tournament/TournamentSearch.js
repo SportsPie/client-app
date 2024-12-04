@@ -16,7 +16,7 @@ function TournamentSearch({
     <View style={styles.container}>
       {searched ? (
         <View style={styles.searchContainer}>
-          <Text style={styles.searchText}>
+          <Text style={styles.searchTextDetail}>
             {selectedCity}{' '}
             {selectedDate && moment(selectedDate).format('YYYY.MM')}{' '}
             {selectedCategoryDescList?.join(' ')}
@@ -78,6 +78,15 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     lineHeight: 20,
     color: '#2E3135CC',
+  },
+  searchTextDetail: {
+    flex: 1,
+    flexDirection: 'row',
+    fontSize: 12,
+    fontWeight: 500,
+    color: 'rgba(46, 49, 53, 0.60)',
+    lineHeight: 16,
+    letterSpacing: 0.302,
   },
   button: {
     paddingVertical: 7,

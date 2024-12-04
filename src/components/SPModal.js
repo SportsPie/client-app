@@ -110,7 +110,7 @@ function SPModal({
         visible={visible !== undefined ? visible : showModal}
         onRequestClose={handleOnRequestCloseEvent}>
         <TouchableOpacity
-          style={[styles.modalBackGroud]}
+          style={[styles.modalBackground]}
           activeOpacity={1}
           onPress={handleOnRequestCloseEvent}>
           <TouchableOpacity
@@ -218,7 +218,7 @@ function SPModal({
 }
 
 const styles = StyleSheet.create({
-  modalBackGroud: {
+  modalBackground: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.5)',
     justifyContent: 'center',

@@ -55,7 +55,7 @@ function SocialToken() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Header title="소셜토큰" />
+      <Header title="포인트" />
 
       <View>
         <ScrollView

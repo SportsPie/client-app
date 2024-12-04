@@ -7,7 +7,7 @@ import {
 } from 'react-native-permissions';
 import { SP_PERMISSIONS } from '../common/constants/permissions';
 
-export const checkPermission = async permission => {
+export const checkPermission = async (permission, noRequest) => {
   try {
     const result = await check(permission);
 
@@ -21,10 +21,10 @@ export const checkPermission = async permission => {
         console.log(
           '권한이 요청되지 않았거나, 거부되었지만 다시 요청 가능합니다.',
         );
-        return requestPermission(permission);
+        return !noRequest ? requestPermission(permission) : false;
       case RESULTS.LIMITED:
         console.log('권한이 제한되었습니다. 일부 동작만 가능합니다.');
-        return requestPermission(permission);
+        return !noRequest ? requestPermission(permission) : false;
       case RESULTS.GRANTED:
         console.log('권한이 허용되었습니다.');
         return true;

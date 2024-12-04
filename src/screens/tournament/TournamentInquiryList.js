@@ -10,7 +10,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { apiGetTournamentQna } from '../../api/RestAPI';
+import { apiGetTournamentQna, apiGetTournamentTitle } from '../../api/RestAPI';
 import { navName } from '../../common/constants/navName';
 import { PROGRESS_STATUS } from '../../common/constants/progressStatus';
 import Loading from '../../components/SPLoading';
@@ -26,6 +26,7 @@ import { store } from '../../redux/store';
 import { ACTIVE_OPACITY } from '../../common/constants/constants';
 import SPIcons from '../../assets/icon';
 import { tournamentInquiryListAction } from '../../redux/reducers/list/tournamentInquiryListSlice';
+import Utils from '../../utils/Utils';
 
 function TournamentInquiryList({ route }) {
   const isLogin = useSelector(selector => selector.auth)?.isLogin;
@@ -40,14 +41,25 @@ function TournamentInquiryList({ route }) {
   } = useSelector(selector => selector[listName]);
   const noParamReset = route?.params?.noParamReset;
   const tournamentIdx = route?.params?.tournamentIdx;
-  const tournamentName = route?.params?.tournamentName;
   const action = tournamentInquiryListAction;
 
   const [isFocus, setIsFocus] = useState(true);
+  const [tournamentCount, setTournamentCount] = useState();
+  const [tournamentName, setTournamentName] = useState();
 
   const pageSize = 30;
 
-  const getInquiryInfo = async () => {
+  const getTournamentName = async () => {
+    try {
+      const { data } = await apiGetTournamentTitle(tournamentIdx);
+      setTournamentCount(data.data.trnCnt);
+      setTournamentName(data.data.title);
+    } catch (error) {
+      handleError(error);
+    }
+  };
+
+  const getInquiryList = async () => {
     if (!isLogin) {
       dispatch(action.setRefreshing(false));
       dispatch(action.setLoading(false));
@@ -95,7 +107,6 @@ function TournamentInquiryList({ route }) {
     try {
       NavigationService.navigate(navName.tournamentInquiryDetail, {
         tournamentIdx,
-        tournamentName,
         qnaIdx: inquires.qnaIdx,
       });
     } catch (error) {
@@ -106,7 +117,6 @@ function TournamentInquiryList({ route }) {
   const moveEditPage = () => {
     NavigationService.navigate(navName.tournamentInquiryEdit, {
       tournamentIdx,
-      tournamentName,
     });
   };
 
@@ -120,6 +130,7 @@ function TournamentInquiryList({ route }) {
       });
       return;
     }
+    getTournamentName();
     dispatch(action.refresh());
     setIsFocus(false);
   }, [noParamReset]);
@@ -127,7 +138,7 @@ function TournamentInquiryList({ route }) {
   useEffect(() => {
     if (noParamReset) {
       if ((!isFocus && refreshing) || (!refreshing && page > 1)) {
-        getInquiryInfo();
+        getInquiryList();
       }
     }
   }, [page, refreshing, isFocus, noParamReset]);
@@ -191,7 +202,7 @@ function TournamentInquiryList({ route }) {
         <View
           style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
           <View style={{ alignItems: 'center', gap: 8 }}>
-            <Text style={{ ...fontStyles.fontSize12_Regular }}>
+            <Text style={{ ...fontStyles.fontSize16_Regular }}>
               로그인 후 이용하실 수 있습니다.
             </Text>
             <View
@@ -208,7 +219,6 @@ function TournamentInquiryList({ route }) {
                   NavigationService.replace(navName.login, {
                     from: navName.tournamentInquiryList,
                     tournamentIdx,
-                    tournamentName,
                   });
                 }}>
                 <Text
@@ -250,6 +260,8 @@ function TournamentInquiryList({ route }) {
       <Header title="1:1 문의" />
       <View style={{ padding: 16 }}>
         <Text style={{ ...fontStyles.fontSize20_Semibold }}>
+          {tournamentCount &&
+            `제${Utils.changeNumberComma(tournamentCount)}회 `}{' '}
           {tournamentName}
         </Text>
       </View>

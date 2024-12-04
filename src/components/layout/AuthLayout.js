@@ -14,25 +14,7 @@ export default function AuthLayout({
   footer,
   ...props
 }) {
-  const chatState = useSelector(selector => selector.chat);
   const isLogin = useSelector(state => state.auth)?.isLogin;
-  const { moveRoomId } = chatState;
-
-  useEffect(() => {
-    if (isLogin && moveRoomId) {
-      setTimeout(() => {
-        NavigationService.replace(navName.matchingChatRoomScreen, {
-          roomId: moveRoomId,
-        });
-        // NavigationService.navigate(navName.matchingChatRoomListScreen);
-        store.dispatch(chatSliceActions.resetMoveRoomId());
-      }, 0);
-    }
-  }, [moveRoomId]);
-
-  if (isLogin && moveRoomId) {
-    return <View style={{ flex: 1 }} />;
-  }
 
   return (
     <View style={{ flex: 1 }}>

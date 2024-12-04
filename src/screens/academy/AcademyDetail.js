@@ -155,7 +155,7 @@ function AcademyDetail({
             ? MODAL_MORE_BUTTONS.LEAVE
             : null,
         ]}
-        shareLink={`academy?id=${academyIdx}`}
+        shareLink={`type=academy&id=${academyIdx}`}
         shareTitle={academyDetail?.academyName ?? ''}
         shareDescription={academyDetail?.description ?? ''}
       />

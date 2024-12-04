@@ -1,11 +1,12 @@
 /* eslint-disable react/no-array-index-key */
 import { useFocusEffect, useRoute } from '@react-navigation/native';
 import moment from 'moment/moment';
-import React, { memo, useCallback, useRef, useState } from 'react';
+import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
 import {
   FlatList,
   Image,
   ImageBackground,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -22,6 +23,7 @@ import { useSelector } from 'react-redux';
 import {
   apiGetHomeInit,
   apiGetHomeOpen,
+  apiGetTournamentOpenShowCheck,
   apiPatchBannerViewCnt,
 } from '../../api/RestAPI';
 import SPIcons from '../../assets/icon';
@@ -31,7 +33,6 @@ import { navName } from '../../common/constants/navName';
 import MainPopup from '../../components/MainPopup';
 import SPLoading from '../../components/SPLoading';
 import Header from '../../components/header';
-import { SPSvgs } from '../../assets/svg';
 import EventFloatingButton from '../../components/EventFloatingButton';
 import NavigationService from '../../navigation/NavigationService';
 import GeoLocationUtils from '../../utils/GeoLocationUtils';
@@ -56,6 +57,7 @@ const introductionData = [
     text: '스포츠파이의 대회를\n만나보세요',
     navName: navName.matchingSchedule,
     navParams: { activeTab: '대회', paramReset: true },
+    navParamsSecond: { activeTab: '대회 정보', paramReset: true },
   },
   {
     key: '2',
@@ -149,6 +151,7 @@ function Home() {
   const route = useRoute();
   const mainPopupRef = useRef();
   const isLogin = useSelector(selector => selector.auth)?.isLogin;
+  const geoState = useSelector(selector => selector.geoLocation);
   const { width, height } = useWindowDimensions();
   const dynamicHeight = Math.max(144, Math.min(300, width / 3));
   const imageHeight = Math.max((width * 10) / 16, 225);
@@ -177,12 +180,22 @@ function Home() {
   const [eventIdx, setEventIdx] = useState();
   const [eventApplied, setEventApplied] = useState(false);
   const [eventState, setEventState] = useState(null);
+  const [showTournamentList, setShowTournamentList] = useState(false);
   const [init, setInit] = useState(false);
   const moreChallenge = () => {
     NavigationService.navigate(navName.training, {
       activeTab: '챌린지',
       paramReset: true,
     });
+  };
+
+  const getTournamentListShow = async () => {
+    try {
+      const { data } = await apiGetTournamentOpenShowCheck();
+      setShowTournamentList(data.intended);
+    } catch (error) {
+      handleError(error);
+    }
   };
 
   const patchBannerViewCnt = async idx => {
@@ -287,12 +300,32 @@ function Home() {
     } catch (error) {
       handleError(error);
     }
-    setInit(true);
   }
+
+  const getLocation = async () => {
+    try {
+      const hasPermission = await GeoLocationUtils.checkPermission(true);
+      if (hasPermission) {
+        await GeoLocationUtils.watchLocation();
+      }
+    } catch (error) {
+      handleError(error);
+    }
+  };
+
+  const onFocus = async () => {
+    try {
+      await getTournamentListShow();
+      await homeBanner();
+    } catch (error) {
+      handleError(error);
+    }
+    setInit(true);
+  };
 
   useFocusEffect(
     useCallback(() => {
-      homeBanner();
+      onFocus();
       return () => {
         setInit(false);
       };
@@ -304,6 +337,10 @@ function Home() {
       homePage();
     }, []),
   );
+
+  useEffect(() => {
+    getLocation();
+  }, []);
 
   const articlePage = async article => {
     try {
@@ -421,7 +458,12 @@ function Home() {
                   ))}
                 </Swiper>
               ) : (
-                <View style={{ height: imageHeight }} />
+                <View style={{ height: imageHeight }}>
+                  <Image
+                    source={SPImages.defaultHomeBanner}
+                    style={styles.image}
+                  />
+                </View>
               )}
             </View>
           </View>
@@ -482,11 +524,21 @@ function Home() {
                     activeOpacity={ACTIVE_OPACITY}
                     style={{ flex: 1 }}
                     onPress={() => {
-                      if (item.navName)
+                      if (item.key === '1') {
+                        if (item.navName) {
+                          NavigationService.navigate(
+                            item.navName,
+                            showTournamentList
+                              ? item.navParams
+                              : item.navParamsSecond,
+                          );
+                        }
+                      } else if (item.navName) {
                         NavigationService.navigate(
                           item.navName,
                           item.navParams ?? {},
                         );
+                      }
                     }}>
                     <Text style={styles.introductionTitle}>{item.title}</Text>
                     <Text style={styles.introductionText}>{item.text}</Text>
@@ -596,7 +648,7 @@ function Home() {
           )}
           {/* 대회 일정 */}
           <View style={styles.swiperBackgroundContainer}>
-            {slidesData && slidesData.length > 0 && (
+            {slidesData && slidesData.length > 0 ? (
               <Swiper
                 style={{ height: subImageHeight }}
                 showsButtons={false}
@@ -653,6 +705,21 @@ function Home() {
                   </Pressable>
                 ))}
               </Swiper>
+            ) : (
+              <View style={[styles.slide, { height: subImageHeight }]}>
+                <ImageBackground
+                  source={SPImages.defaultHomeLineBanner}
+                  style={styles.image}>
+                  <View
+                    style={{
+                      ...styles.imageOverlay,
+                      // backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                      flex: 1,
+                    }}>
+                    <View style={styles.swiperBackgroundBox} />
+                  </View>
+                </ImageBackground>
+              </View>
             )}
           </View>
           {/* 지금 핫한 챌린지 */}

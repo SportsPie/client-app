@@ -13,6 +13,8 @@ import { navName } from '../common/constants/navName';
 import moment from 'moment';
 import { TOURNAMENT_STATE_TYPE } from '../common/constants/TournamentStateType';
 import Utils from '../utils/Utils';
+import fontStyles from '../styles/fontStyles';
+import { COLORS } from '../styles/colors';
 
 function TournamentCard({
   title,
@@ -21,11 +23,16 @@ function TournamentCard({
   endDate,
   location,
   image,
-  dDay,
   status,
   openDate,
+  closeDate,
   tournamentIdx,
 }) {
+  const targetDate = moment(closeDate).startOf('day');
+  const currentDate = moment().startOf('day');
+
+  // 남은 날짜 계산
+  const dDay = targetDate.diff(currentDate, 'days');
   const getStatusStyle = statusParam => {
     switch (statusParam) {
       case TOURNAMENT_STATE_TYPE.APPLY_WAIT.code:
@@ -50,15 +57,15 @@ function TournamentCard({
 
   const formatStatus = statusText => {
     if (statusText === TOURNAMENT_STATE_TYPE.APPLY_OPEN.code) {
-      return TOURNAMENT_STATE_TYPE[statusText]?.desc;
+      return TOURNAMENT_STATE_TYPE[statusText]?.listDesc;
     }
     if (statusText.length > 2) {
-      return `${TOURNAMENT_STATE_TYPE[statusText]?.desc?.slice(
+      return `${TOURNAMENT_STATE_TYPE[statusText]?.listDesc?.slice(
         0,
         2,
-      )}\n${TOURNAMENT_STATE_TYPE[statusText]?.desc?.slice(2)}`;
+      )}\n${TOURNAMENT_STATE_TYPE[statusText]?.listDesc?.slice(2)}`;
     }
-    return TOURNAMENT_STATE_TYPE[statusText]?.desc;
+    return TOURNAMENT_STATE_TYPE[statusText]?.listDesc;
   };
 
   const getStatusTextColor = statusParam => {
@@ -86,7 +93,7 @@ function TournamentCard({
             </View>
           )}
           <View style={[styles.cardStatus, getStatusStyle(status)]}>
-            {dDay ? (
+            {status === TOURNAMENT_STATE_TYPE.APPLY_OPEN.code ? (
               <View style={styles.statusContent}>
                 <Text
                   style={[
@@ -95,8 +102,13 @@ function TournamentCard({
                     isRegistrationPending
                       ? styles.pendingDDay
                       : styles.ongoingDDay,
+                    (dDay > 99 || dDay === 0) && {
+                      ...fontStyles.fontSize20_Semibold,
+                      color: COLORS.white,
+                    },
+                    dDay === 0 && { fontSize: 16, fontWeight: '400' },
                   ]}>
-                  {dDay}
+                  {dDay === 0 ? '접수' : `D-${dDay}`}
                 </Text>
                 <Text
                   style={[
@@ -105,8 +117,9 @@ function TournamentCard({
                     isRegistrationPending
                       ? styles.pendingStatusText
                       : styles.ongoingStatusText,
+                    dDay === 0 && { fontSize: 20, fontWeight: '600' },
                   ]}>
-                  {formatStatus(status)}
+                  {dDay === 0 ? '마감일' : formatStatus(status)}
                 </Text>
               </View>
             ) : (
@@ -137,7 +150,7 @@ function TournamentCard({
 const styles = StyleSheet.create({
   card: {
     backgroundColor: 'white',
-    borderRadius: 8,
+    borderRadius: 12,
     marginBottom: 16,
     width: '100%',
     // iOS 그림자
@@ -159,16 +172,16 @@ const styles = StyleSheet.create({
     width: '100%',
     aspectRatio: 4 / 3,
     minHeight: 239,
-    borderTopLeftRadius: 8,
-    borderTopRightRadius: 8,
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
     overflow: 'hidden',
   },
   cardImage: {
     width: '100%',
     height: '100%',
     resizeMode: 'cover',
-    borderTopLeftRadius: 8,
-    borderTopRightRadius: 8,
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
   },
   cardContent: {
     padding: 16,
@@ -178,12 +191,15 @@ const styles = StyleSheet.create({
     fontWeight: 600,
     lineHeight: 26.01,
     textAlign: 'left',
+    letterSpacing: -0.004,
+    marginBottom: 4,
   },
   cardInfo: {
     fontSize: 14,
     fontWeight: 400,
     lineHeight: 22,
     color: '#959393',
+    letterSpacing: 0.2,
   },
   cardStatus: {
     position: 'absolute',
@@ -234,8 +250,9 @@ const styles = StyleSheet.create({
   statusOnly: {
     textAlign: 'center',
     fontSize: 16,
-    fontWeight: '400',
-    lineHeight: 20,
+    fontWeight: '500',
+    lineHeight: 24,
+    letterSpacing: 0.091,
   },
   dDay: {
     color: 'white',

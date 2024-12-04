@@ -1,6 +1,6 @@
 import emojiRegex from 'emoji-regex';
 import React, { useState } from 'react';
-import { StyleSheet, Text, TextInput, View } from 'react-native';
+import { Platform, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SPSvgs } from '../assets/svg';
 import { COLORS } from '../styles/colors';
 import Utils from '../utils/Utils';
@@ -8,6 +8,7 @@ import fontStyles from '../styles/fontStyles';
 import { IS_IOS } from '../common/constants/constants';
 
 export default function SPInput({
+  boxRef,
   value,
   numberOfLines,
   error,
@@ -70,7 +71,11 @@ export default function SPInput({
         : 48,
       flexGrow: 1,
       columnGap: 4,
-      paddingVertical: numberOfLines ? 15 / 2 : 0,
+      paddingVertical: numberOfLines
+        ? 15 / 2
+        : Platform.OS === 'android'
+        ? 0
+        : 15 / 2,
     },
     textInput: {
       flexGrow: 1,
@@ -170,7 +175,7 @@ export default function SPInput({
   };
 
   return (
-    <View style={[styles.container, containerStyle]}>
+    <View ref={boxRef} style={[styles.container, containerStyle]}>
       {title && <Text style={styles.title}>{title}</Text>}
 
       <View
@@ -200,11 +205,11 @@ export default function SPInput({
           style={[fontStyles.fontSize14_Regular, styles.textInput, inputStyle]}
           multiline={!!numberOfLines}
           scrollEnabled={
-            !(
-              numberOfLines &&
-              typeof numberOfLines === 'number' &&
-              numberOfLines > 0
-            )
+            !!numberOfLines &&
+            typeof numberOfLines === 'number' &&
+            numberOfLines > 0
+              ? true
+              : false
           }
           numberOfLines={numberOfLines}
           keyboardType={onlyNumber || onlyDecimal ? 'numeric' : 'default'}
@@ -224,7 +229,9 @@ export default function SPInput({
           autoFocus={autoFocus}
           autoCapitalize={autoCapitalize || 'none'}
           textAlign={textAlign}
-          textAlignVertical={textAlignVertical || 'top'} // Ensure placeholder text is aligned to the top
+          textAlignVertical={
+            textAlignVertical || !!numberOfLines ? 'top' : 'center'
+          } // Ensure placeholder text is aligned to the top
           {...props}
         />
 

@@ -120,7 +120,7 @@ const SwapConfirmModal = forwardRef(
                       letterSpacing: 0.302,
                     },
                   ]}>
-                  남은 소셜토큰
+                  남은 포인트
                 </Text>
                 <Text
                   style={[

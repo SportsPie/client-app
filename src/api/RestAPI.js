@@ -15,6 +15,7 @@ const API_COMMUNITY = `${API_PREFIX}/community`;
 const API_HOLDER_COMMUNITY = `${API_PREFIX}/holder-community`;
 const API_MATCH = `${API_PREFIX}/match`;
 const API_TOURNAMENT = `${API_PREFIX}/tournament`;
+const API_TOURNAMENTS = `${API_PREFIX}/tournaments`;
 const API_PLAYGROUND = `${API_PREFIX}/playground`;
 const API_TRAINING = `${API_PREFIX}/training`;
 const API_CHALLENGE = `${API_PREFIX}/challenge`;
@@ -22,6 +23,8 @@ const API_ACADEMY = `${API_PREFIX}/acdmy`;
 const API_ACADEMY_CONFIG = `${API_PREFIX}/acdmy-config`;
 const API_EVENT = `${API_PREFIX}/event`;
 const API_TEST = `${API_PREFIX}/open/test`;
+const API_NOTI = `${API_PREFIX}/noti`;
+const API_GIFT_SHOP = `${API_PREFIX}/gift-shop`;
 
 // Request > Headers > multipart/form-data
 export const formDataConfig = {
@@ -142,8 +145,23 @@ export const apiPostAuthAppleInfo = data => {
 };
 
 // SPIC_IF_018 ::  마케팅 활용 동의 갱신
-export const apiPostAuthAgreeMarketing = data => {
-  return api.post(`${API_AUTH}/agree-marketing`, data);
+export const apiPostAuthAgreeMarketing = () => {
+  return api.post(`${API_AUTH}/agree-marketing`);
+};
+
+// SPIC_IF_019 ::  알림 설정 정보 조회
+export const apiGetPushSetting = () => {
+  return api.get(`${API_AUTH}/push-setting`);
+};
+
+// SPIC_IF_020 ::  알림 설정 수정
+export const apiPatchPushSetting = data => {
+  return api.patch(`${API_AUTH}/push-setting`, data);
+};
+
+// SPIC_IF_021 ::  사용하지 않는 fcm token 수정 처리
+export const apiPatchFcmToken = data => {
+  return api.patch(`${API_AUTH}/fcm-token`, data);
 };
 
 // ----------------------------------------------------------
@@ -738,73 +756,129 @@ export const apiGetTournamentDetailForMember = tournamentIdx => {
 
 // SPIC_IF_523 :: 대회 신청
 export const apiApplyTournament = data => {
-  return api.post(`${API_TOURNAMENT}/mng/apply`, data);
+  return api.post(`${API_TOURNAMENTS}/mng/apply`, data);
 };
 
 // SPIC_IF_524 :: 대회 신청 취소
 export const apiPatchCancelTournament = data => {
-  return api.patch(`${API_TOURNAMENT}/mng/cancel`, data);
+  return api.patch(`${API_TOURNAMENTS}/mng/cancel`, data);
 };
 // SPIC_IF_540 :: 대회 참가유형 필터 조회
 export const apiGetTournamentOpenTags = data => {
-  return api.get(`${API_TOURNAMENT}/open/tags`);
+  return api.get(`${API_TOURNAMENTS}/open/tags`);
 };
 // SPIC_IF_541 :: 대회 리스트 조회 (접수중)
 export const apiGetTournamentOpenApply = data => {
-  return api.get(`${API_TOURNAMENT}/open/apply`, { params: data });
+  return api.get(`${API_TOURNAMENTS}/open/apply`, { params: data });
 };
 // SPIC_IF_542 :: 대회 리스트 조회 (진행중)
 export const apiGetTournamentOpenOngoing = data => {
-  return api.get(`${API_TOURNAMENT}/open/ongoing`, { params: data });
+  return api.get(`${API_TOURNAMENTS}/open/ongoing`, { params: data });
 };
 // SPIC_IF_543 :: 대회 리스트 조회 (종료)
 export const apiGetTournamentOpenFinished = data => {
-  return api.get(`${API_TOURNAMENT}/open/finished`, { params: data });
+  return api.get(`${API_TOURNAMENTS}/open/finished`, { params: data });
 };
 
 // SPIC_IF_550 :: 대회 공지사항 리스트 조회
 export const apiGetTournamentNotice = data => {
-  return api.get(`${API_TOURNAMENT}/open/notice`, { params: data });
+  return api.get(`${API_TOURNAMENTS}/open/notice`, { params: data });
 };
 // SPIC_IF_548 :: 대회 상세 조회
 export const apiGetTournamentOpen = data => {
-  return api.get(`${API_TOURNAMENT}/open`, { params: data });
+  return api.get(`${API_TOURNAMENTS}/open`, { params: data });
 };
-// SPIC_IF_550 :: 대회 공지사항 상세
+// SPIC_IF_549 :: 대회 리스트 표시 유무 확인
+export const apiGetTournamentOpenShowCheck = data => {
+  return api.get(`${API_TOURNAMENTS}/open/show-check`);
+};
+// SPIC_IF_551 :: 대회 공지사항 상세
 export const apiGetTournamentNoticeDetail = noticeIdx => {
-  return api.get(`${API_TOURNAMENT}/open/notice/${noticeIdx}`);
+  return api.get(`${API_TOURNAMENTS}/open/notice/${noticeIdx}`);
+};
+// SPIC_IF_552 :: 출전 선수 리스트 조회
+export const apiGetTournamentMngPlayerList = data => {
+  return api.get(`${API_TOURNAMENTS}/mng/players`, { params: data });
 };
 // SPIC_IF_557 :: 대회 리뷰 리스트 조회
 export const apiGetTournamentReviewList = data => {
-  return api.get(`${API_TOURNAMENT}/open/review`, { params: data });
+  return api.get(`${API_TOURNAMENTS}/open/review`, { params: data });
 };
 // SPIC_IF_558 :: 대회 리뷰 등록
 export const apiPostTournamentReview = data => {
-  return api.post(`${API_TOURNAMENT}/mng/review`, data);
+  return api.post(`${API_TOURNAMENTS}/mng/review`, data);
 };
 // SPIC_IF_559 :: 대회 문의 리스트 조회
 export const apiGetTournamentQna = data => {
-  return api.get(`${API_TOURNAMENT}/qna`, { params: data });
+  return api.get(`${API_TOURNAMENTS}/qna`, { params: data });
 };
 // SPIC_IF_560 :: 대회 문의 등록
 export const apiPostTournamentQnaInsert = data => {
-  return api.post(`${API_TOURNAMENT}/qna`, data, formDataConfig);
+  return api.post(`${API_TOURNAMENTS}/qna`, data, formDataConfig);
 };
 // SPIC_IF_561 :: 대회 문의 수정
 export const apiPutTournamentQnaModify = data => {
-  return api.put(`${API_TOURNAMENT}/qna`, data, formDataConfig);
+  return api.put(`${API_TOURNAMENTS}/qna`, data, formDataConfig);
 };
 // SPIC_IF_562 :: 대회 문의 상세 조회
 export const apiGetTournamentQnaDetail = qnaIdx => {
-  return api.get(`${API_TOURNAMENT}/qna/${qnaIdx}`);
+  return api.get(`${API_TOURNAMENTS}/qna/${qnaIdx}`);
+};
+// SPIC_IF_571 :: 접수 상세 조회
+export const apiGetTournamentMngSubmissionDetail = prtIdx => {
+  return api.get(`${API_TOURNAMENTS}/mng/submissions/${prtIdx}`);
+};
+// SPIC_IF_572 :: 대회 신청 요청
+export const apiPostTournamentMngApply = data => {
+  return api.post(`${API_TOURNAMENTS}/mng/apply`, data);
+};
+// SPIC_IF_574 :: 대회 접수 취소
+export const apiPatchTournamentMngApply = prtIdx => {
+  return api.patch(`${API_TOURNAMENTS}/mng/apply/${prtIdx}`);
+};
+// SPIC_IF_575 :: 대회 환불 신청
+export const apiPostTournamentMngRefund = data => {
+  return api.post(`${API_TOURNAMENTS}/mng/refund`, data);
+};
+// SPIC_IF_580 :: 대회 스케치 컨텐츠 리스트 조회
+export const apiGetTournamentContentList = data => {
+  return api.get(`${API_TOURNAMENTS}/open/contents`, { params: data });
+};
+// SPIC_IF_581 :: 대회 스케치 컨텐츠 좋아요 등록
+export const apiPatchTournamentContentLike = contentsIdx => {
+  return api.patch(`${API_TOURNAMENTS}/contents/like/${contentsIdx}`);
+};
+// SPIC_IF_581 :: 대회 스케치 컨텐츠 좋아요 취소
+export const apiPatchTournamentContentUnLike = contentsIdx => {
+  return api.patch(`${API_TOURNAMENTS}/contents/unlike/${contentsIdx}`);
 };
 // SPIC_IF_590 :: 대회 타이틀 조회
 export const apiGetTournamentTitle = tournamentIdx => {
-  return api.get(`${API_TOURNAMENT}/open/${tournamentIdx}`);
+  return api.get(`${API_TOURNAMENTS}/open/${tournamentIdx}`);
 };
 // SPIC_IF_591 :: 리뷰 등록 여부 조회
 export const apiGetTournamentMngCheckReview = tournamentIdx => {
-  return api.get(`${API_TOURNAMENT}/mng/check-review/${tournamentIdx}`);
+  return api.get(`${API_TOURNAMENTS}/mng/check-review/${tournamentIdx}`);
+};
+// SPIC_IF_592 :: 대회 참가대상 및 옵션 리스트 조회
+export const apiGetTournamentOptionList = tournamentIdx => {
+  return api.get(`${API_TOURNAMENTS}/options/${tournamentIdx}`);
+};
+// SPIC_IF_593 :: 대회 참가 대상 중복 신청 여부 확인
+export const apiGetTournamentMngTarget = targetIdx => {
+  return api.get(`${API_TOURNAMENTS}/mng/target/${targetIdx}`);
+};
+// SPIC_IF_594 :: 대회 참가 가능 여부 확인
+export const apiGetTournamentMngCheckApply = targetIdx => {
+  return api.get(`${API_TOURNAMENTS}/mng/check-apply/${targetIdx}`);
+};
+// SPIC_IF_595 :: 대회 참가 내역 리스트
+export const apiGetTournamentApplyHistoryList = data => {
+  return api.get(`${API_TOURNAMENTS}/apply-history`, { params: data });
+};
+// SPIC_IF_596 :: 대회 참가 내역 상세
+export const apiGetTournamentApplyHistoryDetail = trIdx => {
+  return api.get(`${API_TOURNAMENTS}/apply-history/${trIdx}`);
 };
 
 // ----------------------------------------------------------
@@ -861,8 +935,16 @@ export const apiCompleteWatchTrainingVideo = videoIdx => {
 };
 
 // SPIC_IF_608 :: 마스터 영상 등록
-export const apiSaveMasterVideo = data => {
-  return api.post(`${API_TRAINING}/master`, data, formDataConfigInfinity);
+export const apiSaveMasterVideo = (data, setter) => {
+  return api.post(`${API_TRAINING}/master`, data, {
+    ...formDataConfigInfinity,
+    onUploadProgress: progressEvent => {
+      const percentCompleted = Math.round(
+        (progressEvent.loaded * 100) / progressEvent.total,
+      );
+      if (setter) setter(percentCompleted);
+    },
+  });
 };
 
 // SPIC_IF_609 :: 트레이닝 마스터 영상 리스트 조회
@@ -952,8 +1034,16 @@ export const apiRemoveChallengeVideoComment = commentIdx => {
 };
 
 // SPIC_IF_659 :: 챌린지 영상 등록
-export const apiSaveChallengeVideo = data => {
-  return api.post(`${API_CHALLENGE}/videos`, data, formDataConfigInfinity);
+export const apiSaveChallengeVideo = (data, setter) => {
+  return api.post(`${API_CHALLENGE}/videos`, data, {
+    ...formDataConfigInfinity,
+    onUploadProgress: progressEvent => {
+      const percentCompleted = Math.round(
+        (progressEvent.loaded * 100) / progressEvent.total,
+      );
+      if (setter) setter(percentCompleted);
+    },
+  });
 };
 
 // TODO :: 이미지 업로드 테스트 샘플 추후 삭제 필요
@@ -982,6 +1072,46 @@ export const apiRemoveChallengeVideo = videoIdx => {
 // SPIC_IF_691 :: 챌린지 영상 신고
 export const apiReportChallenge = data => {
   return api.post(`${API_CHALLENGE}/report`, data);
+};
+
+// ----------------------------------------------------------
+// [ POINT ]
+// ----------------------------------------------------------
+// SPIC_IF_700 :: 상품 리스트 조회
+export const apiGetGiftShopItemList = data => {
+  return api.get(`${API_GIFT_SHOP}/items`, { params: data });
+};
+// SPIC_IF_701 :: 상품 광고 리스트 조회
+export const apiGetGiftShopgsAds = data => {
+  return api.get(`${API_GIFT_SHOP}/gs-ads`, { params: data });
+};
+// SPIC_IF_702 :: 교환 내역 리스트 조회
+export const apiGetGiftShopExchanges = data => {
+  return api.get(`${API_GIFT_SHOP}/exchanges`, { params: data });
+};
+// SPIC_IF_703 :: 쿠폰 상세 조회
+export const apiGetGiftShopExchangesDetail = excIdx => {
+  return api.get(`${API_GIFT_SHOP}/exchanges/${excIdx}`);
+};
+// SPIC_IF_704 :: 상품 구매
+export const apiPostGiftShopBuyCoupon = data => {
+  return api.post(`${API_GIFT_SHOP}/buy-coupon`, data);
+};
+// SPIC_IF_705 :: 잔여 포인트/쿠폰 정보 조회
+export const apiGetGiftShopInit = data => {
+  return api.get(`${API_GIFT_SHOP}/init`, data);
+};
+// SPIC_IF_706 :: 광고 노출
+export const apiPatchGiftShopShowAds = adsIdx => {
+  return api.patch(`${API_GIFT_SHOP}/show-ads/${adsIdx}`);
+};
+// SPIC_IF_707 :: 광고 클릭
+export const apiPatchGiftShopClickAds = adsIdx => {
+  return api.patch(`${API_GIFT_SHOP}/click-ads/${adsIdx}`);
+};
+// SPIC_IF_708 :: 상품 상세 조회
+export const apiGetItemDetail = itemIdx => {
+  return api.get(`${API_GIFT_SHOP}/items/${itemIdx}`);
 };
 
 // ----------------------------------------------------------
@@ -1159,12 +1289,12 @@ export const apiPostQnaInsert = data => {
 export const apiPutQnaModify = data => {
   return api.put(`${API_MORE}/modify/qna`, data, formDataConfig);
 };
-// SPIC_IF_950 :: 소셜 토큰 보유 수량 조회
+// SPIC_IF_950 :: 포인트 보유 수량 조회
 export const apiGetTokenBalance = (walletAddr, data) => {
   return api.get(`${API_MORE}/token/balance/${walletAddr}`);
 };
 
-// SPIC_IF_951 :: 소셜 토큰 사용 리스트 조회
+// SPIC_IF_951 :: 포인트 사용 리스트 조회
 export const apiGetSocialTokenHistoryList = data => {
   return api.get(`${API_MORE}/social-token/histories`, { params: data });
 };
@@ -1340,6 +1470,18 @@ export const apiGetEventVideo = videoIdx => {
 // SPIC_IF_1229 이벤트 영상 정보 수정
 export const apiPutEventVideo = params => {
   return api.put(`${API_EVENT}/videos`, params);
+};
+// SPIC_IF_1400 :: 알림 리스트 조회
+export const apiGetNotiList = params => {
+  return api.get(`${API_NOTI}`, { params });
+};
+// SPIC_IF_1401 :: 읽지 않은 알림 갯수 조회
+export const apiGetNotiNotRead = params => {
+  return api.get(`${API_NOTI}/not-read`, { params });
+};
+// SPIC_IF_1402 :: 알림 읽음 전환
+export const apiPatchNoti = params => {
+  return api.patch(`${API_NOTI}`, params);
 };
 // ----------------------------------------------------------
 // [ OPEN ]

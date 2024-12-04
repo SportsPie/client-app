@@ -27,13 +27,17 @@ import {
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
 import { handleError } from '../../utils/HandleError';
-import { apiGetTournamentQnaDetail } from '../../api/RestAPI';
+import {
+  apiGetTournamentQnaDetail,
+  apiGetTournamentTitle,
+} from '../../api/RestAPI';
 import { useDispatch } from 'react-redux';
 import SPIcons from '../../assets/icon';
 import Carousel from 'react-native-snap-carousel';
 import { ACTIVE_OPACITY } from '../../common/constants/constants';
 import Swiper from 'react-native-swiper';
 import { tournamentInquiryListAction } from '../../redux/reducers/list/tournamentInquiryListSlice';
+import Utils from '../../utils/Utils';
 
 function CarouselSection({ data, onClick }) {
   const screenWidth = Dimensions.get('window').width;
@@ -83,7 +87,21 @@ function TournamentInquiryDetail() {
   const [inquiryDetail, setInquiryDetail] = useState(null);
   const [imageModalShow, setImageModalShow] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(null);
-  const { qnaIdx, tournamentIdx, tournamentName } = route.params;
+  const { qnaIdx, tournamentIdx } = route.params;
+
+  const [tournamentCount, setTournamentCount] = useState();
+  const [tournamentName, setTournamentName] = useState();
+
+  const getTournamentName = async () => {
+    try {
+      const { data } = await apiGetTournamentTitle(tournamentIdx);
+      setTournamentCount(data.data.trnCnt);
+      setTournamentName(data.data.title);
+    } catch (error) {
+      handleError(error);
+    }
+  };
+
   const getQnaDetail = async () => {
     try {
       const response = await apiGetTournamentQnaDetail(qnaIdx);
@@ -119,6 +137,7 @@ function TournamentInquiryDetail() {
 
   useFocusEffect(
     useCallback(() => {
+      getTournamentName();
       getQnaDetail();
     }, []),
   );
@@ -135,7 +154,6 @@ function TournamentInquiryDetail() {
               onPress={() => {
                 NavigationService.navigate(navName.tournamentInquiryEdit, {
                   tournamentIdx,
-                  tournamentName,
                   qnaIdx: inquiryDetail?.qna?.qnaIdx,
                 });
               }}>
@@ -174,76 +192,99 @@ function TournamentInquiryDetail() {
       {renderHeader}
       <View style={{ paddingTop: 16, paddingHorizontal: 16 }}>
         <Text style={{ ...fontStyles.fontSize20_Semibold }}>
+          {tournamentCount &&
+            `제${Utils.changeNumberComma(tournamentCount)}회 `}{' '}
           {tournamentName}
         </Text>
       </View>
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.content}>
-        <View style={{ rowGap: 8, paddingHorizontal: 16 }}>
-          <View style={styles.dateWrapper}>
-            <Text style={styles.timeText}>
-              {moment(inquiryDetail?.qna?.regDate)?.format('YYYY.MM.DD')}
-            </Text>
-            <View style={styles.statusWrapperBox}>
-              <Text
-                style={[
-                  styles.statusWrapper,
-                  {
-                    backgroundColor:
-                      PROGRESS_STATUS?.[inquiryDetail?.qna?.qnaState]?.value ===
-                      'WAIT'
-                        ? COLORS.peach
-                        : `${COLORS.darkBlue}10`,
-                    color:
-                      PROGRESS_STATUS?.[inquiryDetail?.qna?.qnaState]?.value ===
-                      'WAIT'
-                        ? COLORS.orange
-                        : COLORS.darkBlue,
-                  },
-                ]}>
-                {statusTextValue}
+      <View
+        style={[
+          { flex: 1 },
+          !inquiryDetail?.qna?.answer && { paddingBottom: 16 },
+        ]}>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={[
+            styles.content,
+            !inquiryDetail?.qna?.answer && {
+              borderBottomWidth: 1,
+              borderColor: 'rgba(135, 141, 150, 0.22)',
+            },
+          ]}>
+          <View style={{ rowGap: 8, paddingHorizontal: 16 }}>
+            <View style={styles.dateWrapper}>
+              <Text style={styles.timeText}>
+                {moment(inquiryDetail?.qna?.regDate)?.format('YYYY.MM.DD')}
               </Text>
+              <View style={styles.statusWrapperBox}>
+                <Text
+                  style={[
+                    styles.statusWrapper,
+                    {
+                      backgroundColor:
+                        PROGRESS_STATUS?.[inquiryDetail?.qna?.qnaState]
+                          ?.value === 'WAIT'
+                          ? COLORS.peach
+                          : `${COLORS.darkBlue}10`,
+                      color:
+                        PROGRESS_STATUS?.[inquiryDetail?.qna?.qnaState]
+                          ?.value === 'WAIT'
+                          ? COLORS.orange
+                          : COLORS.darkBlue,
+                    },
+                  ]}>
+                  {statusTextValue}
+                </Text>
+              </View>
             </View>
+
+            <Text style={styles.titleText}>{inquiryDetail?.qna?.title}</Text>
           </View>
 
-          <Text style={styles.titleText}>{inquiryDetail?.qna?.title}</Text>
-        </View>
-
-        {/* <Divider /> */}
-        <View
-          style={{ borderWidth: 0.5, borderColor: 'rgba(135, 141, 150, 0.22)' }}
-        />
-
-        <View style={styles.itemWrapper}>
-          <Text style={styles.contentText}>{inquiryDetail?.qna?.question}</Text>
-        </View>
-
-        <View style={{ paddingHorizontal: 16 }}>
-          <CarouselSection
-            data={inquiryDetail?.files || []}
-            onClick={openImageModal}
+          {/* <Divider /> */}
+          <View
+            style={{
+              borderWidth: 0.5,
+              borderColor: 'rgba(135, 141, 150, 0.22)',
+            }}
           />
-        </View>
 
-        {inquiryDetail?.qna?.answer && (
-          <View>
-            {/* <Divider /> */}
-            <View
-              style={{
-                borderWidth: 0.5,
-                borderColor: 'rgba(135, 141, 150, 0.22)',
-              }}
-            />
-            <View style={styles.asnwerWrapper}>
-              <SPSvgs.LetterA />
-              <Text style={styles.contentText}>
-                {inquiryDetail?.qna?.answer}
-              </Text>
-            </View>
+          <View style={styles.itemWrapper}>
+            <Text style={styles.contentText}>
+              {inquiryDetail?.qna?.question}
+            </Text>
           </View>
-        )}
-      </ScrollView>
+
+          <View
+            style={[
+              { paddingHorizontal: 16 },
+              !inquiryDetail?.qna?.answer && { paddingBottom: 16 },
+            ]}>
+            <CarouselSection
+              data={inquiryDetail?.files || []}
+              onClick={openImageModal}
+            />
+          </View>
+
+          {inquiryDetail?.qna?.answer && (
+            <View style={{ paddingBottom: 16 }}>
+              {/* <Divider /> */}
+              <View
+                style={{
+                  borderWidth: 0.5,
+                  borderColor: 'rgba(135, 141, 150, 0.22)',
+                }}
+              />
+              <View style={styles.asnwerWrapper}>
+                <SPSvgs.LetterA />
+                <Text style={styles.contentText}>
+                  {inquiryDetail?.qna?.answer}
+                </Text>
+              </View>
+            </View>
+          )}
+        </ScrollView>
+      </View>
       <Modal
         animationType="fade"
         transparent

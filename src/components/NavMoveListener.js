@@ -8,7 +8,7 @@ import { apiGetMyInfo, apiGetEventVideo } from '../api/RestAPI';
 import WalletUtils from '../utils/WalletUtils';
 import Utils from '../utils/Utils';
 
-const LinkType = {
+export const LinkType = {
   PLAYER_MANAGE: 'PLAYER_MANAGE', // 선수관리,
   ACADEMY_DETAIL: 'ACADEMY_DETAIL', // 아카데미 상세,
   REPORT: 'REPORT', // 신고내역 관리,
@@ -20,6 +20,7 @@ const LinkType = {
   MATCHING_DETAIL: 'MATCHING_DETAIL', // 매칭 상세,
   TOURNAMENT_LIST: 'TOURNAMENT_LIST', // 대회 리스트,
   TOURNAMENT_DETAIL: 'TOURNAMENT_DETAIL', // 대회 상세,
+  TOURNAMENT_APPLY_DETAIL: 'TOURNAMENT_APPLY_DETAIL', // 대회 접수 상세,
   WALLET_DETAIL: 'WALLET_DETAIL', // 지갑 상세,
   TOKEN_DETAIL: 'TOKEN_DETAIL', // 토큰 상세,
   NOTICE_LIST: 'NOTICE_LIST', // 공지사항 리스트,
@@ -35,6 +36,8 @@ const LinkType = {
   EVENT_VIDEO_DETAIL: 'EVENT_VIDEO_DETAIL', // 이벤트 영상 상세,
   INSIGHT_LIST: 'INSIGHT_LIST', // 인사이트 상세
   INSIGHT_DETAIL: 'INSIGHT_DETAIL', // 인사이트 상세
+
+  CHAT_ROOM: 'CHAT_ROOM', // 채팅방,
 };
 
 function NavMoveListener() {
@@ -101,6 +104,11 @@ function NavMoveListener() {
         case LinkType.TOURNAMENT_DETAIL:
           NavigationService.navigate(navName.tournamentDetail, {
             tournamentIdx: idx,
+          });
+          break;
+        case LinkType.TOURNAMENT_APPLY_DETAIL:
+          NavigationService.navigate(navName.tournamentApplyDetail, {
+            prtIdx: idx,
           });
           break;
         case LinkType.TOURNAMENT_QNA:
@@ -181,6 +189,12 @@ function NavMoveListener() {
             boardIdx: idx,
           });
           break;
+        case LinkType.CHAT_ROOM: {
+          NavigationService.navigate(navName.matchingChatRoomScreen, {
+            roomId: urls.slice(2).join('/'),
+          });
+          break;
+        }
         default:
           Utils.openOrMoveUrl(url);
           break;

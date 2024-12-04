@@ -174,6 +174,18 @@ import TournamentInquiryList from '../screens/tournament/TournamentInquiryList';
 import TournamentInquiryEdit from '../screens/tournament/TournamentInquiryEdit';
 import TournamentInquiryDetail from '../screens/tournament/TournamentInquiryDetail';
 import TournamentSketch from '../screens/tournament/TournamentSketch';
+import TournamentRefundRequestForm from '../screens/tournament/TournamentRefundRequestForm';
+import TournamentRefundRequest from '../screens/tournament/TournamentRefundRequest';
+import TournamentRefundRequestComplete from '../screens/tournament/TournamentRefundRequestComplete';
+import TournamentApplyDetail from '../screens/tournament/TournamentApplyDetail';
+import MoreTournamentHistory from '../screens/more/MoreTournamentHistory';
+import MoreTournamentHistoryDetail from '../screens/more/MoreTournamentHistoryDetail';
+import TournamentInfoDetail from '../screens/tournament/TournamentInfoDetail';
+import PointShop from '../screens/point/PointShop';
+import PointExchange from '../screens/point/PointExchange';
+import PointMyCoupon from '../screens/point/PointMyCoupon';
+import PointCouponDetail from '../screens/point/PointCouponDetail';
+import PointProductDetail from '../screens/point/PointProductDetail';
 
 function MatchingChatRoomListScreenComponent() {
   return <AuthLayout component={MatchingChatRoomListScreen} />;
@@ -200,6 +212,7 @@ export default function Navigation() {
         // statusBarStyle: 'light-content',
         // statusBarColor: COLORS.white,
         animation: 'none',
+        gestureEnabled: false,
       }}>
       {isLogin ? (
         <>
@@ -455,8 +468,16 @@ export default function Navigation() {
         component={MoreGameSchedule}
       />
       <Stack.Screen
+        name={navName.moreTournamentHistory}
+        component={MoreTournamentHistory}
+      />
+      <Stack.Screen
         name={navName.moreMatchDetail}
         component={MoreMatchDetail}
+      />
+      <Stack.Screen
+        name={navName.moreTournamentHistoryDetail}
+        component={MoreTournamentHistoryDetail}
       />
       <Stack.Screen name={navName.event} component={Event} />
       <Stack.Screen name={navName.eventDetail} component={EventDetail} />
@@ -538,6 +559,21 @@ export default function Navigation() {
       <Stack.Screen
         name={navName.tournamentDetail}
         component={TournamentDetail}
+      />
+      <Stack.Screen
+        name={navName.tournamentInfoDetail}
+        component={TournamentInfoDetail}
+      />
+      <Stack.Screen name={navName.pointShop} component={PointShop} />
+      <Stack.Screen name={navName.pointExchange} component={PointExchange} />
+      <Stack.Screen name={navName.pointMyCoupon} component={PointMyCoupon} />
+      <Stack.Screen
+        name={navName.pointCouponDetail}
+        component={PointCouponDetail}
+      />
+      <Stack.Screen
+        name={navName.pointProductDetail}
+        component={PointProductDetail}
       />
       <Stack.Screen name={navName.alarmPage} component={AlarmPage} />
       <Stack.Screen
@@ -679,6 +715,22 @@ export default function Navigation() {
       <Stack.Screen
         name={navName.tournamentSketch}
         component={TournamentSketch}
+      />
+      <Stack.Screen
+        name={navName.tournamentRefundRequestForm}
+        component={TournamentRefundRequestForm}
+      />
+      <Stack.Screen
+        name={navName.tournamentRefundRequest}
+        component={TournamentRefundRequest}
+      />
+      <Stack.Screen
+        name={navName.tournamentRefundRequestComplete}
+        component={TournamentRefundRequestComplete}
+      />
+      <Stack.Screen
+        name={navName.tournamentApplyDetail}
+        component={TournamentApplyDetail}
       />
     </Stack.Navigator>
   );

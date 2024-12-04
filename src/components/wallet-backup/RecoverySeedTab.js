@@ -32,7 +32,7 @@ function RecoverySeedTab({ data }) {
   const onCaptureSeed = useCallback(() => {
     viewShotRef.current.capture().then(async uri => {
       try {
-        await CameraRoll.save(uri, { type: 'photo' })
+        await CameraRoll.save(uri, { type: 'photo', album: '스포츠파이' })
           .then(e => {
             SPToast.show({ text: '복구용 시드 이미지가 저장 되었습니다.' });
           })

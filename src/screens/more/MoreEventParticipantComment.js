@@ -51,6 +51,8 @@ import { SPToast } from '../../components/SPToast';
 import BackHandlerUtils from '../../utils/BackHandlerUtils';
 import NavigationService from '../../navigation/NavigationService';
 import { PARTICIPATION_STATE } from '../../common/constants/ParticipationState';
+import SPKeyboardAvoidingView from '../../components/SPKeyboardAvoidingView';
+import { useFocusEffect } from '@react-navigation/native';
 
 function MoreEventParticipantComment() {
   const flatListRef = useRef();
@@ -84,6 +86,8 @@ function MoreEventParticipantComment() {
   const [modifyCommentModalVisible, setModifyCommentModalVisible] =
     useState(false);
   const [modifyComment, setModifyComment] = useState('');
+  const scrollPosition = useRef(0);
+  const storePosition = useRef(0);
   /**
    * api
    */
@@ -198,6 +202,7 @@ function MoreEventParticipantComment() {
     setModifyCommentModalVisible(true);
   };
 
+  // eslint-disable-next-line no-shadow
   const openModal = comment => {
     setIsMyFeed(comment.isMine);
     setSelectedItem(comment);
@@ -212,9 +217,36 @@ function MoreEventParticipantComment() {
     });
     setModifyCommentModalVisible(false);
   };
+
+  const handleScroll = event => {
+    scrollPosition.current = event.nativeEvent.contentOffset.y;
+  };
+
+  // 스크롤 위치 복원 함수
+  const restoreScrollPosition = () => {
+    if (flatListRef.current) {
+      flatListRef.current.scrollToOffset({
+        offset: storePosition.current,
+        animated: false,
+      });
+    }
+  };
+
   // --------------------------------------------------
   // [ UseEffect ]
   // --------------------------------------------------
+
+  useFocusEffect(
+    useCallback(() => {
+      setKeyboardAvoidingViewRefresh(prev => !prev);
+      setTimeout(() => {
+        restoreScrollPosition();
+      }, 100);
+      return () => {
+        storePosition.current = scrollPosition.current;
+      };
+    }, []),
+  );
 
   useEffect(() => {
     if (participantInfo?.eventIdx && participantInfo?.participationIdx) {
@@ -324,195 +356,213 @@ function MoreEventParticipantComment() {
 
   return (
     <DismissKeyboard>
-      <View style={[styles.container]}>
-        {participantInfo?.prtState === PARTICIPATION_STATE.CONFIRMED.value ? (
-          <View
-            style={{ flex: 1 }}
-            key={loading ? 'loading' : 'loaded'}
-            behavior="padding"
-            isResize
-            keyboardVerticalOffset={0}>
-            {commentList && commentList.length > 0 ? (
-              <View style={{ flex: 1 }}>
-                <View
-                  style={{
-                    paddingTop: 16,
-                    paddingHorizontal: 16,
-                    paddingBottom: 16,
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    gap: 4,
-                  }}>
-                  <View>
+      <SPKeyboardAvoidingView
+        key={
+          keyboardAvoidingViewRefresh ? 'more-event-key1' : 'more-event-key2'
+        }
+        behavior="padding"
+        isResize
+        keyboardVerticalOffset={0}>
+        <View style={[styles.container]}>
+          {participantInfo?.prtState === PARTICIPATION_STATE.CONFIRMED.value ? (
+            <View
+              style={{ flex: 1 }}
+              key={loading ? 'loading' : 'loaded'}
+              behavior="padding"
+              isResize
+              keyboardVerticalOffset={0}>
+              {commentList && commentList.length > 0 ? (
+                <View style={{ flex: 1 }}>
+                  <View
+                    style={{
+                      paddingTop: 16,
+                      paddingHorizontal: 16,
+                      paddingBottom: 16,
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      gap: 4,
+                    }}>
+                    <View>
+                      <Text
+                        style={{
+                          ...fontStyles.fontSize18_Semibold,
+                          color: '#1A1C1E',
+                        }}>
+                        나를 위한 응원 댓글
+                      </Text>
+                    </View>
+                    <View>
+                      <Text
+                        style={{
+                          ...fontStyles.fontSize16_Medium,
+                          color: 'rgba(46, 49, 53, 0.80)',
+                        }}>
+                        {`${Utils.changeNumberComma(totalCnt)}개`}
+                      </Text>
+                    </View>
+                  </View>
+                  <FlatList
+                    ref={flatListRef}
+                    data={commentList}
+                    onScroll={handleScroll}
+                    scrollEventThrottle={16}
+                    numColumns={1}
+                    renderItem={renderParticipantItem}
+                    refreshControl={
+                      <RefreshControl
+                        refreshing={refreshing}
+                        onRefresh={onRefresh}
+                      />
+                    }
+                    onEndReached={handleEndReached}
+                    onEndReachedThreshold={0.5}
+                    ListEmptyComponent={renderEmptyList}
+                    contentContainerStyle={{ paddingHorizontal: 16 }}
+                    onContentSizeChange={() => {
+                      if (
+                        page === 1 &&
+                        commentRegist &&
+                        commentList.length > 0
+                      ) {
+                        flatListRef.current.scrollToIndex({
+                          animated: false,
+                          index: 0,
+                        });
+                        setCommentRegist(false);
+                      }
+                    }}
+                  />
+                  {/* {renderInputSection()} */}
+                </View>
+              ) : loading ? (
+                <Loading />
+              ) : (
+                <View style={{ flex: 1 }}>
+                  <View
+                    style={{
+                      flex: 1,
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      gap: 16,
+                    }}>
                     <Text
                       style={{
                         ...fontStyles.fontSize18_Semibold,
-                        color: '#1A1C1E',
+                        color: '#121212',
                       }}>
-                      나를 위한 응원 댓글
+                      아직 댓글이 없습니다
                     </Text>
-                  </View>
-                  <View>
                     <Text
                       style={{
-                        ...fontStyles.fontSize16_Medium,
-                        color: 'rgba(46, 49, 53, 0.80)',
+                        ...fontStyles.fontSize12_Medium,
+                        color: 'rgba(46, 49, 53, 0.60)',
                       }}>
-                      {`${Utils.changeNumberComma(totalCnt)}개`}
+                      댓글을 기다리고 있어요!
                     </Text>
                   </View>
+                  {/* {renderInputSection()} */}
                 </View>
-                <FlatList
-                  ref={flatListRef}
-                  data={commentList}
-                  numColumns={1}
-                  renderItem={renderParticipantItem}
-                  refreshControl={
-                    <RefreshControl
-                      refreshing={refreshing}
-                      onRefresh={onRefresh}
-                    />
-                  }
-                  onEndReached={handleEndReached}
-                  onEndReachedThreshold={0.5}
-                  ListEmptyComponent={renderEmptyList}
-                  contentContainerStyle={{ paddingHorizontal: 16 }}
-                  onContentSizeChange={() => {
-                    if (page === 1 && commentRegist && commentList.length > 0) {
-                      flatListRef.current.scrollToIndex({
-                        animated: false,
-                        index: 0,
-                      });
-                      setCommentRegist(false);
-                    }
-                  }}
-                />
-                {/* {renderInputSection()} */}
-              </View>
-            ) : loading ? (
-              <Loading />
-            ) : (
-              <View style={{ flex: 1 }}>
-                <View
-                  style={{
-                    flex: 1,
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    gap: 16,
-                  }}>
-                  <Text
-                    style={{
-                      ...fontStyles.fontSize18_Semibold,
-                      color: '#121212',
-                    }}>
-                    아직 댓글이 없습니다
-                  </Text>
-                  <Text
-                    style={{
-                      ...fontStyles.fontSize12_Medium,
-                      color: 'rgba(46, 49, 53, 0.60)',
-                    }}>
-                    댓글을 기다리고 있어요!
-                  </Text>
-                </View>
-                {/* {renderInputSection()} */}
-              </View>
-            )}
+              )}
 
-            <SPMoreModal
-              visible={modalVisible}
-              onClose={closeModal}
-              isAdmin={false}
-              type={MODAL_MORE_TYPE.EVENT_COMMENT}
-              idx={selectedItem?.commentIdx}
-              targetUserIdx={selectedItem?.memberIdx}
-              onDelete={deleteComment}
-              onModify={openModifyCommentModal}
-              memberButtons={
-                isMyFeed
-                  ? [MODAL_MORE_BUTTONS.EDIT, MODAL_MORE_BUTTONS.REMOVE]
-                  : [MODAL_MORE_BUTTONS.REPORT]
-              }
-            />
-            <Modal
-              animationType="fade"
-              transparent={false}
-              visible={modifyCommentModalVisible}
-              onRequestClose={closeModifyCommentModal}>
-              <SafeAreaView style={{ flex: 1, paddingTop: insets.top }}>
-                <StatusBar
-                  backgroundColor={COLORS.white}
-                  barStyle="dark-content"
-                />
-                <SPHeader
-                  title="댓글 수정"
-                  onPressLeftBtn={closeModifyCommentModal}
-                  rightText="완료"
-                  rightTextStyle={{
-                    fontSize: 16,
-                    fontWeight: '600',
-                    color: '#313779',
-                    lineHeight: 24,
-                    letterSpacing: 0.091,
-                    minHeight: 28,
-                  }}
-                  onPressRightText={() => {
-                    if (modifyComment) {
-                      editComment();
-                    } else {
-                      Utils.openModal({
-                        title: '확인 요청',
-                        content: '댓글을 입력해주세요.',
-                      });
-                    }
-                  }}
-                />
-                <View style={{ flex: 1, padding: 16 }}>
-                  <TextInput
-                    // style={styles.textInput}
-                    // defaultValue={modifyComment}
-                    value={modifyComment}
-                    onChangeText={e => {
-                      if (e?.length > 1000) return;
-                      setModifyComment(e);
-                    }}
-                    multiline={true}
-                    placeholder="댓글을 남겨보세요.(최대 1000자)"
-                    placeholderTextColor="#1A1C1E"
-                    autoFocus={true}
-                    autoCorrect={false}
-                    autoCapitalize="none"
-                    textAlignVertical="top"
-                    retrunKeyType="next"
+              <SPMoreModal
+                visible={modalVisible}
+                onClose={closeModal}
+                isAdmin={false}
+                type={MODAL_MORE_TYPE.EVENT_COMMENT}
+                idx={selectedItem?.commentIdx}
+                targetUserIdx={selectedItem?.memberIdx}
+                onDelete={deleteComment}
+                onModify={openModifyCommentModal}
+                memberButtons={
+                  isMyFeed
+                    ? [MODAL_MORE_BUTTONS.EDIT, MODAL_MORE_BUTTONS.REMOVE]
+                    : [MODAL_MORE_BUTTONS.REPORT]
+                }
+              />
+              <Modal
+                animationType="fade"
+                transparent={false}
+                visible={modifyCommentModalVisible}
+                onRequestClose={closeModifyCommentModal}>
+                <SafeAreaView style={{ flex: 1, paddingTop: insets.top }}>
+                  <StatusBar
+                    backgroundColor={COLORS.white}
+                    barStyle="dark-content"
                   />
-                </View>
-                <Text
-                  style={{
-                    ...fontStyles.fontSize14_Regular,
-                    textAlign: 'right',
-                    padding: 16,
-                  }}>
-                  {Utils.changeNumberComma(modifyComment.length)}/1,000
-                </Text>
-              </SafeAreaView>
-            </Modal>
-            {renderInputSection()}
-          </View>
-        ) : (
-          <View
-            style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-            <Text
+                  <SPHeader
+                    title="댓글 수정"
+                    onPressLeftBtn={closeModifyCommentModal}
+                    rightText="완료"
+                    rightTextStyle={{
+                      fontSize: 16,
+                      fontWeight: '600',
+                      color: '#313779',
+                      lineHeight: 24,
+                      letterSpacing: 0.091,
+                      minHeight: 28,
+                    }}
+                    onPressRightText={() => {
+                      if (modifyComment) {
+                        editComment();
+                      } else {
+                        Utils.openModal({
+                          title: '확인 요청',
+                          content: '댓글을 입력해주세요.',
+                        });
+                      }
+                    }}
+                  />
+                  <View style={{ flex: 1, padding: 16 }}>
+                    <TextInput
+                      // style={styles.textInput}
+                      // defaultValue={modifyComment}
+                      value={modifyComment}
+                      onChangeText={e => {
+                        if (e?.length > 1000) return;
+                        setModifyComment(e);
+                      }}
+                      multiline={true}
+                      placeholder="댓글을 남겨보세요.(최대 1000자)"
+                      placeholderTextColor="#1A1C1E"
+                      autoFocus={true}
+                      autoCorrect={false}
+                      autoCapitalize="none"
+                      textAlignVertical="top"
+                      retrunKeyType="next"
+                    />
+                  </View>
+                  <Text
+                    style={{
+                      ...fontStyles.fontSize14_Regular,
+                      textAlign: 'right',
+                      padding: 16,
+                    }}>
+                    {Utils.changeNumberComma(modifyComment.length)}/1,000
+                  </Text>
+                </SafeAreaView>
+              </Modal>
+              {renderInputSection()}
+            </View>
+          ) : (
+            <View
               style={{
-                ...fontStyles.fontSize12_Medium,
-                textAlign: 'center',
-                color: 'rgba(46, 49, 53, 0.60)',
+                flex: 1,
+                justifyContent: 'center',
+                alignItems: 'center',
               }}>
-              신청이 확정되면 이 페이지를 자유롭게 이용하실 수 있어요. {`\n`}
-              조금만 기다려 주세요!
-            </Text>
-          </View>
-        )}
-      </View>
+              <Text
+                style={{
+                  ...fontStyles.fontSize12_Medium,
+                  textAlign: 'center',
+                  color: 'rgba(46, 49, 53, 0.60)',
+                }}>
+                신청이 확정되면 이 페이지를 자유롭게 이용하실 수 있어요. {`\n`}
+                조금만 기다려 주세요!
+              </Text>
+            </View>
+          )}
+        </View>
+      </SPKeyboardAvoidingView>
     </DismissKeyboard>
   );
 }

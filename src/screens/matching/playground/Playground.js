@@ -202,7 +202,7 @@ function Playground({ lat, lng, initCity, cityList }) {
     if (selectedDate && (refreshing || (!refreshing && playgroundPage > 1))) {
       getPlaygroundList();
     }
-  }, [playgroundPage, refreshing, playgroundPage]);
+  }, [playgroundPage, refreshing]);
 
   return (
     <View style={{ flex: 1 }}>

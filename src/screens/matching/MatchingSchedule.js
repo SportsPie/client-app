@@ -11,7 +11,7 @@ import {
 import { LocaleConfig } from 'react-native-calendars/src/index';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
-import { apiCityList } from '../../api/RestAPI';
+import { apiCityList, apiGetMyInfo } from '../../api/RestAPI';
 import { SPSvgs } from '../../assets/svg';
 import { navName } from '../../common/constants/navName';
 import Header from '../../components/header';
@@ -26,6 +26,7 @@ import { matchingScheduleListAction } from '../../redux/reducers/list/matchingSc
 import MatchingComponent from './MatchingComponent';
 import Tournament from '../tournament/Tournament';
 import Playground from './playground/Playground';
+import TournamentInfo from '../tournament/TournamentInfo';
 
 LocaleConfig.locales.fr = {
   monthNames: [
@@ -83,8 +84,24 @@ function MatchingSchedule({ route }) {
   const [lng, setlng] = useState();
   const [selectedCity, setSelectedCity] = useState(null);
   const [cityList, setCityList] = useState([{ id: 0, label: '전체' }]);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   const [init, setInit] = useState(false);
+
+  const getMyInfo = async () => {
+    if (!isLogin) {
+      setIsAdmin(false);
+      return;
+    }
+    try {
+      const { data } = await apiGetMyInfo();
+      if (data.data.academyAdmin || data.data.academyCreator) {
+        setIsAdmin(true);
+      }
+    } catch (error) {
+      handleError(error);
+    }
+  };
 
   const getUserAddr = async () => {
     if (isGetAddr) return;
@@ -160,6 +177,7 @@ function MatchingSchedule({ route }) {
       setActiveTab(route?.params?.activeTab || '매칭');
       NavigationService.navigate(navName.matchingSchedule);
     } else {
+      getMyInfo();
       getCityList();
       getUserAddr();
     }
@@ -170,7 +188,6 @@ function MatchingSchedule({ route }) {
   // --------------------------------------------------
   useFocusEffect(
     useCallback(() => {
-      console.log('checkNotReadChat');
       checkNotReadChat();
     }, []),
   );
@@ -189,20 +206,65 @@ function MatchingSchedule({ route }) {
       <Header
         title={activeTab}
         hideLeftIcon
-        rightContent={
-          <Pressable
-            style={{ padding: 10 }}
-            onPress={() =>
-              NavigationService.navigate(navName.matchingChatRoomListScreen)
-            }>
-            {/* 채팅이 오면 아래 빨간 점 표시된 아이콘으로 변경 */}
-            {notReadChatIsExists ? (
-              <SPSvgs.MessageRedDot />
-            ) : (
-              <SPSvgs.Message />
-            )}
-          </Pressable>
-        }
+        rightContent={() => {}}
+        {...(activeTab === '매칭'
+          ? {
+              rightContent: isAdmin ? (
+                <Pressable
+                  style={{ padding: 10 }}
+                  onPress={() =>
+                    NavigationService.navigate(
+                      navName.matchingChatRoomListScreen,
+                    )
+                  }>
+                  {/* 채팅이 오면 아래 빨간 점 표시된 아이콘으로 변경 */}
+                  {notReadChatIsExists ? (
+                    <SPSvgs.MessageRedDot />
+                  ) : (
+                    <SPSvgs.Message />
+                  )}
+                </Pressable>
+              ) : (
+                <View style={{ padding: 10 }}>
+                  <View style={{ width: 28, height: 28 }} />
+                </View>
+              ),
+            }
+          : activeTab === '대회'
+          ? {
+              rightContent: isAdmin ? (
+                <Pressable
+                  style={{ padding: 10 }}
+                  onPress={() =>
+                    NavigationService.navigate(
+                      navName.academyMatchingRegistration,
+                    )
+                  }>
+                  <SPSvgs.Record />
+                </Pressable>
+              ) : (
+                <View style={{ padding: 10 }}>
+                  <View style={{ width: 28, height: 28 }} />
+                </View>
+              ),
+            }
+          : activeTab === '대회 정보'
+          ? {
+              rightContent: (
+                <View style={{ padding: 10 }}>
+                  <View style={{ width: 28, height: 28 }} />
+                </View>
+              ),
+            }
+          : activeTab === '구장'
+          ? {
+              rightContent: (
+                <View style={{ padding: 10 }}>
+                  <View style={{ width: 28, height: 28 }} />
+                </View>
+              ),
+            }
+          : {})}
         headerContainerStyle={{
           backgroundColor: COLORS.darkBlue,
           paddingTop: insets.top,
@@ -221,6 +283,11 @@ function MatchingSchedule({ route }) {
         />
         <TabButton
           title="대회"
+          activeTab={activeTab}
+          setActiveTab={handleActiveTab}
+        />
+        <TabButton
+          title="대회 정보"
           activeTab={activeTab}
           setActiveTab={handleActiveTab}
         />
@@ -270,6 +337,21 @@ function MatchingSchedule({ route }) {
                 activeTab === '구장' ? styles.tabActive : styles.tabInActive,
               ]}>
               <Playground
+                lat={lat}
+                lng={lng}
+                initCity={selectedCity}
+                cityList={cityList}
+              />
+            </View>
+            {/* 대회 Tab */}
+            <View
+              style={[
+                styles.tabStyle,
+                activeTab === '대회 정보'
+                  ? styles.tabActive
+                  : styles.tabInActive,
+              ]}>
+              <TournamentInfo
                 lat={lat}
                 lng={lng}
                 initCity={selectedCity}
@@ -326,7 +408,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.darkBlue,
   },
   tabButton: {
-    paddingHorizontal: 12,
+    paddingHorizontal: 8,
     paddingVertical: 14,
   },
   tabText: {
